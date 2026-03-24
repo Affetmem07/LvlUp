@@ -2266,7 +2266,7 @@ function openBrowserGame(id) {
     // Set iframe source based on game id
     const iframe = document.getElementById('browserGameIframe');
     if (id === 'minesweeper') {
-        iframe.src = 'games/minesweeper.html';
+        iframe.src = '/games/minesweeper.html';
     } else {
         iframe.src = 'about:blank'; // Placeholders
     }
