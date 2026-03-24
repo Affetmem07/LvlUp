@@ -1974,9 +1974,9 @@ async function fetchGamePrices(gameTitle) {
         const slug = bestMatch.slug || '';
         console.log(`ITAD: "${gameTitle}" → "${bestMatch.title}" (skor: ${scored[0].score.toFixed(2)})`);
 
-        // Fiyatları çek (POST endpoint)
+        // Fiyatları çek (POST endpoint) — country=TR ile Türkiye bölgesi fiyatları
         const pricesRes = await fetch(
-            `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true`,
+            `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true&country=TR`,
             {
                 method: 'POST',
                 body: JSON.stringify([gameID])
@@ -2019,8 +2019,17 @@ function renderITADPricesSection(result) {
         return;
     }
 
+    // Para birimi formatlayıcı: TRY → ₺12.345,00 | USD → $12.34 | EUR → €12.34
+    const formatCurrency = (amount, currency) => {
+        try {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: 2 }).format(amount);
+        } catch {
+            return `${currency || '$'} ${amount.toFixed(2)}`;
+        }
+    };
+
     const historyLowHtml = result.historyLow?.amount != null
-        ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>${result.historyLow.currency === 'USD' ? '$' : result.historyLow.currency + ' '}${result.historyLow.amount.toFixed(2)}</strong></div>`
+        ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
         : '';
 
     // Türkiye'de popüler mağazaları filtrele, indirim oranına göre sırala, en fazla 8 göster
@@ -2035,13 +2044,13 @@ function renderITADPricesSection(result) {
         const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || '🏪';
         const cut = deal.cut || 0;
         const isDiscounted = cut > 0;
-        const currency = deal.price?.currency === 'USD' ? '$' : (deal.price?.currency || '$') + ' ';
-        const currentPrice = deal.price?.amount != null ? deal.price.amount.toFixed(2) : '?';
-        const regularPrice = deal.regular?.amount != null ? deal.regular.amount.toFixed(2) : null;
+        const priceCur = deal.price?.currency || 'USD';
+        const currentPrice = deal.price?.amount != null ? formatCurrency(deal.price.amount, priceCur) : '?';
+        const regularPrice = deal.regular?.amount != null ? formatCurrency(deal.regular.amount, priceCur) : null;
         const buyUrl = deal.url || searchUrl;
 
         const regularHtml = isDiscounted && regularPrice
-            ? `<span class="itad-regular-price">${currency}${regularPrice}</span>`
+            ? `<span class="itad-regular-price">${regularPrice}</span>`
             : '';
         const badgeHtml = isDiscounted
             ? `<span class="itad-deal-badge">-%${cut}</span>`
@@ -2054,7 +2063,7 @@ function renderITADPricesSection(result) {
                 <span class="itad-shop-name">${shopIcon} ${escapeHtml(shopName)} ${voucherHtml}</span>
                 <span class="itad-price-row">
                     ${regularHtml}
-                    <span class="itad-current-price">${currency}${currentPrice}</span>
+                    <span class="itad-current-price">${currentPrice}</span>
                     ${badgeHtml}
                 </span>
             </a>
