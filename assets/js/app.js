@@ -1924,24 +1924,48 @@ function itadTitleScore(searched, candidate) {
 // ── IsThereAnyDeal: oyun başlığına göre fiyat listesi çek ──
 async function fetchGamePrices(gameTitle) {
     try {
-        // 1. Oyunu ara → sonuçları al (daha fazla sonuç = daha iyi eşleşme şansı)
-        const searchRes = await fetch(
-            `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(gameTitle)}&results=10&key=${ITAD_API_KEY}`
-        );
-        if (!searchRes.ok) return null;
-        const games = await searchRes.json();
-        if (!games.length) return null;
+        // ITAD arama yardımcısı: sadece 'game' tiplerini döndürür
+        const itadSearch = async (query) => {
+            const res = await fetch(
+                `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(query)}&results=15&key=${ITAD_API_KEY}`
+            );
+            if (!res.ok) return [];
+            const list = await res.json();
+            return list.filter(g => g.type === 'game');
+        };
 
-        // 2. Sadece 'game' tipini al, her birini başlık benzerliğine göre puanla
-        const scored = games
-            .filter(g => g.type === 'game')
+        // Aşama 1: Orijinal başlıkla ara
+        let candidates = await itadSearch(gameTitle);
+
+        // Aşama 2: En iyi skor 0.6'nın altındaysa rakamları çıkarıp tekrar ara
+        // Örnek: "Resident Evil 9: Requiem" → "Resident Evil : Requiem" → "Resident Evil Requiem"
+        const bestScore1 = candidates.length
+            ? Math.max(...candidates.map(g => itadTitleScore(gameTitle, g.title)))
+            : 0;
+
+        if (bestScore1 < 0.6) {
+            const simplified = gameTitle
+                .replace(/\b\d+\b/g, '')   // Bağımsız rakamları sil: "9" → ""
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (simplified && simplified !== gameTitle) {
+                const candidates2 = await itadSearch(simplified);
+                // Birleştir ve tekrarları kaldır
+                const seen = new Set(candidates.map(g => g.id));
+                candidates2.forEach(g => { if (!seen.has(g.id)) { candidates.push(g); seen.add(g.id); } });
+                console.log(`ITAD: 2. geçiş → "${simplified}" (${candidates2.length} ek sonuç)`);
+            }
+        }
+
+        // Her aday için orijinal başlığa göre skor hesapla, en iyiyi seç
+        const scored = candidates
             .map(g => ({ game: g, score: itadTitleScore(gameTitle, g.title) }))
             .sort((a, b) => b.score - a.score);
 
-        // En iyi eşleşme: skor 0.5'in altındaysa ITAD'da bu oyun yok demektir → fiyat gösterme
-        const MATCH_THRESHOLD = 0.5;
+        const MATCH_THRESHOLD = 0.45;
         if (!scored.length || scored[0].score < MATCH_THRESHOLD) {
-            console.log(`ITAD: "${gameTitle}" için yeterince benzer sonuç bulunamadı (en iyi skor: ${scored[0]?.score?.toFixed(2) ?? 'N/A'})`);
+            console.log(`ITAD: "${gameTitle}" → eşleşme bulunamadı (en iyi: ${scored[0]?.score?.toFixed(2) ?? 'N/A'})`);
             return null;
         }
 
@@ -1950,7 +1974,7 @@ async function fetchGamePrices(gameTitle) {
         const slug = bestMatch.slug || '';
         console.log(`ITAD: "${gameTitle}" → "${bestMatch.title}" (skor: ${scored[0].score.toFixed(2)})`);
 
-        // 3. Fiyatları çek (POST endpoint)
+        // Fiyatları çek (POST endpoint)
         const pricesRes = await fetch(
             `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true`,
             {
@@ -1974,7 +1998,6 @@ async function fetchGamePrices(gameTitle) {
         console.error('ITAD fetch error:', e);
         return null;
     }
-
 }
 
 // ── IsThereAnyDeal: fiyat bölümünü render et ──
