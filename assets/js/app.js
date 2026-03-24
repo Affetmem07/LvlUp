@@ -1883,11 +1883,13 @@ const ITAD_API_KEY = 'e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a';
 const ITAD_BASE = 'https://api.isthereanydeal.com';
 const ITAD_SHOP_ICONS = {
     'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡', 'Humble Store': '💚',
-    'GreenManGaming': '🟢', 'Fanatical': '🔥', 'GamersGate': '🎯',
-    'GameBillet': '🏷️', 'IndieGala': '🎁', 'WinGameStore': '🪟',
-    'Nuuvem': '🌎', 'AllYouPlay': '🎲', 'DLGamer': '🎰', 'Gamesplanet': '🌐',
-    'eTail.Market': '🛒', 'Voidu': '🎪', '2Game': '2️⃣',
+    'GreenManGaming': '🟢', 'Fanatical': '🔥', 'GamersGate': '🎯', 'IndieGala': '🎁',
 };
+// Türkiye'de yaygın kullanılan mağazalar
+const TR_POPULAR_SHOPS = new Set([
+    'Steam', 'GOG', 'Epic Game Store', 'Humble Store',
+    'GreenManGaming', 'Fanatical', 'GamersGate', 'IndieGala',
+]);
 let gamesNextPageUrl = null;
 let gamesIsLoading = false;
 let gamesSearchTimeout = null;
@@ -1967,8 +1969,9 @@ function renderITADPricesSection(result) {
         ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>${result.historyLow.currency === 'USD' ? '$' : result.historyLow.currency + ' '}${result.historyLow.amount.toFixed(2)}</strong></div>`
         : '';
 
-    // İndirim oranına göre sırala, en fazla 8 göster
+    // Türkiye'de popüler mağazaları filtrele, indirim oranına göre sırala, en fazla 8 göster
     const sortedDeals = [...result.deals]
+        .filter(deal => TR_POPULAR_SHOPS.has(deal.shop?.name))
         .sort((a, b) => (b.cut || 0) - (a.cut || 0))
         .slice(0, 8);
 
