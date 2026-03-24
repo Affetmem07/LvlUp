@@ -1882,13 +1882,17 @@ const RAWG_BASE_URL = 'https://api.rawg.io/api';
 const ITAD_API_KEY = 'e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a';
 const ITAD_BASE = 'https://api.isthereanydeal.com';
 const ITAD_SHOP_ICONS = {
-    'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡', 'Humble Store': '💚',
-    'GreenManGaming': '🟢', 'Fanatical': '🔥', 'GamersGate': '🎯', 'IndieGala': '🎁',
+    'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡',
+    'Humble Store': '💚', 'Humble Bundle': '💚', 'IndieGala': '🎁',
+};
+// Görüntülenecek isim düzeltmeleri (API adı → kullanıcıya gösterilen ad)
+const ITAD_SHOP_NAME_MAP = {
+    'Humble Store': 'Humble Bundle',
 };
 // Türkiye'de yaygın kullanılan mağazalar
 const TR_POPULAR_SHOPS = new Set([
-    'Steam', 'GOG', 'Epic Game Store', 'Humble Store',
-    'GreenManGaming', 'Fanatical', 'GamersGate', 'IndieGala',
+    'Steam', 'GOG', 'Epic Game Store',
+    'Humble Store', 'Humble Bundle', 'IndieGala',
 ]);
 let gamesNextPageUrl = null;
 let gamesIsLoading = false;
@@ -1976,8 +1980,9 @@ function renderITADPricesSection(result) {
         .slice(0, 8);
 
     const dealsHtml = sortedDeals.map(deal => {
-        const shopName = deal.shop?.name || 'Mağaza';
-        const shopIcon = ITAD_SHOP_ICONS[shopName] || '🏪';
+        const shopNameRaw = deal.shop?.name || 'Mağaza';
+        const shopName = ITAD_SHOP_NAME_MAP[shopNameRaw] || shopNameRaw;
+        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || '🏪';
         const cut = deal.cut || 0;
         const isDiscounted = cut > 0;
         const currency = deal.price?.currency === 'USD' ? '$' : (deal.price?.currency || '$') + ' ';
