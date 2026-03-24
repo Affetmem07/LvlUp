@@ -1907,30 +1907,56 @@ function getTodayDate() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// ── Başlık benzerlik skoru: Dice katsayısı (0-1 arası) ──
+// İki başlığın kelime kümelerinin örtüşmesini ölçer.
+// Örnek: "Resident Evil 9: Requiem" vs "Resident Evil 4 (2005)" → ~0.5 (düşük, reddedilir)
+//        "Resident Evil 4 Remake" vs "Resident Evil 4 (2023)"    → ~0.75 (kabul edilir)
+function itadTitleScore(searched, candidate) {
+    const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    const ws = norm(searched).split(' ').filter(Boolean);
+    const wc = new Set(norm(candidate).split(' ').filter(Boolean));
+    if (ws.length === 0 || wc.size === 0) return 0;
+    const matched = ws.filter(w => wc.has(w)).length;
+    // Dice: 2 × kesişim / (|A| + |B|)
+    return (2 * matched) / (ws.length + wc.size);
+}
+
 // ── IsThereAnyDeal: oyun başlığına göre fiyat listesi çek ──
 async function fetchGamePrices(gameTitle) {
     try {
-        // 1. Oyunu ara → ITAD game ID al
+        // 1. Oyunu ara → sonuçları al (daha fazla sonuç = daha iyi eşleşme şansı)
         const searchRes = await fetch(
-            `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(gameTitle)}&results=5&key=${ITAD_API_KEY}`
+            `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(gameTitle)}&results=10&key=${ITAD_API_KEY}`
         );
         if (!searchRes.ok) return null;
         const games = await searchRes.json();
         if (!games.length) return null;
 
-        // İlk "game" tipindeki sonucu bul, yoksa ilkini al
-        const bestMatch = games.find(g => g.type === 'game') || games[0];
+        // 2. Sadece 'game' tipini al, her birini başlık benzerliğine göre puanla
+        const scored = games
+            .filter(g => g.type === 'game')
+            .map(g => ({ game: g, score: itadTitleScore(gameTitle, g.title) }))
+            .sort((a, b) => b.score - a.score);
+
+        // En iyi eşleşme: skor 0.5'in altındaysa ITAD'da bu oyun yok demektir → fiyat gösterme
+        const MATCH_THRESHOLD = 0.5;
+        if (!scored.length || scored[0].score < MATCH_THRESHOLD) {
+            console.log(`ITAD: "${gameTitle}" için yeterince benzer sonuç bulunamadı (en iyi skor: ${scored[0]?.score?.toFixed(2) ?? 'N/A'})`);
+            return null;
+        }
+
+        const bestMatch = scored[0].game;
         const gameID = bestMatch.id;
         const slug = bestMatch.slug || '';
+        console.log(`ITAD: "${gameTitle}" → "${bestMatch.title}" (skor: ${scored[0].score.toFixed(2)})`);
 
-        // 2. Fiyatları çek (POST endpoint)
+        // 3. Fiyatları çek (POST endpoint)
         const pricesRes = await fetch(
             `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true`,
             {
                 method: 'POST',
                 body: JSON.stringify([gameID])
-                // Content-Type header kaldırıldı: text/plain olarak gönderilir
-                // → CORS preflight tetiklenmez, ITAD server JSON body'yi yine de parse eder
+                // Content-Type header kaldırıldı → CORS preflight tetiklenmez
             }
         );
         if (!pricesRes.ok) return null;
@@ -1948,6 +1974,7 @@ async function fetchGamePrices(gameTitle) {
         console.error('ITAD fetch error:', e);
         return null;
     }
+
 }
 
 // ── IsThereAnyDeal: fiyat bölümünü render et ──
