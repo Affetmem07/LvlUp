@@ -1922,8 +1922,9 @@ async function fetchGamePrices(gameTitle) {
             `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true`,
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify([gameID])
+                // Content-Type header kaldırıldı: text/plain olarak gönderilir
+                // → CORS preflight tetiklenmez, ITAD server JSON body'yi yine de parse eder
             }
         );
         if (!pricesRes.ok) return null;
