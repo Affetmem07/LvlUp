@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="LvlUp - Oyun dünyasındaki en güncel haberler, incelemeler ve topluluk yorumları. Seviye atla!">
+    <title>LvlUp – Oyun Haberleri & Topluluk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="assets/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <!-- BACKGROUND: Dark Forest & Leaves -->
+    <div id="ambient-background"></div>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-left">
+            <div class="logo" id="logo">
+                <img src="assets/images/logo.png" alt="" class="logo-img">
+            </div>
+            <div class="nav-links">
+                <button class="btn btn-accent neon-circle-btn" data-page="games" onclick="navigate('games')"
+                    title="Oyunlar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="22" height="22">
+                        <line x1="6" x2="10" y1="11" y2="11"></line>
+                        <line x1="8" x2="8" y1="9" y2="13"></line>
+                        <line x1="15" x2="15.01" y1="12" y2="12"></line>
+                        <line x1="18" x2="18.01" y1="10" y2="10"></line>
+                        <path
+                            d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z">
+                        </path>
+                    </svg>
+                </button>
+                <button class="btn btn-accent neon-circle-btn" data-page="reviews" onclick="navigate('reviews')"
+                    title="İncelemeler">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="22" height="22">
+                        <circle cx="12" cy="8" r="6"></circle>
+                        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-accent neon-circle-btn" data-page="browser-games"
+                    onclick="navigate('browser-games')" title="Hazır Oyunlar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="22" height="22">
+                        <path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2Z"></path>
+                        <path d="M6 15v-2"></path>
+                        <path d="M12 15V9"></path>
+                        <circle cx="12" cy="6" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="navbar-center">
+            <div class="search-trigger" id="searchTrigger" onclick="openSearchOverlay()">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <span class="search-trigger-text">Haber, oyun veya kullanıcı ara...</span>
+                <kbd class="search-shortcut">Ctrl+K</kbd>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <div class="nav-actions">
+                <button class="btn btn-accent neon-circle-btn" id="btnPopular" data-page="popular"
+                    onclick="navigate('popular')" title="Popüler">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="22" height="22">
+                        <path
+                            d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Logged out state -->
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-ghost" id="btnLogin" onclick="openModal('loginModal')">Giriş Yap</button>
+                <button class="btn btn-primary" id="btnRegister" onclick="openModal('registerModal')">Kayıt Ol</button>
+            </div>
+            <!-- Logged in state -->
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <button class="btn btn-accent neon-circle-btn" id="btnNewPost" onclick="openModal('newPostModal')"
+                    title="Paylaş">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-accent neon-circle-btn" id="notifBell" onclick="toggleNotifications()"
+                    title="Bildirimler">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <div class="user-avatar-wrapper" id="userAvatarWrapper" onclick="showProfile()">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== MAIN LAYOUT ==================== -->
+    <div class="main-layout" id="mainLayout">
+
+        <!-- FEED -->
+        <main class="feed" id="feed">
+            <div class="feed-header" id="feedHeader">
+                <h1 id="feedTitle">Ana Sayfa</h1>
+                <div class="trending-section" id="trendingSection" style="display:none; margin-bottom: 20px;">
+                    <div class="sidebar-label" style="margin-bottom: 15px;"># TRENDLER</div>
+                    <div class="trending-tags" id="trendingTags">
+                        <span class="trend-tag">#GTA6</span>
+                        <span class="trend-tag">#EldenRing</span>
+                        <span class="trend-tag">#Valorant</span>
+                        <span class="trend-tag">#PS6</span>
+                        <span class="trend-tag">#NintendoSwitch2</span>
+                    </div>
+                </div>
+                <div id="feedTabsContainer" style="display:none;">
+                    <div class="feed-tabs">
+                        <button class="feed-tab active" data-sort="newest" onclick="sortFeed('newest')">En Yeni</button>
+                        <button class="feed-tab" data-sort="hot" onclick="sortFeed('hot')">En Çok Beğenilen</button>
+                        <button class="feed-tab" data-sort="discussed" onclick="sortFeed('discussed')">En Çok
+                            Yorumlanan</button>
+                    </div>
+                </div>
+            </div>
+            <div class="posts-container" id="postsContainer">
+                <!-- Posts rendered by JS -->
+            </div>
+        </main>
+
+        <!-- GAMES PAGE -->
+        <main class="games-page" id="gamesPage" style="display:none;">
+            <div class="games-page-header">
+                <h1 class="games-page-title">Oyunlar</h1>
+                <p class="games-page-subtitle">Tüm oyunları keşfet, incele ve ilgili gönderilere göz at</p>
+                <div class="games-search-bar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="gamesSearchInput" placeholder="Oyun ara..." oninput="filterGames()" onkeyup="filterGames()" onkeydown="if(event.key==='Enter'){event.preventDefault();clearTimeout(gamesSearchTimeout);const q=this.value.trim();if(q.length>=2){currentGameSearch=q;searchGamesFromAPI(q);}}">
+                </div>
+
+            </div>
+            <div class="games-grid" id="gamesGrid">
+                <!-- Game cards rendered by JS -->
+            </div>
+            <div class="games-loading" id="gamesLoading" style="display:none;">
+                <div class="games-loading-spinner"></div>
+                <p>Oyunlar yükleniyor...</p>
+            </div>
+        </main>
+
+        <!-- BROWSER GAMES PAGE -->
+        <main class="games-page" id="browserGamesPage" style="display:none;">
+            <div class="games-page-header">
+                <h1 class="games-page-title">Hazır Oyunlar</h1>
+                <p class="games-page-subtitle">Tarayıcı üzerinden hemen oynamaya başlayabileceğin mini oyunlar</p>
+                <div class="games-search-bar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="browserGamesSearchInput" placeholder="Hazır oyun ara..."
+                        oninput="filterBrowserGames()">
+                </div>
+                <div class="games-filter-bar" id="browserGamesFilterBar">
+                    <button class="games-filter-chip active" data-filter="all"
+                        onclick="setBrowserGameFilter('all')">Tümü</button>
+                    <button class="games-filter-chip" data-filter="action"
+                        onclick="setBrowserGameFilter('action')">Aksiyon</button>
+                    <button class="games-filter-chip" data-filter="puzzle"
+                        onclick="setBrowserGameFilter('puzzle')">Bulmaca</button>
+                    <button class="games-filter-chip" data-filter="arcade"
+                        onclick="setBrowserGameFilter('arcade')">Arcade</button>
+                </div>
+            </div>
+            <div class="games-grid" id="browserGamesGrid">
+                <!-- Browser game cards rendered by JS -->
+            </div>
+        </main>
+
+        <!-- SEARCH RESULTS PAGE -->
+        <main class="search-results-page feed" id="searchResultsPage" style="display:none;">
+            <div class="feed-header">
+                <h1 id="searchResultsTitle">Arama Sonuçları: <span id="searchResultsKeyword"
+                        style="color: var(--accent-light);"></span></h1>
+            </div>
+
+            <div id="searchResUsersContainer" style="display:none; margin-bottom: 30px;">
+                <div class="sidebar-label" style="margin-bottom: 15px;"># KULLANICILAR</div>
+                <div id="searchResUsers" style="display: flex; gap: 15px; flex-wrap: wrap;"></div>
+            </div>
+
+            <div id="searchResGamesContainer" style="display:none; margin-bottom: 30px;">
+                <div class="sidebar-label" style="margin-bottom: 15px;"># OYUNLAR</div>
+                <div class="games-grid" id="searchResGames" style="gap: 15px;"></div>
+            </div>
+
+            <div id="searchResBrowserGamesContainer" style="display:none; margin-bottom: 30px;">
+                <div class="sidebar-label" style="margin-bottom: 15px;"># HAZIR OYUNLAR</div>
+                <div class="games-grid" id="searchResBrowserGames" style="gap: 15px;"></div>
+            </div>
+
+            <div id="searchResReviewsContainer" style="display:none; margin-bottom: 30px;">
+                <div class="sidebar-label" style="margin-bottom: 15px;"># İNCELEMELER</div>
+                <div class="posts-container" id="searchResReviews"></div>
+            </div>
+
+            <div id="searchResPostsContainer" style="display:none; margin-bottom: 30px;">
+                <div class="sidebar-label" style="margin-bottom: 15px;"># GÖNDERİLER</div>
+                <div class="posts-container" id="searchResPosts"></div>
+            </div>
+
+            <div id="searchResEmpty" style="display:none; text-align:center; padding: 40px; color: var(--text-muted);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+                <h3>Hiçbir sonuç bulunamadı</h3>
+                <p>Farklı bir terimle aramayı deneyin.</p>
+            </div>
+        </main>
+
+
+        <!-- PROFILE PAGE -->
+        <main class="profile-page" id="profilePage" style="display:none;">
+            <div class="profile-banner">
+                <div class="profile-banner-pattern"></div>
+                <div class="profile-banner-glow"></div>
+            </div>
+            <div class="profile-content">
+                <div class="profile-header-section" id="profileHeaderSection"></div>
+                <div class="profile-stats-grid" id="profileStatsGrid"></div>
+                <div class="profile-tabs-wrapper" id="profileTabsWrapper">
+                    <div class="profile-tabs" id="profileTabs">
+                        <button class="profile-tab active" data-ptab="posts" onclick="switchProfileTab('posts')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                height="18">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span>Gönderilerim</span>
+                        </button>
+                        <button class="profile-tab" data-ptab="likes" onclick="switchProfileTab('likes')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                height="18">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg>
+                            <span>Beğendiklerim</span>
+                        </button>
+                        <button class="profile-tab" data-ptab="comments" onclick="switchProfileTab('comments')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                height="18">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>Yorumlarım</span>
+                        </button>
+                        <button class="profile-tab" data-ptab="bookmarks" onclick="switchProfileTab('bookmarks')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                height="18">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>Kaydedilenler</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="profile-tab-content" id="profileTabContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== EXPANDED POST OVERLAY ==================== -->
+    <div class="post-overlay" id="postOverlay" onclick="closeExpandedPost(event)">
+        <div class="expanded-post-container">
+            <div class="expanded-post" id="expandedPost">
+                <!-- Expanded post content rendered by JS -->
+            </div>
+            <div class="expanded-comments" id="expandedComments">
+                <!-- Comments rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GAME DETAIL OVERLAY ==================== -->
+    <div class="game-detail-overlay" id="gameDetailOverlay" onclick="closeGameDetail(event)">
+        <div class="game-detail-container">
+            <button class="game-detail-close" onclick="closeGameDetail()">&times;</button>
+            <div class="game-detail-hero" id="gameDetailHero">
+                <!-- Game hero section rendered by JS -->
+            </div>
+            <div class="game-detail-body">
+                <div class="game-detail-info" id="gameDetailInfo">
+                    <!-- Game detailed info rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCREENSHOT LIGHTBOX ==================== -->
+    <div class="screenshot-lightbox" id="screenshotLightbox" onclick="closeScreenshotLightbox(event)">
+        <button class="screenshot-lightbox-close" onclick="closeScreenshotLightbox()">&times;</button>
+        <button class="screenshot-lightbox-nav screenshot-lightbox-prev" onclick="navigateScreenshot(-1)">&#8249;</button>
+        <div class="screenshot-lightbox-content">
+            <img id="screenshotLightboxImg" src="" alt="Screenshot">
+            <div class="screenshot-lightbox-counter" id="screenshotLightboxCounter">1 / 1</div>
+        </div>
+        <button class="screenshot-lightbox-nav screenshot-lightbox-next" onclick="navigateScreenshot(1)">&#8250;</button>
+    </div>
+
+    <!-- ==================== BROWSER GAME OVERLAY ==================== -->
+    <div class="modal-overlay" id="browserGameOverlay" onclick="closeModalOnOverlay(event, 'browserGameOverlay')">
+        <div class="modal modal-lg"
+            style="width: 95vw; max-width: 1400px; height: 90vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+            <button class="modal-close" style="z-index: 10;" onclick="closeModal('browserGameOverlay')">&times;</button>
+            <div class="modal-header" style="margin: 20px 0 10px;">
+                <h2 id="browserGameOverlayTitle">Oyun</h2>
+            </div>
+            <div style="flex: 1; position: relative;">
+                <iframe id="browserGameIframe" src=""
+                    style="width: 100%; height: 100%; border: none; border-radius: 0 0 var(--radius-xl) var(--radius-xl);"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOGIN MODAL ==================== -->
+    <div class="modal-overlay" id="loginModal" onclick="closeModalOnOverlay(event, 'loginModal')">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            <div class="modal-header">
+                <div class="modal-logo">🎮</div>
+                <h2>Giriş Yap</h2>
+                <p>Oyun dünyasına geri dön</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">E-posta</label>
+                    <input type="email" id="loginEmail" placeholder="ornek@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Şifre</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Giriş Yap</button>
+            </form>
+            <div class="modal-footer">
+                Hesabın yok mu? <a href="#" onclick="switchModal('loginModal','registerModal')">Kayıt Ol</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== REGISTER MODAL ==================== -->
+    <div class="modal-overlay" id="registerModal" onclick="closeModalOnOverlay(event, 'registerModal')">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            <div class="modal-header">
+                <div class="modal-logo">🎮</div>
+                <h2>Kayıt Ol</h2>
+                <p>Oyun topluluğuna katıl</p>
+            </div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="regUsername">Kullanıcı Adı</label>
+                    <input type="text" id="regUsername" placeholder="GamerTag" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">E-posta</label>
+                    <input type="email" id="regEmail" placeholder="ornek@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Şifre</label>
+                    <input type="password" id="regPassword" placeholder="En az 6 karakter" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="regPasswordConfirm">Şifre Tekrar</label>
+                    <input type="password" id="regPasswordConfirm" placeholder="Şifrenizi tekrar girin" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Kayıt Ol</button>
+            </form>
+            <div class="modal-footer">
+                Zaten hesabın var mı? <a href="#" onclick="switchModal('registerModal','loginModal')">Giriş Yap</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== NEW POST MODAL ==================== -->
+    <div class="modal-overlay" id="newPostModal" onclick="closeModalOnOverlay(event, 'newPostModal')">
+        <div class="modal modal-lg">
+            <button class="modal-close" onclick="closeModal('newPostModal')">&times;</button>
+            <div class="modal-header">
+                <h2>Yeni Gönderi Oluştur</h2>
+                <p>Oyun dünyasından bir haberi paylaş</p>
+            </div>
+            <form id="newPostForm" onsubmit="handleNewPost(event)">
+                <div class="form-group">
+                    <label for="postTitle">Başlık</label>
+                    <input type="text" id="postTitle" placeholder="Haber başlığını yazın..." required>
+                </div>
+                <div class="form-group">
+                    <label for="postCategory">Kategori</label>
+                    <select id="postCategory" required>
+                        <option value="">Kategori Seçin</option>
+                        <option value="fps">FPS</option>
+                        <option value="rpg">RPG</option>
+                        <option value="moba">MOBA</option>
+                        <option value="battle-royale">Battle Royale</option>
+                        <option value="indie">Indie</option>
+                        <option value="strateji">Strateji</option>
+                        <option value="genel">Genel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="postImageUrl">Görsel URL (opsiyonel)</label>
+                    <input type="url" id="postImageUrl" placeholder="https://ornek.com/gorsel.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="postContent">İçerik</label>
+                    <textarea id="postContent" rows="6" placeholder="Haber içeriğini yazın..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="postTags">Etiketler (virgülle ayırın)</label>
+                    <input type="text" id="postTags" placeholder="#GTA6, #PlayStation, #Oyun">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Paylaş</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== EDIT PROFILE MODAL ==================== -->
+    <div class="modal-overlay" id="editProfileModal" onclick="closeModalOnOverlay(event, 'editProfileModal')">
+        <div class="modal modal-lg edit-profile-modal">
+            <button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button>
+            <div class="modal-header">
+                <div class="modal-logo" style="color: var(--accent);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                </div>
+                <h2>Profili Düzenle</h2>
+                <p>Karakterini ve istatistiklerini güncelle</p>
+            </div>
+            <form id="editProfileForm" onsubmit="handleEditProfile(event)">
+                <div class="edit-profile-grid">
+                    <!-- Sol Kolon: Temel Bilgiler ve Avatar -->
+                    <div class="edit-profile-column">
+                        <h3 class="edit-section-title">Karakter Bilgileri</h3>
+                        <div class="form-group">
+                            <label for="editUsername">Kullanıcı Adı</label>
+                            <input type="text" id="editUsername" required minlength="3">
+                        </div>
+
+                        <div class="form-group custom-select-container">
+                            <label>En Sevdiğin Oyun</label>
+                            <input type="hidden" id="editFavGame" value="">
+                            <div class="custom-select-button" id="favGameSelectBtn" onclick="toggleFavGameDropdown()">
+                                <span id="favGameSelectText">Oyun Seçilmedi</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                    fill="none">
+                                    <path d="m6 9 6 6 6-6" />
+                                </svg>
+                            </div>
+                            <div class="custom-select-menu" id="favGameSelectMenu">
+                                <div class="custom-select-search">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="14" height="14">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <path d="m21 21-4.35-4.35"></path>
+                                    </svg>
+                                    <input type="text" id="favGameSearchInput" placeholder="Oyun ara..."
+                                        oninput="filterFavGames()" autocomplete="off">
+                                </div>
+                                <div class="custom-select-options" id="favGameOptionsList">
+                                    <!-- JS will populate options -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editBio">Hakkında (Bio)</label>
+                            <textarea id="editBio" rows="3"
+                                placeholder="Kendinden bahset... Oyun tutkun, sevdiğin tür..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Sağ Kolon: Görünüm ve Medya -->
+                    <div class="edit-profile-column">
+                        <h3 class="edit-section-title">Görünüm & Medya</h3>
+                        <div class="form-group">
+                            <label for="editAvatarImage">Avatar Resmi Yükle</label>
+                            <input type="file" id="editAvatarImage" accept="image/png, image/jpeg, image/gif"
+                                class="file-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="editBannerImage">Banner Arka Planı Yükle</label>
+                            <input type="file" id="editBannerImage" accept="image/png, image/jpeg, image/gif"
+                                class="file-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Standart Avatar Rengi</label>
+                            <div class="avatar-color-picker" id="avatarColorPicker">
+                                <div class="avatar-color-option" data-gradient="0" onclick="selectAvatarColor(0)"
+                                    style="background: linear-gradient(135deg, #2D5A43, #8FBC8F)"></div>
+                                <div class="avatar-color-option" data-gradient="1" onclick="selectAvatarColor(1)"
+                                    style="background: linear-gradient(135deg, #BC6C25, #DDA15E)"></div>
+                                <div class="avatar-color-option" data-gradient="2" onclick="selectAvatarColor(2)"
+                                    style="background: linear-gradient(135deg, #606C38, #283618)"></div>
+                                <div class="avatar-color-option" data-gradient="3" onclick="selectAvatarColor(3)"
+                                    style="background: linear-gradient(135deg, #A4C639, #6BAA75)"></div>
+                                <div class="avatar-color-option" data-gradient="4" onclick="selectAvatarColor(4)"
+                                    style="background: linear-gradient(135deg, #4A3E3F, #7B6B67)"></div>
+                                <div class="avatar-color-option" data-gradient="5" onclick="selectAvatarColor(5)"
+                                    style="background: linear-gradient(135deg, #3A5A40, #588157)"></div>
+                                <div class="avatar-color-option" data-gradient="6" onclick="selectAvatarColor(6)"
+                                    style="background: linear-gradient(135deg, #344E41, #A3B18A)"></div>
+                                <div class="avatar-color-option" data-gradient="7" onclick="selectAvatarColor(7)"
+                                    style="background: linear-gradient(135deg, #354F52, #52796F)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Alt Butonlar -->
+                <div class="edit-profile-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('editProfileModal')">İptal
+                        Et</button>
+                    <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== SEARCH OVERLAY ==================== -->
+    <div class="search-overlay" id="searchOverlay" onclick="closeSearchOverlayOnBg(event)">
+        <div class="search-overlay-content">
+            <div class="search-overlay-header">
+                <svg class="search-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Aramak istediğiniz şeyi yazın..." autocomplete="off">
+                <button class="search-overlay-close" onclick="closeSearchOverlay()">ESC</button>
+            </div>
+            <div class="search-autocomplete" id="searchAutocomplete">
+                <!-- Autocomplete items rendered by JS -->
+            </div>
+            <div class="search-filtered-posts" id="searchFilteredPosts">
+                <!-- Filtered post cards rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCROLL TO TOP ==================== -->
+    <button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()" title="Yukarı Çık">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

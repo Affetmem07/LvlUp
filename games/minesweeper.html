@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mayın Tarlası</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+            background: rgb(15, 29, 23);
+            color: #f1f5f9;
+            margin: 0;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .top-panel {
+            background: rgba(15, 29, 23, 0.45);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(45, 90, 67, 0.4);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .top-left,
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .top-title {
+            color: #6BAA75;
+            margin: 0;
+            font-size: 1.6rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .diff-group {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(45, 90, 67, 0.4);
+        }
+
+        .diff-btn {
+            background: transparent;
+            color: #a4c639;
+            border: none;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diff-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .diff-btn.active {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: white;
+        }
+
+        .stats-box {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            color: #A4C639;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(45, 90, 67, 0.35);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #6BAA75, #2D5A43);
+        }
+
+        .grid-container {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .cell {
+            width: calc(min(85vw / var(--cols, 10), 65vh / var(--rows, 10)));
+            height: calc(min(85vw / var(--cols, 10), 65vh / var(--rows, 10)));
+            max-width: 35px;
+            max-height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: clamp(14px, 3.2vmin, 24px);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .cell.revealed {
+            background: rgba(15, 29, 23, 0.8);
+            cursor: default;
+        }
+
+        .cell.mine {
+            background: #8B0000;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .cell.mine.anim {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .color-1 {
+            color: #6BAA75;
+        }
+
+        .color-2 {
+            color: #A4C639;
+        }
+
+        .color-3 {
+            color: #DDA15E;
+        }
+
+        .color-4 {
+            color: #BC6C25;
+        }
+
+        .color-5 {
+            color: #8B0000;
+        }
+
+        .color-6 {
+            color: #ffeb3b;
+        }
+
+        .color-7 {
+            color: #ff9800;
+        }
+
+        .color-8 {
+            color: #f44336;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 29, 23, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            border: 2px solid #8B0000;
+            text-align: center;
+            display: none;
+            box-shadow: 0 0 50px rgba(139, 0, 0, 0.5);
+        }
+
+        .game-over h2 {
+            color: #8B0000;
+            margin-top: 0;
+        }
+
+        .game-won {
+            border-color: #A4C639;
+            box-shadow: 0 0 50px rgba(164, 198, 57, 0.3);
+        }
+
+        .game-won h2 {
+            color: #A4C639;
+        }
+
+        .show {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-panel">
+        <div class="top-left">
+            <h1 class="top-title">Mayın Tarlası</h1>
+            <div class="diff-group">
+                <button class="diff-btn active" id="btn-easy" onclick="setDifficulty('easy')">Kolay</button>
+                <button class="diff-btn" id="btn-medium" onclick="setDifficulty('medium')">Orta</button>
+                <button class="diff-btn" id="btn-hard" onclick="setDifficulty('hard')">Zor</button>
+            </div>
+        </div>
+        <div class="top-right">
+            <div class="stats-box">
+                <div title="Kalan Mayın">💣 <span id="minesText">10</span></div>
+                <div title="Geçen Süre (saniye)">⏱️ <span id="timerText">0</span></div>
+            </div>
+            <button class="btn" onclick="initGame()" title="Yeniden Başlat">🔄 Yenile</button>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="game-over" id="gameOverModal">
+        <h2 id="gameOverTitle">Oyun Bitti!</h2>
+        <p id="gameOverDesc">Mayına bastın...</p>
+        <button class="btn" onclick="initGame()" style="margin-bottom:0; margin-top:20px;">Tekrar Dene</button>
+    </div>
+
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(500, now + 0.05);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'flag') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(800, now + 0.05);
+                gainNode.gain.setValueAtTime(0.06, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'pop') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'boom') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
+                gainNode.gain.setValueAtTime(0.6, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(523.25, now + 0.1);
+                osc.frequency.setValueAtTime(659.25, now + 0.2);
+                osc.frequency.setValueAtTime(783.99, now + 0.3);
+                osc.frequency.setValueAtTime(1046.50, now + 0.4);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            } else if (type === 'lose') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(250, now + 0.2);
+                osc.frequency.setValueAtTime(200, now + 0.4);
+                osc.frequency.setValueAtTime(150, now + 0.6);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
+                osc.start(now);
+                osc.stop(now + 1.0);
+            }
+        }
+
+        let ROWS = 10;
+        let COLS = 10;
+        let MINES = 10;
+
+        function setDifficulty(level) {
+            document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + level).classList.add('active');
+
+            if (level === 'easy') { ROWS = 9; COLS = 9; MINES = 10; }
+            else if (level === 'medium') { ROWS = 16; COLS = 16; MINES = 40; }
+            else if (level === 'hard') { ROWS = 16; COLS = 30; MINES = 99; }
+            initGame();
+        }
+
+        let board = [];
+        let revealedCount = 0;
+        let flaggedCount = 0;
+        let isGameOver = false;
+        let isFirstClick = true;
+        let timer = 0;
+        let timerInterval;
+
+        const gridEl = document.getElementById('grid');
+
+        function initGame() {
+            gridEl.style.setProperty('--cols', COLS);
+            gridEl.style.setProperty('--rows', ROWS);
+            gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+
+            board = Array.from({ length: ROWS }, () =>
+                Array.from({ length: COLS }, () => ({
+                    isMine: false,
+                    isRevealed: false,
+                    isFlagged: false,
+                    neighborMines: 0
+                }))
+            );
+
+            revealedCount = 0;
+            flaggedCount = 0;
+            isGameOver = false;
+            isFirstClick = true;
+            clearInterval(timerInterval);
+            timer = 0;
+            updateStats();
+
+            document.getElementById('gameOverModal').classList.remove('show');
+            document.getElementById('gameOverModal').classList.remove('game-won');
+
+            renderBoard();
+        }
+
+        function placeMines(firstR, firstC) {
+            // Place mines
+            let minesPlaced = 0;
+            while (minesPlaced < MINES) {
+                const r = Math.floor(Math.random() * ROWS);
+                const c = Math.floor(Math.random() * COLS);
+                // Do not place a mine on the user's very first click and its 8 neighbors
+                const isSafeZone = Math.abs(r - firstR) <= 1 && Math.abs(c - firstC) <= 1;
+                if (!board[r][c].isMine && !isSafeZone) {
+                    board[r][c].isMine = true;
+                    minesPlaced++;
+                }
+            }
+
+            // Calculate neighbors
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (!board[r][c].isMine) {
+                        let count = 0;
+                        for (let i = -1; i <= 1; i++) {
+                            for (let j = -1; j <= 1; j++) {
+                                if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
+                                    if (board[r + i][c + j].isMine) count++;
+                                }
+                            }
+                        }
+                        board[r][c].neighborMines = count;
+                    }
+                }
+            }
+
+            // Start timer
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isGameOver) {
+                    timer++;
+                    updateStats();
+                }
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('minesText').innerText = MINES - flaggedCount;
+            document.getElementById('timerText').innerText = timer;
+        }
+
+        function renderBoard() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+
+                    const cellData = board[r][c];
+
+                    if (cellData.isRevealed) {
+                        cell.classList.add('revealed');
+                        if (cellData.isMine) {
+                            cell.classList.add('mine');
+                            cell.innerHTML = '💣';
+                        } else if (cellData.neighborMines > 0) {
+                            cell.innerHTML = cellData.neighborMines;
+                            cell.classList.add(`color-${cellData.neighborMines}`);
+                        }
+                    } else if (cellData.isFlagged) {
+                        cell.innerHTML = '🚩';
+                    }
+
+                    cell.addEventListener('click', () => {
+                        if (!isGameOver && !cellData.isRevealed && !cellData.isFlagged) playSound('click');
+                        reveal(r, c);
+                    });
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (!isGameOver && !cellData.isRevealed) playSound('flag');
+                        toggleFlag(r, c);
+                    });
+                    cell.addEventListener('mousedown', (e) => {
+                        if (e.button === 1) { // Middle click
+                            e.preventDefault();
+                            if (!isGameOver && cellData.isRevealed) playSound('click');
+                            chord(r, c);
+                        }
+                    });
+
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function chord(r, c) {
+            if (isGameOver || !board[r][c].isRevealed || board[r][c].neighborMines === 0) return;
+
+            let numFlags = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
+                        if (board[r + i][c + j].isFlagged) {
+                            numFlags++;
+                        }
+                    }
+                }
+            }
+
+            if (numFlags === board[r][c].neighborMines) {
+                // Reveal all unflagged and unrevealed neighbors
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
+                            if (!board[r + i][c + j].isRevealed && !board[r + i][c + j].isFlagged) {
+                                reveal(r + i, c + j);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function reveal(r, c) {
+            if (isGameOver || board[r][c].isRevealed || board[r][c].isFlagged) return;
+
+            if (isFirstClick) {
+                isFirstClick = false;
+                placeMines(r, c);
+            }
+
+            board[r][c].isRevealed = true;
+            revealedCount++;
+
+            if (board[r][c].isMine) {
+                gameOver(false, r, c);
+                return;
+            } else {
+                if (board[r][c].neighborMines === 0) {
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
+                                reveal(r + i, c + j);
+                            }
+                        }
+                    }
+                }
+                checkWin();
+            }
+            if (!isGameOver) {
+                renderBoard();
+            }
+        }
+
+        function toggleFlag(r, c) {
+            if (isGameOver || board[r][c].isRevealed) return;
+            board[r][c].isFlagged = !board[r][c].isFlagged;
+            flaggedCount += board[r][c].isFlagged ? 1 : -1;
+            updateStats();
+            renderBoard();
+        }
+
+        function gameOver(won, clickedR = -1, clickedC = -1) {
+            isGameOver = true;
+            clearInterval(timerInterval);
+
+            const modal = document.getElementById('gameOverModal');
+            document.getElementById('gameOverTitle').innerText = won ? 'Kazandın! 🏆' : 'Oyun Bitti! 💀';
+            document.getElementById('gameOverDesc').innerText = won ? `Tebrikler! Skorun: ${timer} ` : 'Mayına bastın...';
+
+            if (won) {
+                playSound('win');
+                modal.classList.add('game-won');
+                modal.classList.add('show');
+                return;
+            } else {
+                playSound('boom');
+            }
+
+            let allMines = [];
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (board[r][c].isMine) {
+                        board[r][c].isRevealed = true;
+                        if (r !== clickedR || c !== clickedC) {
+                            allMines.push({ r, c });
+                        }
+                    }
+                }
+            }
+
+            if (clickedR !== -1 && clickedC !== -1) {
+                allMines.sort((a, b) => {
+                    const distA = Math.hypot(a.r - clickedR, a.c - clickedC);
+                    const distB = Math.hypot(b.r - clickedR, b.c - clickedC);
+                    return distA - distB;
+                });
+            }
+
+            function animateMineDOM(r, c, delay) {
+                setTimeout(() => {
+                    const childIndex = r * COLS + c;
+                    const cell = gridEl.children[childIndex];
+                    if (cell && !cell.classList.contains('anim')) {
+                        cell.classList.add('revealed', 'mine', 'anim');
+                        cell.innerHTML = '💣';
+                        playSound('pop');
+                    }
+                }, delay);
+            }
+
+            let delay = 0;
+            if (clickedR !== -1 && clickedC !== -1) {
+                animateMineDOM(clickedR, clickedC, delay);
+                delay += 500;
+            }
+
+            allMines.forEach(mine => {
+                animateMineDOM(mine.r, mine.c, delay);
+                delay += 80;
+            });
+
+            setTimeout(() => {
+                playSound('lose');
+                modal.classList.add('show');
+            }, delay + 600);
+        }
+
+        function checkWin() {
+            if (revealedCount === (ROWS * COLS) - MINES) {
+                gameOver(true);
+            }
+        }
+
+        initGame();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check /d/LvlUp/assets/js/app.js)",
+      "Bash(node.exe --check \"d:\\\\LvlUp\\\\assets\\\\js\\\\app.js\")",
+      "Bash(cmd.exe /c \"node --check \"\"d:\\\\LvlUp\\\\assets\\\\js\\\\app.js\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"node --check \"\"d:\\\\LvlUp\\\\assets\\\\js\\\\app.js\"\" && echo OK\")",
+      "Bash(cmd.exe /c \"node -e \"\"require\\(''fs''\\).readFileSync\\(''d:/LvlUp/assets/js/app.js'',''utf8''\\); console.log\\(''JS OK''\\)\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"node -e \"\"try { require\\(''fs''\\).readFileSync\\(''d:/LvlUp/assets/js/app.js'',''utf8''\\); console.log\\(''OK''\\); } catch\\(e\\){ console.error\\(e.message\\); }\"\"\")",
+      "Bash(cmd.exe /c \"node -e \"\"new Function\\(require\\(''fs''\\).readFileSync\\(''d:/LvlUp/assets/js/app.js'',''utf8''\\)\\); console.log\\(''SYNTAX OK''\\);\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"node -e \"\"try{new Function\\(require\\(''fs''\\).readFileSync\\(''d:/LvlUp/assets/js/app.js'',''utf8''\\)\\);process.stdout.write\\(''OK\\\\n''\\);}catch\\(e\\){process.stdout.write\\(''ERR: ''+e.message+''\\\\n''\\);}\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"curl -s \"\"https://api.isthereanydeal.com/games/lookup/v1?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a&title=Red+Dead+Redemption+2\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"curl -v \"\"https://api.isthereanydeal.com/games/lookup/v1?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a&title=Red+Dead+Redemption+2\"\" 2>&1\")",
+      "Bash(curl -s -w \"\\\\n---HTTP_STATUS:%{http_code}---\" \"https://api.isthereanydeal.com/games/lookup/v1?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a&title=Red%20Dead%20Redemption%202\")",
+      "Bash(curl -s -w \"\\\\n---HTTP_STATUS:%{http_code}---\" -X POST \"https://api.isthereanydeal.com/games/prices/v1?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
+      "Bash(curl -s -w \"\\\\n---HTTP_STATUS:%{http_code}---\" -X POST \"https://api.isthereanydeal.com/games/prices/v3?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
+      "Bash(curl -s -X POST \"https://api.isthereanydeal.com/games/prices/v3?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
+      "WebFetch(domain:docs.isthereanydeal.com)"
+    ]
+  }
+}
