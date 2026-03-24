@@ -1,0 +1,5 @@
+# Vercel'e gönderilmeyecek dosyalar
+.git
+.claude
+plan.md
+*.md
