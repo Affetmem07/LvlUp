@@ -1877,21 +1877,16 @@ async function handleEditProfile(e) {
 const RAWG_API_KEY = '52931a33c5114be6b7a159707f66a3c2';
 const RAWG_BASE_URL = 'https://api.rawg.io/api';
 
-// ── IsThereAnyDeal API ──
+// ── IsThereAnyDeal API v2 ──
 // API anahtarı almak için: https://isthereanydeal.com/dev/app/
-// CheapShark — ücretsiz, API key gerektirmez, CORS destekli
-const CHEAPSHARK_BASE = 'https://www.cheapshark.com/api/1.0';
-const CHEAPSHARK_STORES = {
-    '1':  { name: 'Steam',            icon: '🎮' },
-    '7':  { name: 'GOG',              icon: '🔮' },
-    '25': { name: 'Epic Games Store', icon: '⚡' },
-    '11': { name: 'Humble Store',     icon: '💚' },
-    '3':  { name: 'GreenManGaming',   icon: '🟢' },
-    '13': { name: 'Fanatical',        icon: '🔥' },
-    '2':  { name: 'GamersGate',       icon: '🎯' },
-    '24': { name: 'GameBillet',       icon: '🏷️' },
-    '27': { name: 'IndieGala',        icon: '🎁' },
-    '14': { name: 'WinGameStore',     icon: '🪟' },
+const ITAD_API_KEY = 'e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a';
+const ITAD_BASE = 'https://api.isthereanydeal.com';
+const ITAD_SHOP_ICONS = {
+    'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡', 'Humble Store': '💚',
+    'GreenManGaming': '🟢', 'Fanatical': '🔥', 'GamersGate': '🎯',
+    'GameBillet': '🏷️', 'IndieGala': '🎁', 'WinGameStore': '🪟',
+    'Nuuvem': '🌎', 'AllYouPlay': '🎲', 'DLGamer': '🎰', 'Gamesplanet': '🌐',
+    'eTail.Market': '🛒', 'Voidu': '🎪', '2Game': '2️⃣',
 };
 let gamesNextPageUrl = null;
 let gamesIsLoading = false;
@@ -1906,79 +1901,101 @@ function getTodayDate() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// ── CheapShark: oyun başlığına göre fiyat listesi çek ──
+// ── IsThereAnyDeal: oyun başlığına göre fiyat listesi çek ──
 async function fetchGamePrices(gameTitle) {
     try {
-        // 1. Oyunu ara → gameID al
+        // 1. Oyunu ara → ITAD game ID al
         const searchRes = await fetch(
-            `${CHEAPSHARK_BASE}/games?title=${encodeURIComponent(gameTitle)}&limit=5`
+            `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(gameTitle)}&results=5&key=${ITAD_API_KEY}`
         );
         if (!searchRes.ok) return null;
         const games = await searchRes.json();
         if (!games.length) return null;
 
-        const { gameID } = games[0];
+        // İlk "game" tipindeki sonucu bul, yoksa ilkini al
+        const bestMatch = games.find(g => g.type === 'game') || games[0];
+        const gameID = bestMatch.id;
+        const slug = bestMatch.slug || '';
 
-        // 2. Fırsatları + tüm zamanların en düşüğünü çek
-        const detailRes = await fetch(`${CHEAPSHARK_BASE}/games?id=${gameID}`);
-        if (!detailRes.ok) return null;
-        const data = await detailRes.json();
+        // 2. Fiyatları çek (POST endpoint)
+        const pricesRes = await fetch(
+            `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([gameID])
+            }
+        );
+        if (!pricesRes.ok) return null;
+        const pricesData = await pricesRes.json();
+        const gameData = pricesData[0] || null;
 
         return {
-            deals: data.deals || [],
-            cheapestEver: data.cheapestPriceEver || null,
+            deals: gameData?.deals || [],
+            historyLow: gameData?.historyLow?.all || null,
             gameID,
+            slug,
             title: gameTitle
         };
     } catch (e) {
-        console.error('CheapShark fetch error:', e);
+        console.error('ITAD fetch error:', e);
         return null;
     }
 }
 
-// ── CheapShark: fiyat bölümünü render et ──
+// ── IsThereAnyDeal: fiyat bölümünü render et ──
 function renderITADPricesSection(result) {
     const container = document.getElementById('itadPricesSection');
     if (!container) return;
 
-    const searchUrl = `https://www.cheapshark.com/search?q=${encodeURIComponent(result?.title || '')}`;
+    const searchUrl = result?.slug
+        ? `https://isthereanydeal.com/game/${result.slug}/info/`
+        : `https://isthereanydeal.com/search/?q=${encodeURIComponent(result?.title || '')}`;
 
     if (!result?.deals?.length) {
         container.innerHTML = `
             <p class="itad-empty">Bu oyun için şu an aktif fırsat bulunamadı.</p>
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-see-more">
-                CheapShark'ta kontrol et →
+                IsThereAnyDeal'da kontrol et →
             </a>
         `;
         return;
     }
 
-    const cheapestEverHtml = result.cheapestEver?.price
-        ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>$${parseFloat(result.cheapestEver.price).toFixed(2)}</strong></div>`
+    const historyLowHtml = result.historyLow?.amount != null
+        ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>${result.historyLow.currency === 'USD' ? '$' : result.historyLow.currency + ' '}${result.historyLow.amount.toFixed(2)}</strong></div>`
         : '';
 
     // İndirim oranına göre sırala, en fazla 8 göster
     const sortedDeals = [...result.deals]
-        .sort((a, b) => parseFloat(b.savings) - parseFloat(a.savings))
+        .sort((a, b) => (b.cut || 0) - (a.cut || 0))
         .slice(0, 8);
 
     const dealsHtml = sortedDeals.map(deal => {
-        const store = CHEAPSHARK_STORES[deal.storeID] || { name: `Mağaza #${deal.storeID}`, icon: '🏪' };
-        const savings = Math.round(parseFloat(deal.savings));
-        const isDiscounted = savings > 0;
-        const buyUrl = `https://www.cheapshark.com/redirect?dealID=${encodeURIComponent(deal.dealID)}`;
-        const regularHtml = isDiscounted
-            ? `<span class="itad-regular-price">$${parseFloat(deal.retailPrice).toFixed(2)}</span>`
+        const shopName = deal.shop?.name || 'Mağaza';
+        const shopIcon = ITAD_SHOP_ICONS[shopName] || '🏪';
+        const cut = deal.cut || 0;
+        const isDiscounted = cut > 0;
+        const currency = deal.price?.currency === 'USD' ? '$' : (deal.price?.currency || '$') + ' ';
+        const currentPrice = deal.price?.amount != null ? deal.price.amount.toFixed(2) : '?';
+        const regularPrice = deal.regular?.amount != null ? deal.regular.amount.toFixed(2) : null;
+        const buyUrl = deal.url || searchUrl;
+
+        const regularHtml = isDiscounted && regularPrice
+            ? `<span class="itad-regular-price">${currency}${regularPrice}</span>`
             : '';
         const badgeHtml = isDiscounted
-            ? `<span class="itad-deal-badge">-%${savings}</span>`
+            ? `<span class="itad-deal-badge">-%${cut}</span>`
+            : '';
+        const voucherHtml = deal.voucher
+            ? `<span class="itad-voucher" title="Kupon: ${escapeHtml(deal.voucher)}">🎟️</span>`
             : '';
         return `
             <a href="${escapeHtml(buyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-deal-card${isDiscounted ? ' is-sale' : ''}">
-                <span class="itad-shop-name">${store.icon} ${escapeHtml(store.name)}</span>
+                <span class="itad-shop-name">${shopIcon} ${escapeHtml(shopName)} ${voucherHtml}</span>
                 <span class="itad-price-row">
                     ${regularHtml}
-                    <span class="itad-current-price">$${parseFloat(deal.price).toFixed(2)}</span>
+                    <span class="itad-current-price">${currency}${currentPrice}</span>
                     ${badgeHtml}
                 </span>
             </a>
@@ -1986,10 +2003,10 @@ function renderITADPricesSection(result) {
     }).join('');
 
     container.innerHTML = `
-        ${cheapestEverHtml}
+        ${historyLowHtml}
         <div class="itad-deals-grid">${dealsHtml}</div>
         <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-see-more">
-            CheapShark'ta tüm fiyatları gör →
+            IsThereAnyDeal'da tüm fiyatları gör →
         </a>
     `;
 }
@@ -2547,7 +2564,7 @@ function renderGameDetailContent(game) {
         <div class="itad-section">
             <div class="game-detail-info-label itad-header">
                 <span>💰 Fırsat &amp; Fiyatlar</span>
-                <span class="itad-powered-by">CheapShark</span>
+                <span class="itad-powered-by">IsThereAnyDeal</span>
             </div>
             <div id="itadPricesSection" class="itad-prices-section">
                 <div class="itad-loading">
