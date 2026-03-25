@@ -2453,20 +2453,27 @@ async function loadGamesWithAdvFilters() {
     loading.style.display = 'block';
 
     try {
-        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&dates=1970-01-01,${getTodayDate()}`;
+        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=30&dates=1970-01-01,${getTodayDate()}`;
         if (advFilters.ordering) url += `&ordering=${advFilters.ordering}`;
         if (advFilters.genre) url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
         if (advFilters.yearFrom) url += `&dates=${advFilters.yearFrom}-01-01,${advFilters.yearTo ? advFilters.yearTo + '-12-31' : getTodayDate()}`;
         else if (advFilters.yearTo) url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
-        if (advFilters.minRating > 0) url += `&metacritic=${advFilters.minRating},100`;
+        
+        if (advFilters.minRating > 0) {
+            url += `&metacritic=${advFilters.minRating},100`;
+        } else if (advFilters.ordering === '-released' || advFilters.ordering === 'released') {
+            // Puanı olmayan on binlerce indie oyunun listeyi boş bırakmasını önlemek için 
+            // "En Yeni" veya "En Eski" sıralamasında en azından Metacritic skorunu zorunlu kılıyoruz.
+            url += `&metacritic=1,100`;
+        }
 
         const response = await fetch(url, { signal: gamesAbortController.signal });
         if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
         if (myRequestId !== gamesRequestId) return;
 
         const data = await response.json();
-        gamesNextPageUrl = null; // disable infinite scroll for filtered results
+        gamesNextPageUrl = data.next; // Filtrelerde de sonsuz kaydırmayı aktifleştir
         allGames = (data.results || [])
             .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
             .map(mapRawgGame);
