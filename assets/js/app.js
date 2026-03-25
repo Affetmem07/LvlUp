@@ -2422,14 +2422,14 @@ function applyAdvFilters(changedField) {
     // Max her zaman Min'den büyük veya eşit olmalı
     if (maxVal > 0 && minVal > 0 && minVal > maxVal) {
         showToast('Minimum puan, maksimum puandan büyük olamaz!', 'error');
-        // Hangi alan hatalıysa onu temizle
-        if (changedField === 'min') {
-            minEl.value = '';
-            advFilters.minRating = 0;
-        } else {
-            maxEl.value = '';
-            advFilters.maxRating = 0;
-        }
+        // Hatalı alanı bir sonraki render döngüsünde temizle
+        requestAnimationFrame(() => {
+            if (changedField === 'min') {
+                minEl.value = '';
+            } else {
+                maxEl.value = '';
+            }
+        });
         return;
     }
 
