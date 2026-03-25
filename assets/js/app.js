@@ -2383,6 +2383,106 @@ function renderBrowserGamesGrid() {
     grid.innerHTML = filteredGames.map(game => renderBrowserGameCard(game)).join('');
 }
 
+// ── Advanced Game Filters ──
+let advFilters = {
+    genre: '',
+    platform: '',
+    ordering: '-metacritic',
+    minRating: 0,
+    yearFrom: '',
+    yearTo: '',
+};
+
+function toggleAdvFilter() {
+    const panel = document.getElementById('advFilterPanel');
+    const toggle = document.getElementById('advFilterToggle');
+    const isOpen = panel.classList.toggle('open');
+    toggle.classList.toggle('active', isOpen);
+}
+
+function applyAdvFilters() {
+    advFilters.genre = document.getElementById('advGenre')?.value || '';
+    advFilters.platform = document.getElementById('advPlatform')?.value || '';
+    advFilters.ordering = document.getElementById('advOrdering')?.value || '-metacritic';
+    advFilters.minRating = parseInt(document.getElementById('advMinRating')?.value || '0', 10);
+    advFilters.yearFrom = document.getElementById('advYearFrom')?.value || '';
+    advFilters.yearTo = document.getElementById('advYearTo')?.value || '';
+
+    updateAdvFilterTags();
+    loadGamesWithAdvFilters();
+}
+
+function resetAdvFilters() {
+    document.getElementById('advGenre').value = '';
+    document.getElementById('advPlatform').value = '';
+    document.getElementById('advOrdering').value = '-metacritic';
+    document.getElementById('advMinRating').value = '0';
+    document.getElementById('advYearFrom').value = '';
+    document.getElementById('advYearTo').value = '';
+    advFilters = { genre: '', platform: '', ordering: '-metacritic', minRating: 0, yearFrom: '', yearTo: '' };
+    updateAdvFilterTags();
+    loadGames();
+}
+
+function updateAdvFilterTags() {
+    const container = document.getElementById('advFilterActiveTags');
+    if (!container) return;
+    const tags = [];
+    const genreMap = { action:'Aksiyon', adventure:'Macera', 'role-playing-games-rpg':'RPG', shooter:'Nişancı', strategy:'Strateji', simulation:'Simülasyon', puzzle:'Bulmaca', sports:'Spor', racing:'Yarış', fighting:'Dövüş', indie:'Indie', platformer:'Platform' };
+    const platMap = { 4:'PC', 187:'PS5', 18:'PS4', 186:'Xbox Series X', 1:'Xbox One', 7:'Nintendo Switch', 3:'iOS', 21:'Android' };
+    const orderMap = { '-metacritic':'Puan↓', 'metacritic':'Puan↑', '-released':'En Yeni', released:'En Eski', '-added':'Popüler', '-rating':'Kullanıcı Puanı' };
+    if (advFilters.genre) tags.push(genreMap[advFilters.genre] || advFilters.genre);
+    if (advFilters.platform) tags.push(platMap[advFilters.platform] || advFilters.platform);
+    if (advFilters.ordering !== '-metacritic') tags.push(orderMap[advFilters.ordering] || advFilters.ordering);
+    if (advFilters.minRating > 0) tags.push(`${advFilters.minRating}+`);
+    if (advFilters.yearFrom) tags.push(`${advFilters.yearFrom}–`);
+    if (advFilters.yearTo) tags.push(`–${advFilters.yearTo}`);
+    container.innerHTML = tags.map(t => `<span class="adv-active-tag">${t}</span>`).join('');
+    container.style.display = tags.length ? 'flex' : 'none';
+}
+
+async function loadGamesWithAdvFilters() {
+    if (gamesAbortController) gamesAbortController.abort();
+    gamesAbortController = new AbortController();
+    const myRequestId = ++gamesRequestId;
+    gamesIsLoading = true;
+
+    const loading = document.getElementById('gamesLoading');
+    const grid = document.getElementById('gamesGrid');
+    grid.innerHTML = Array.from({ length: 12 }, () => '<div class="game-card-skeleton"></div>').join('');
+    loading.style.display = 'block';
+
+    try {
+        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&dates=1970-01-01,${getTodayDate()}`;
+        if (advFilters.ordering) url += `&ordering=${advFilters.ordering}`;
+        if (advFilters.genre) url += `&genres=${advFilters.genre}`;
+        if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
+        if (advFilters.yearFrom) url += `&dates=${advFilters.yearFrom}-01-01,${advFilters.yearTo ? advFilters.yearTo + '-12-31' : getTodayDate()}`;
+        else if (advFilters.yearTo) url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
+        if (advFilters.minRating > 0) url += `&metacritic=${advFilters.minRating},100`;
+
+        const response = await fetch(url, { signal: gamesAbortController.signal });
+        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
+        if (myRequestId !== gamesRequestId) return;
+
+        const data = await response.json();
+        gamesNextPageUrl = null; // disable infinite scroll for filtered results
+        allGames = (data.results || [])
+            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
+            .map(mapRawgGame);
+        renderGamesGrid();
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('RAWG Gelişmiş Filtre Hatası:', error);
+        showToast('Filtre uygulanırken hata oluştu!', 'error');
+    } finally {
+        if (myRequestId === gamesRequestId) {
+            loading.style.display = 'none';
+            gamesIsLoading = false;
+        }
+    }
+}
+
 // ── Render Games Grid ──
 function renderGamesGrid() {
     const grid = document.getElementById('gamesGrid');
