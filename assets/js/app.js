@@ -2388,7 +2388,7 @@ function renderBrowserGamesGrid() {
 let advFilters = {
     genre: '',
     platform: '',
-    ordering: '-added',
+    ordering: '',
     gameMode: '',
     minRating: 0,
     maxRating: 0,
@@ -2406,7 +2406,7 @@ function toggleAdvFilter() {
 function applyAdvFilters(changedField) {
     advFilters.genre = document.getElementById('advGenre')?.value || '';
     advFilters.platform = document.getElementById('advPlatform')?.value || '';
-    advFilters.ordering = document.getElementById('advOrdering')?.value || '-added';
+    advFilters.ordering = document.getElementById('advOrdering')?.value ?? '';
     advFilters.gameMode = document.getElementById('advGameMode')?.value || '';
 
     const minEl = document.getElementById('advMinRating');
@@ -2480,13 +2480,13 @@ function applyAdvFilters(changedField) {
 function resetAdvFilters() {
     document.getElementById('advGenre').value = '';
     document.getElementById('advPlatform').value = '';
-    document.getElementById('advOrdering').value = '-added';
+    document.getElementById('advOrdering').value = '';
     document.getElementById('advGameMode').value = '';
     document.getElementById('advMinRating').value = '';
     document.getElementById('advMaxRating').value = '';
     document.getElementById('advYearFrom').value = '';
     document.getElementById('advYearTo').value = '';
-    advFilters = { genre: '', platform: '', ordering: '-added', gameMode: '', minRating: 0, maxRating: 0, yearFrom: '', yearTo: '' };
+    advFilters = { genre: '', platform: '', ordering: '', gameMode: '', minRating: 0, maxRating: 0, yearFrom: '', yearTo: '' };
     updateAdvFilterTags();
     loadGames();
 }
@@ -2497,11 +2497,11 @@ function updateAdvFilterTags() {
     const tags = [];
     const genreMap = { action:'Aksiyon', adventure:'Macera', 'role-playing-games-rpg':'RPG', shooter:'Nişancı', strategy:'Strateji', simulation:'Simülasyon', puzzle:'Bulmaca', sports:'Spor', racing:'Yarış', fighting:'Dövüş', indie:'Indie', platformer:'Platform' };
     const platMap = { 4:'PC', 187:'PS5', 18:'PS4', 186:'Xbox Series X', 1:'Xbox One', 7:'Nintendo Switch', 3:'iOS', 21:'Android' };
-    const orderMap = { '-released':'En Yeni', released:'En Eski', '-added':'Popüler', '-rating':'Kullanıcı Puanı', '-updated':'Son Güncellenenler' };
+    const orderMap = { '-released':'En Yeni', released:'En Eski', '-rating':'Kullanıcı Puanı' };
     const modeMap = { singleplayer:'Tek Oyunculu', multiplayer:'Çok Oyunculu', 'co-op':'Eşli (Co-op)' };
     if (advFilters.genre) tags.push(genreMap[advFilters.genre] || advFilters.genre);
     if (advFilters.platform) tags.push(platMap[advFilters.platform] || advFilters.platform);
-    if (advFilters.ordering !== '-added') tags.push(orderMap[advFilters.ordering] || advFilters.ordering);
+    if (advFilters.ordering) tags.push(orderMap[advFilters.ordering] || advFilters.ordering); // boş = Tümü, etiket gösterme
     if (advFilters.gameMode) tags.push(modeMap[advFilters.gameMode] || advFilters.gameMode);
     if (advFilters.minRating > 0 || advFilters.maxRating > 0) {
         const minStr = advFilters.minRating > 0 ? String(advFilters.minRating) : '0';
@@ -2526,11 +2526,9 @@ async function loadGamesWithAdvFilters() {
     loading.style.display = 'block';
 
     try {
-        // Daima en yüksek puanlı oyunları almak için temel sıralama -metacritic,
-        // üzerine kullanıcının seçtiği ek sıralama uygulanır.
-        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=-metacritic&dates=1970-01-01,${getTodayDate()}`;
-        if (advFilters.ordering && advFilters.ordering !== '-added') url += `&ordering=${advFilters.ordering}`;
-        // Popüler seçiliyse ek sıralama gerekmez, base -metacritic yeterli.
+        // Tümü (ordering='') → -metacritic, diğer seçenekler direkt API'ye geçer
+        const apiOrdering = advFilters.ordering || '-metacritic';
+        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=${apiOrdering}&dates=1970-01-01,${getTodayDate()}`;
         if (advFilters.genre) url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
         if (advFilters.gameMode) url += `&tags=${advFilters.gameMode}`;
