@@ -2146,7 +2146,7 @@ async function loadGames(append = false) {
         if (append && gamesNextPageUrl) {
             url = gamesNextPageUrl;
         } else {
-            url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=1970-01-01,${getTodayDate()}`;
+            url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=-metacritic&dates=1970-01-01,${getTodayDate()}`;
         }
 
         const response = await fetch(url, { signal: gamesAbortController.signal });
@@ -2459,8 +2459,11 @@ async function loadGamesWithAdvFilters() {
     loading.style.display = 'block';
 
     try {
-        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=30&dates=1970-01-01,${getTodayDate()}`;
-        if (advFilters.ordering) url += `&ordering=${advFilters.ordering}`;
+        // Daima en yüksek puanlı oyunları almak için temel sıralama -metacritic,
+        // üzerine kullanıcının seçtiği ek sıralama uygulanır.
+        let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=-metacritic&dates=1970-01-01,${getTodayDate()}`;
+        if (advFilters.ordering && advFilters.ordering !== '-added') url += `&ordering=${advFilters.ordering}`;
+        // Popüler seçiliyse ek sıralama gerekmez, base -metacritic yeterli.
         if (advFilters.genre) url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
         if (advFilters.gameMode) url += `&tags=${advFilters.gameMode}`;
