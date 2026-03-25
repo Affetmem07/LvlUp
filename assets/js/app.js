@@ -2559,6 +2559,7 @@ function renderGameDetailContent(game) {
                     ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
                 </div>
             </div>
+            <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alınmıştır">RAWG.io'dan alınmıştır</a>
         </div>
     `;
 
