@@ -117,7 +117,11 @@
         <main class="feed" id="feed">
             <div class="feed-header" id="feedHeader">
                 <h1 id="feedTitle" class="page-pill-title">
-                    <svg id="feedTitleIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <svg id="feedTitleIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
                     <span id="feedTitleText">ANA SAYFA</span>
                 </h1>
                 <div class="trending-section" id="trendingSection" style="display:none; margin-bottom: 20px;">
@@ -148,12 +152,14 @@
         <main class="games-page" id="gamesPage" style="display:none;">
             <div class="games-page-header">
                 <h1 class="page-pill-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-                        <line x1="6" x2="10" y1="11" y2="11"/>
-                        <line x1="8" x2="8" y1="9" y2="13"/>
-                        <line x1="15" x2="15.01" y1="12" y2="12"/>
-                        <line x1="18" x2="18.01" y1="10" y2="10"/>
-                        <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="20" height="20">
+                        <line x1="6" x2="10" y1="11" y2="11" />
+                        <line x1="8" x2="8" y1="9" y2="13" />
+                        <line x1="15" x2="15.01" y1="12" y2="12" />
+                        <line x1="18" x2="18.01" y1="10" y2="10" />
+                        <path
+                            d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
                     </svg>
                     OYUNLAR
                 </h1>
@@ -162,102 +168,112 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="gamesSearchInput" placeholder="Oyun ara..." oninput="filterGames()" onkeyup="filterGames()" onkeydown="if(event.key==='Enter'){event.preventDefault();clearTimeout(gamesSearchTimeout);const q=this.value.trim();if(q.length>=2){currentGameSearch=q;searchGamesFromAPI(q);}}">
+                    <input type="text" id="gamesSearchInput" placeholder="Oyun ara..." oninput="filterGames()"
+                        onkeyup="filterGames()"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault();clearTimeout(gamesSearchTimeout);const q=this.value.trim();if(q.length>=2){currentGameSearch=q;searchGamesFromAPI(q);}}">
                 </div>
 
                 <!-- Gelişmiş Filtreleme -->
                 <div class="adv-filter-bar">
                     <button class="adv-filter-toggle" id="advFilterToggle" onclick="toggleAdvFilter()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
                             <line x1="4" y1="6" x2="20" y2="6"></line>
                             <line x1="8" y1="12" x2="16" y2="12"></line>
                             <line x1="11" y1="18" x2="13" y2="18"></line>
                         </svg>
                         Gelişmiş Filtreleme
-                        <svg class="adv-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <svg class="adv-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" width="14" height="14">
                             <path d="m6 9 6 6 6-6"></path>
                         </svg>
                     </button>
                     <div class="adv-filter-panel" id="advFilterPanel">
                         <div class="adv-filter-panel-inner">
                             <div class="adv-filter-grid">
-                            <div class="adv-filter-group">
-                                <label class="adv-filter-label">Tür</label>
-                                <select id="advGenre" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="">Tümü</option>
-                                    <option value="action">Aksiyon</option>
-                                    <option value="adventure">Macera</option>
-                                    <option value="role-playing-games-rpg">RPG</option>
-                                    <option value="shooter">Nişancı</option>
-                                    <option value="strategy">Strateji</option>
-                                    <option value="simulation">Simülasyon</option>
-                                    <option value="puzzle">Bulmaca</option>
-                                    <option value="sports">Spor</option>
-                                    <option value="racing">Yarış</option>
-                                    <option value="fighting">Dövüş</option>
-                                    <option value="indie">Indie</option>
-                                    <option value="platformer">Platform</option>
-                                </select>
-                            </div>
-                            <div class="adv-filter-group">
-                                <label class="adv-filter-label">Platform</label>
-                                <select id="advPlatform" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="">Tümü</option>
-                                    <option value="4">PC</option>
-                                    <option value="187">PS5</option>
-                                    <option value="18">PS4</option>
-                                    <option value="186">Xbox Series X</option>
-                                    <option value="1">Xbox One</option>
-                                    <option value="7">Nintendo Switch</option>
-                                    <option value="3">iOS</option>
-                                    <option value="21">Android</option>
-                                </select>
-                            </div>
-                            <div class="adv-filter-group">
-                                <label class="adv-filter-label">Sıralama</label>
-                                <select id="advOrdering" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="">Tümü</option>
-                                    <option value="-released">En Yeni</option>
-                                    <option value="released">En Eski</option>
-                                    <option value="-rating">Kullanıcı Puanı</option>
-                                </select>
-                            </div>
-                            <div class="adv-filter-group">
-                                <label class="adv-filter-label">Oyun Modu</label>
-                                <select id="advGameMode" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="">Tümü</option>
-                                    <option value="singleplayer">Tek Oyunculu</option>
-                                    <option value="multiplayer">Çok Oyunculu</option>
-                                    <option value="co-op">Eşli (Co-op)</option>
-                                </select>
-                            </div>
-                            <div class="adv-filter-group">
-                                <label class="adv-filter-label">Puan Aralığı</label>
-                                <div class="adv-year-range">
-                                    <input type="number" id="advMinRating" class="adv-filter-input" placeholder="Min" min="0" max="100" onchange="applyAdvFilters('min')">
-                                    <span class="adv-year-dash">–</span>
-                                    <input type="number" id="advMaxRating" class="adv-filter-input" placeholder="Max" min="0" max="100" onchange="applyAdvFilters('max')">
+                                <div class="adv-filter-group">
+                                    <label class="adv-filter-label">Tür</label>
+                                    <select id="advGenre" class="adv-filter-select" onchange="applyAdvFilters()">
+                                        <option value="">Tümü</option>
+                                        <option value="action">Aksiyon</option>
+                                        <option value="adventure">Macera</option>
+                                        <option value="role-playing-games-rpg">RPG</option>
+                                        <option value="shooter">Nişancı</option>
+                                        <option value="strategy">Strateji</option>
+                                        <option value="simulation">Simülasyon</option>
+                                        <option value="puzzle">Bulmaca</option>
+                                        <option value="sports">Spor</option>
+                                        <option value="racing">Yarış</option>
+                                        <option value="fighting">Dövüş</option>
+                                        <option value="indie">Indie</option>
+                                        <option value="platformer">Platform</option>
+                                    </select>
+                                </div>
+                                <div class="adv-filter-group">
+                                    <label class="adv-filter-label">Platform</label>
+                                    <select id="advPlatform" class="adv-filter-select" onchange="applyAdvFilters()">
+                                        <option value="">Tümü</option>
+                                        <option value="4">PC</option>
+                                        <option value="187">PS5</option>
+                                        <option value="18">PS4</option>
+                                        <option value="186">Xbox Series X</option>
+                                        <option value="1">Xbox One</option>
+                                        <option value="7">Nintendo Switch</option>
+                                        <option value="3">iOS</option>
+                                        <option value="21">Android</option>
+                                    </select>
+                                </div>
+                                <div class="adv-filter-group">
+                                    <label class="adv-filter-label">Sıralama</label>
+                                    <select id="advOrdering" class="adv-filter-select" onchange="applyAdvFilters()">
+                                        <option value="">Tümü</option>
+                                        <option value="-released">En Yeni</option>
+                                        <option value="released">En Eski</option>
+                                        <option value="-rating">Kullanıcı Puanı</option>
+                                    </select>
+                                </div>
+                                <div class="adv-filter-group">
+                                    <label class="adv-filter-label">Oyun Modu</label>
+                                    <select id="advGameMode" class="adv-filter-select" onchange="applyAdvFilters()">
+                                        <option value="">Tümü</option>
+                                        <option value="singleplayer">Tek Oyunculu</option>
+                                        <option value="multiplayer">Çok Oyunculu</option>
+                                        <option value="co-op">Eşli (Co-op)</option>
+                                    </select>
+                                </div>
+                                <div class="adv-filter-group">
+                                    <label class="adv-filter-label">Puan Aralığı</label>
+                                    <div class="adv-year-range">
+                                        <input type="number" id="advMinRating" class="adv-filter-input"
+                                            placeholder="Min" min="0" max="100" onchange="applyAdvFilters('min')">
+                                        <span class="adv-year-dash">–</span>
+                                        <input type="number" id="advMaxRating" class="adv-filter-input"
+                                            placeholder="Max" min="0" max="100" onchange="applyAdvFilters('max')">
+                                    </div>
+                                </div>
+                                <div class="adv-filter-group adv-filter-group--wide">
+                                    <label class="adv-filter-label">Çıkış Yılı</label>
+                                    <div class="adv-year-range">
+                                        <input type="number" id="advYearFrom" class="adv-filter-input"
+                                            placeholder="Başlangıç" min="1980" max="2026"
+                                            onchange="applyAdvFilters('yearFrom')">
+                                        <span class="adv-year-dash">–</span>
+                                        <input type="number" id="advYearTo" class="adv-filter-input" placeholder="Bitiş"
+                                            min="1980" max="2026" onchange="applyAdvFilters('yearTo')">
+                                    </div>
+                                </div>
+                                <div class="adv-filter-group adv-filter-group--reset">
+                                    <button class="adv-filter-reset" onclick="resetAdvFilters()">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            width="14" height="14">
+                                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                            <path d="M3 3v5h5"></path>
+                                        </svg>
+                                        Sıfırla
+                                    </button>
                                 </div>
                             </div>
-                            <div class="adv-filter-group adv-filter-group--wide">
-                                <label class="adv-filter-label">Çıkış Yılı</label>
-                                <div class="adv-year-range">
-                                    <input type="number" id="advYearFrom" class="adv-filter-input" placeholder="Başlangıç" min="1980" max="2026" onchange="applyAdvFilters('yearFrom')">
-                                    <span class="adv-year-dash">–</span>
-                                    <input type="number" id="advYearTo" class="adv-filter-input" placeholder="Bitiş" min="1980" max="2026" onchange="applyAdvFilters('yearTo')">
-                                </div>
-                            </div>
-                            <div class="adv-filter-group adv-filter-group--reset">
-                                <button class="adv-filter-reset" onclick="resetAdvFilters()">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                                        <path d="M3 3v5h5"></path>
-                                    </svg>
-                                    Sıfırla
-                                </button>
-                            </div>
-                        </div>
-                        <div class="adv-filter-active-tags" id="advFilterActiveTags"></div>
+                            <div class="adv-filter-active-tags" id="advFilterActiveTags"></div>
                         </div>
                     </div>
                 </div>
@@ -277,7 +293,8 @@
             <div class="bg-page-header">
                 <div class="bg-page-header-left">
                     <h1 class="page-pill-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
                             <path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2Z"></path>
                             <path d="M6 15v-2"></path>
                             <path d="M12 15V9"></path>
@@ -296,11 +313,13 @@
         <main class="search-results-page feed" id="searchResultsPage" style="display:none;">
             <div class="feed-header">
                 <h1 id="searchResultsTitle" class="page-pill-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" width="20" height="20">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    Arama Sonuçları: <span id="searchResultsKeyword" style="color: var(--accent-light); margin-left: 6px;"></span>
+                    Arama Sonuçları: <span id="searchResultsKeyword"
+                        style="color: var(--accent-light); margin-left: 6px;"></span>
                 </h1>
             </div>
 
@@ -416,12 +435,14 @@
     <!-- ==================== SCREENSHOT LIGHTBOX ==================== -->
     <div class="screenshot-lightbox" id="screenshotLightbox" onclick="closeScreenshotLightbox(event)">
         <button class="screenshot-lightbox-close" onclick="closeScreenshotLightbox()">&times;</button>
-        <button class="screenshot-lightbox-nav screenshot-lightbox-prev" onclick="navigateScreenshot(-1)">&#8249;</button>
+        <button class="screenshot-lightbox-nav screenshot-lightbox-prev"
+            onclick="navigateScreenshot(-1)">&#8249;</button>
         <div class="screenshot-lightbox-content">
             <img id="screenshotLightboxImg" src="" alt="Screenshot">
             <div class="screenshot-lightbox-counter" id="screenshotLightboxCounter">1 / 1</div>
         </div>
-        <button class="screenshot-lightbox-nav screenshot-lightbox-next" onclick="navigateScreenshot(1)">&#8250;</button>
+        <button class="screenshot-lightbox-nav screenshot-lightbox-next"
+            onclick="navigateScreenshot(1)">&#8250;</button>
     </div>
 
     <!-- ==================== BROWSER GAME OVERLAY ==================== -->
