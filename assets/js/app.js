@@ -2157,7 +2157,7 @@ async function loadGames(append = false) {
         gamesNextPageUrl = data.next;
 
         const newGames = (data.results || [])
-            .filter(g => g.background_image)
+            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
             .map(mapRawgGame);
 
         if (append) {
@@ -2220,7 +2220,7 @@ async function searchGamesFromAPI(query) {
         
         // Filter, map, then smart-sort: title matches first, then by rating
         allGames = (data.results || [])
-            .filter(g => g.background_image)
+            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
             .map(mapRawgGame)
             .sort((a, b) => {
                 const aMatch = a.title.toLowerCase().includes(queryLower) ? 1 : 0;
@@ -2854,7 +2854,7 @@ async function loadGamesWithOrdering(ordering) {
         gamesNextPageUrl = data.next;
 
         allGames = (data.results || [])
-            .filter(g => g.background_image)
+            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
             .map(mapRawgGame);
         renderGamesGrid();
     } catch (error) {
