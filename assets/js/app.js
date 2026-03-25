@@ -1306,7 +1306,7 @@ function renderSearchResultsPage(query) {
     // 3. Browser Games
     let bGames = [];
     if (typeof allBrowserGames !== 'undefined') {
-        bGames = allBrowserGames.filter(g => g.name.toLowerCase().includes(query) || (g.developer && g.developer.toLowerCase().includes(query)));
+        bGames = allBrowserGames.filter(g => g.title.toLowerCase().includes(query));
     }
     const bGamesContainer = document.getElementById('searchResBrowserGamesContainer');
     const bGamesGrid = document.getElementById('searchResBrowserGames');
@@ -2357,26 +2357,20 @@ function filterBrowserGames() {
 
 function renderBrowserGameCard(game) {
     return `
-        <div class="game-card" onclick="openBrowserGame('${game.id}')">
-            <div style="position: absolute; inset: 0; background: rgba(15, 29, 23, 0.8);"></div>
-            <img src="${game.imageUrl}" alt="${escapeHtml(game.title)}" class="game-card-cover" 
-                 loading="lazy" style="object-fit: contain; padding: 15%; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6));"
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 400%22%3E%3Crect fill=%22%231c1c28%22 width=%22300%22 height=%22400%22/%3E%3Ctext fill=%22%23666%22 font-size=%2220%22 x=%22150%22 y=%22200%22 text-anchor=%22middle%22%3E🎮%3C/text%3E%3C/svg%3E'">
-            <div class="game-card-overlay" style="background: linear-gradient(to top, rgba(15, 29, 23, 0.95), transparent);">
-                <div class="game-card-rating high" style="background: rgba(107, 170, 117, 0.2); color: #6baa75;">
-                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Oyna
-                </div>
-                <div class="game-card-info">
-                    <div class="game-card-title">${escapeHtml(game.title)}</div>
-                    <div class="game-card-meta">
-                        <span class="game-card-developer" style="color: #6baa75;">Tarayıcı Oyunu</span>
-                        <span class="game-card-year">${getCategoryName(game.category)}</span>
-                    </div>
-                    <div class="game-card-extras" style="margin-top: 6px;">
-                        <span class="game-card-genre" style="font-size: 0.75rem; white-space: normal; line-height: 1.4; opacity: 0.8;">${escapeHtml(game.description)}</span>
-                    </div>
-                </div>
+        <div class="browser-game-card" onclick="openBrowserGame('${game.id}')">
+            <div class="bgc-art">
+                <img src="${game.imageUrl}" alt="${escapeHtml(game.title)}"
+                     style="width:100%;height:100%;object-fit:contain;padding:18%;filter:drop-shadow(0 12px 28px rgba(0,0,0,0.7));"
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%230f1d17%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2240%22 x=%2250%22 y=%2255%22 text-anchor=%22middle%22%3E🎮%3C/text%3E%3C/svg%3E'">
+            </div>
+            <div class="bgc-overlay"></div>
+            <div class="bgc-badge">${escapeHtml(game.category)}</div>
+            <div class="bgc-play-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div class="bgc-footer">
+                <div class="bgc-title">${escapeHtml(game.title)}</div>
+                <div class="bgc-desc">${escapeHtml(game.description)}</div>
             </div>
         </div>
     `;
@@ -2403,26 +2397,8 @@ function openBrowserGame(id) {
 
 function renderBrowserGamesGrid() {
     const grid = document.getElementById('browserGamesGrid');
-    const searchTerm = document.getElementById('browserGamesSearchInput')?.value.toLowerCase() || '';
-
-    let filteredGames = allBrowserGames.filter(game => {
-        const matchesSearch = game.title.toLowerCase().includes(searchTerm);
-        const matchesFilter = currentBrowserGameFilter === 'all' || game.category === currentBrowserGameFilter;
-        return matchesSearch && matchesFilter;
-    });
-
-    if (filteredGames.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1 / -1;">
-                <div class="empty-state-icon">🎮</div>
-                <h3>Oyun bulunamadı</h3>
-                <p>Arama terimine veya filtreye uygun oyun bulunamadı.</p>
-            </div>
-        `;
-        return;
-    }
-
-    grid.innerHTML = filteredGames.map(game => renderBrowserGameCard(game)).join('');
+    if (!grid) return;
+    grid.innerHTML = allBrowserGames.map(game => renderBrowserGameCard(game)).join('');
 }
 
 // ── Advanced Game Filters ──

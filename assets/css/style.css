@@ -2035,6 +2035,251 @@ select {
     width: 100%;
 }
 
+/* ----------------------------------------------------------------
+   BROWSER GAMES PAGE – sıfırdan tasarım
+   ---------------------------------------------------------------- */
+.browser-games-page {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Hero Banner */
+.browser-games-hero {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin: 24px 24px 0;
+    width: calc(100% - 48px);
+    flex-shrink: 0;
+}
+
+.browser-games-hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 20% 50%, rgba(45, 90, 67, 0.55) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 30%, rgba(107, 170, 117, 0.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(164, 198, 57, 0.15) 0%, transparent 40%),
+        linear-gradient(135deg, #0a1a10 0%, #0f1d17 50%, #071410 100%);
+    animation: heroPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroPulse {
+    0%   { filter: brightness(1); }
+    100% { filter: brightness(1.15); }
+}
+
+/* floating particles in hero */
+.browser-games-hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle, rgba(107,170,117,0.18) 1px, transparent 1px),
+        radial-gradient(circle, rgba(164,198,57,0.12) 1px, transparent 1px);
+    background-size: 60px 60px, 90px 90px;
+    background-position: 0 0, 30px 30px;
+    animation: particleFloat 20s linear infinite;
+}
+
+@keyframes particleFloat {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-60px); }
+}
+
+/* decorative grid lines */
+.browser-games-hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(107,170,117,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(107,170,117,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.browser-games-hero-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 2;
+}
+
+.browser-games-hero-icon {
+    font-size: 3.2rem;
+    filter: drop-shadow(0 0 20px rgba(107,170,117,0.6));
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+}
+
+.browser-games-hero-title {
+    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #A4C639, #6BAA75, #2D5A43);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    text-shadow: none;
+    margin: 0;
+    line-height: 1;
+    -webkit-filter: drop-shadow(0 2px 16px rgba(107,170,117,0.4));
+    filter: drop-shadow(0 2px 16px rgba(107,170,117,0.4));
+}
+
+/* Game Grid – larger cards, fewer columns for browser games */
+.browser-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 24px;
+    padding: 28px 24px 40px;
+}
+
+/* ── Browser Game Card ── */
+.browser-game-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 3 / 4;
+    background: #0c1c12;
+    border: 1px solid rgba(45, 90, 67, 0.35);
+    transition: transform 0.32s cubic-bezier(.22,.68,0,1.2), box-shadow 0.32s ease, border-color 0.24s ease;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+}
+
+.browser-game-card:hover {
+    transform: translateY(-10px) scale(1.03);
+    border-color: rgba(107,170,117,0.7);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(107,170,117,0.2);
+}
+
+.bgc-art {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 40%, rgba(45,90,67,0.4) 0%, #0a1a10 100%);
+}
+
+.bgc-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(5, 15, 8, 0.97) 0%,
+        rgba(5, 15, 8, 0.55) 45%,
+        transparent 100%
+    );
+    transition: background 0.3s ease;
+}
+
+.browser-game-card:hover .bgc-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(5, 15, 8, 0.98) 0%,
+        rgba(5, 15, 8, 0.65) 55%,
+        rgba(0,0,0,0.15) 100%
+    );
+}
+
+/* Category badge */
+.bgc-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 3;
+    background: rgba(45, 90, 67, 0.75);
+    border: 1px solid rgba(107,170,117,0.5);
+    border-radius: 999px;
+    color: #a4c639;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 4px 12px;
+    backdrop-filter: blur(8px);
+    text-transform: uppercase;
+}
+
+/* Play button – shows fully on hover */
+.bgc-play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%) scale(0.7);
+    z-index: 3;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(107,170,117,0.15);
+    border: 2px solid rgba(107,170,117,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6BAA75;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.22,.68,0,1.2);
+    backdrop-filter: blur(6px);
+}
+
+.bgc-play-btn svg { margin-left: 4px; }
+
+.browser-game-card:hover .bgc-play-btn {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1);
+    background: rgba(107,170,117,0.25);
+    border-color: #6BAA75;
+    box-shadow: 0 0 28px rgba(107,170,117,0.35);
+    color: #A4C639;
+}
+
+/* Footer info */
+.bgc-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    padding: 18px 18px 20px;
+}
+
+.bgc-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.25;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+.bgc-desc {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+.browser-game-card:hover .bgc-desc {
+    max-height: 60px;
+    opacity: 1;
+}
+
 .games-page-header {
     margin-bottom: 32px;
 }

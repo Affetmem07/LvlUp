@@ -262,30 +262,15 @@
         </main>
 
         <!-- BROWSER GAMES PAGE -->
-        <main class="games-page" id="browserGamesPage" style="display:none;">
-            <div class="games-page-header">
-                <h1 class="games-page-title">Hazır Oyunlar</h1>
-                <p class="games-page-subtitle">Tarayıcı üzerinden hemen oynamaya başlayabileceğin mini oyunlar</p>
-                <div class="games-search-bar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input type="text" id="browserGamesSearchInput" placeholder="Hazır oyun ara..."
-                        oninput="filterBrowserGames()">
-                </div>
-                <div class="games-filter-bar" id="browserGamesFilterBar">
-                    <button class="games-filter-chip active" data-filter="all"
-                        onclick="setBrowserGameFilter('all')">Tümü</button>
-                    <button class="games-filter-chip" data-filter="action"
-                        onclick="setBrowserGameFilter('action')">Aksiyon</button>
-                    <button class="games-filter-chip" data-filter="puzzle"
-                        onclick="setBrowserGameFilter('puzzle')">Bulmaca</button>
-                    <button class="games-filter-chip" data-filter="arcade"
-                        onclick="setBrowserGameFilter('arcade')">Arcade</button>
+        <main id="browserGamesPage" class="browser-games-page" style="display:none;">
+            <div class="browser-games-hero">
+                <div class="browser-games-hero-bg"></div>
+                <div class="browser-games-hero-content">
+                    <div class="browser-games-hero-icon">🎮</div>
+                    <h1 class="browser-games-hero-title">Hazır Oyunlar</h1>
                 </div>
             </div>
-            <div class="games-grid" id="browserGamesGrid">
+            <div class="browser-games-grid" id="browserGamesGrid">
                 <!-- Browser game cards rendered by JS -->
             </div>
         </main>
