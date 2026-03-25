@@ -2079,6 +2079,25 @@ function renderITADPricesSection(result) {
     `;
 }
 
+// ── Shared Game Validity Check ──
+function isValidGameForDisplay(g) {
+    if (!g.background_image) return false;
+
+    // Oyunun hesaplanan puanı
+    const score = g.metacritic || Math.round((g.rating || 0) * 20);
+    if (score === 0) return false;
+
+    // Gelişmiş filtrelerde puan aralığı varsa her yerde (sonsuz kaydırmada bile) süz
+    const hasRatingFilter = advFilters?.minRating > 0 || advFilters?.maxRating > 0;
+    if (hasRatingFilter) {
+        const effectiveMin = advFilters.minRating > 0 ? advFilters.minRating : 0;
+        const effectiveMax = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
+        if (score < effectiveMin || score > effectiveMax) return false;
+    }
+
+    return true;
+}
+
 // ── Map RAWG API response to internal game format ──
 function mapRawgGame(rawgGame) {
     const releaseDate = rawgGame.released || '';
@@ -2157,7 +2176,7 @@ async function loadGames(append = false) {
         gamesNextPageUrl = data.next;
 
         const newGames = (data.results || [])
-            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
+            .filter(isValidGameForDisplay)
             .map(mapRawgGame)
             .sort((a, b) => b.rating - a.rating);
 
@@ -2221,7 +2240,7 @@ async function searchGamesFromAPI(query) {
         
         // Filter, map, then smart-sort: title matches first, then by rating
         allGames = (data.results || [])
-            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
+            .filter(isValidGameForDisplay)
             .map(mapRawgGame)
             .sort((a, b) => {
                 const aMatch = a.title.toLowerCase().includes(queryLower) ? 1 : 0;
@@ -2554,21 +2573,8 @@ async function loadGamesWithAdvFilters() {
         const data = await response.json();
         gamesNextPageUrl = data.next;
 
-        const hasRatingFilter = advFilters.minRating > 0 || advFilters.maxRating > 0;
-        const effectiveMin = advFilters.minRating > 0 ? advFilters.minRating : 0;
-        const effectiveMax = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
-
         const mapped = (data.results || [])
-            .filter(g => {
-                if (!g.background_image) return false;
-                // Oyunun hesaplanan puanı: Metacritic varsa onu kullan, yoksa RAWG kullanıcı puanını 100'lük sisteme çevir
-                const score = g.metacritic || Math.round((g.rating || 0) * 20);
-                // En azından bir puanı olsun (tamamen puansız oyunları eliyoruz)
-                if (score === 0) return false;
-                // Puan aralığı filtresi — tamamen client-side
-                if (hasRatingFilter && (score < effectiveMin || score > effectiveMax)) return false;
-                return true;
-            })
+            .filter(isValidGameForDisplay)
             .map(mapRawgGame);
 
         // Sadece "Tümü" seçiliyken (ordering='') client-side puan sıralaması uygula.
