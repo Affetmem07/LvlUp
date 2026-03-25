@@ -2062,35 +2062,28 @@ select {
     gap: 6px;
 }
 
-.bg-page-eyebrow {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--accent-light);
-    opacity: 0.75;
-}
-
 .bg-page-title {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
-    font-size: 2.4rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--accent-light) 0%, var(--neon-green) 50%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-    line-height: 1.1;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 28px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(164, 198, 57, 0.4);
+    background: rgba(45, 90, 67, 0.4); 
+    color: var(--neon-green);
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-transform: uppercase;
     letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(164, 198, 57, 0.15);
+    margin: 0;
 }
 
-.bg-page-divider {
-    width: 64px;
-    height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 60%, transparent 100%);
-    margin-top: 4px;
-    box-shadow: 0 0 10px var(--accent-glow);
+.bg-page-title svg {
+    flex-shrink: 0;
+    color: var(--neon-green);
+    filter: drop-shadow(0 0 6px rgba(164, 198, 57, 0.4));
 }
 
 .bg-page-count {
