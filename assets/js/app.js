@@ -2408,8 +2408,30 @@ function applyAdvFilters() {
     advFilters.platform = document.getElementById('advPlatform')?.value || '';
     advFilters.ordering = document.getElementById('advOrdering')?.value || '-added';
     advFilters.gameMode = document.getElementById('advGameMode')?.value || '';
-    advFilters.minRating = parseInt(document.getElementById('advMinRating')?.value || '0', 10) || 0;
-    advFilters.maxRating = parseInt(document.getElementById('advMaxRating')?.value || '0', 10) || 0;
+
+    const minEl = document.getElementById('advMinRating');
+    const maxEl = document.getElementById('advMaxRating');
+
+    let minVal = parseInt(minEl?.value || '0', 10) || 0;
+    let maxVal = parseInt(maxEl?.value || '0', 10) || 0;
+
+    // 100'ü geçemesin
+    minVal = Math.min(Math.max(minVal, 0), 100);
+    maxVal = Math.min(Math.max(maxVal, 0), 100);
+
+    // Max her zaman Min'den büyük veya eşit olmalı
+    if (maxVal > 0 && minVal > 0 && minVal > maxVal) {
+        [minVal, maxVal] = [maxVal, minVal];
+        minEl.value = minVal;
+        maxEl.value = maxVal;
+    }
+
+    // Sınırlanmış değerleri inputlara yaz
+    if (minEl?.value) minEl.value = minVal;
+    if (maxEl?.value) maxEl.value = maxVal;
+
+    advFilters.minRating = minVal;
+    advFilters.maxRating = maxVal;
     advFilters.yearFrom = document.getElementById('advYearFrom')?.value || '';
     advFilters.yearTo = document.getElementById('advYearTo')?.value || '';
 
