@@ -127,6 +127,7 @@
             justify-content: center;
             align-items: center;
             padding-bottom: 20px;
+            box-sizing: border-box;
         }
 
         .grid {
@@ -243,6 +244,130 @@
         .show {
             display: block !important;
         }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 8px 10px;
+                overflow: hidden;
+            }
+
+            .grid-container {
+                overflow: auto;
+                align-items: flex-start;
+                justify-content: safe center;
+                padding: 4px 0;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .grid {
+                margin: auto;
+                flex-shrink: 0;
+            }
+
+            .cell {
+                width: max(calc(92vw / var(--cols, 10)), 26px);
+                height: max(calc(92vw / var(--cols, 10)), 26px);
+                max-width: none;
+                max-height: none;
+                min-width: 26px;
+                min-height: 26px;
+                font-size: clamp(11px, 2.5vmin, 20px);
+                border-radius: 3px;
+            }
+
+            .top-panel {
+                padding: 8px 12px;
+                margin-bottom: 8px;
+                gap: 8px;
+                flex-wrap: nowrap;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .top-left,
+            .top-right {
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+
+            .top-title {
+                display: none;
+            }
+
+            .diff-btn {
+                padding: 6px 10px;
+                font-size: 0.82rem;
+            }
+
+            .stats-box {
+                gap: 10px;
+                font-size: 0.95rem;
+                padding: 6px 10px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+
+            .game-over {
+                padding: 24px 20px;
+                width: 80vw;
+                max-width: 320px;
+            }
+
+            .mobile-controls {
+                padding: 8px 10px 10px;
+            }
+
+            .mobile-btn {
+                padding: 11px 14px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            display: flex;
+            gap: 12px;
+            padding: 10px 20px 14px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .mobile-btn {
+            flex: 1;
+            max-width: 220px;
+            padding: 13px 20px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            font-family: inherit;
+            border: 2px solid rgba(45, 90, 67, 0.4);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #a4c639;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .mobile-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-btn.active {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: white;
+            border-color: #6BAA75;
+            box-shadow: 0 0 14px rgba(107, 170, 117, 0.45);
+        }
     </style>
 </head>
 
@@ -268,6 +393,15 @@
 
     <div class="grid-container">
         <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="mobile-controls">
+        <button class="mobile-btn active" id="digBtn" onclick="setMobileMode('dig')">
+            ⛏️ Kürek
+        </button>
+        <button class="mobile-btn" id="flagBtn" onclick="setMobileMode('flag')">
+            🚩 Bayrak
+        </button>
     </div>
 
     <div class="game-over" id="gameOverModal">
@@ -368,6 +502,13 @@
         let isFirstClick = true;
         let timer = 0;
         let timerInterval;
+        let mobileMode = 'dig';
+
+        function setMobileMode(mode) {
+            mobileMode = mode;
+            document.getElementById('digBtn').classList.toggle('active', mode === 'dig');
+            document.getElementById('flagBtn').classList.toggle('active', mode === 'flag');
+        }
 
         const gridEl = document.getElementById('grid');
 
@@ -470,8 +611,23 @@
                     }
 
                     cell.addEventListener('click', () => {
-                        if (!isGameOver && !cellData.isRevealed && !cellData.isFlagged) playSound('click');
-                        reveal(r, c);
+                        if (isGameOver) return;
+
+                        // Açık sayı hücresine tıklama → orta tuş (chord)
+                        if (cellData.isRevealed && cellData.neighborMines > 0) {
+                            playSound('click');
+                            chord(r, c);
+                            return;
+                        }
+                        if (cellData.isRevealed) return;
+
+                        if (mobileMode === 'flag') {
+                            playSound('flag');
+                            toggleFlag(r, c);
+                        } else {
+                            if (!cellData.isFlagged) playSound('click');
+                            reveal(r, c);
+                        }
                     });
                     cell.addEventListener('contextmenu', (e) => {
                         e.preventDefault();

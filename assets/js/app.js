@@ -23,6 +23,17 @@ function setStore(key, value) {
 let currentUser = getStore(STORAGE_KEYS.currentUser);
 let allPosts = getStore(STORAGE_KEYS.posts) || [];
 let allUsers = getStore(STORAGE_KEYS.users) || [];
+
+// O(1) user lookup map — rebuild whenever allUsers changes
+let userMap = new Map(allUsers.map(u => [u.id, u]));
+function rebuildUserMap() { userMap = new Map(allUsers.map(u => [u.id, u])); }
+
+const AVATAR_GRADIENTS_LIST = [
+    'linear-gradient(135deg, #2D5A43, #8FBC8F)',
+    'linear-gradient(135deg, #BC6C25, #DDA15E)',
+    'linear-gradient(135deg, #606C38, #283618)',
+    'linear-gradient(135deg, #A4C639, #6BAA75)',
+];
 let currentPage = 'home';
 let currentSort = 'newest';
 let currentCategory = null;
@@ -57,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `url("data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' fill='%230D2614' xmlns='http://www.w3.org/2000/svg'><path d='M12 22C12 22 20 18 20 10C20 6 16 2 12 2C8 2 4 6 4 10C4 18 12 22 12 22Z'/></svg>")`
         ];
 
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 18; i++) {
             const leaf = document.createElement('div');
             leaf.classList.add('leaf');
             leaf.style.backgroundImage = leafIcons[Math.floor(Math.random() * leafIcons.length)];
@@ -106,20 +117,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logo click → home
     document.getElementById('logo').addEventListener('click', () => navigate('home'));
 
-    // Scroll to top button visibility
+    // Scroll to top button visibility (throttled via rAF)
     const scrollBtn = document.getElementById('scrollToTop');
+    let scrollRafPending = false;
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            scrollBtn.classList.add('visible');
-        } else {
-            scrollBtn.classList.remove('visible');
-        }
+        if (scrollRafPending) return;
+        scrollRafPending = true;
+        requestAnimationFrame(() => {
+            scrollBtn.classList.toggle('visible', window.scrollY > 300);
+            scrollRafPending = false;
+        });
     }, { passive: true });
 });
 
 // ── Scroll to Top ──
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Mobile Bottom Nav Actions ──
+function mobileNavAction() {
+    if (currentUser) {
+        openModal('newPostModal');
+    } else {
+        openModal('loginModal');
+    }
+}
+
+function mobileNavProfile() {
+    if (currentUser) {
+        navigate('profile');
+    } else {
+        openModal('loginModal');
+    }
 }
 
 // ── Seed Data ──
@@ -263,6 +293,7 @@ function seedData() {
     allPosts = demoPosts;
     setStore(STORAGE_KEYS.users, allUsers);
     setStore(STORAGE_KEYS.posts, allPosts);
+    rebuildUserMap();
 }
 
 // ── Auth UI Update ──
@@ -343,6 +374,7 @@ function handleRegister(e) {
 
     allUsers.push(newUser);
     setStore(STORAGE_KEYS.users, allUsers);
+    rebuildUserMap();
     currentUser = newUser;
     setStore(STORAGE_KEYS.currentUser, currentUser);
     updateAuthUI();
@@ -424,6 +456,11 @@ function navigate(page) {
     document.querySelectorAll('.sidebar-item[data-category]').forEach(el => {
         el.classList.remove('active');
     });
+
+    // Update mobile bottom nav active state
+    const mbnMap = { home: 'mbnHome', games: 'mbnGames', 'browser-games': 'mbnBrowserGames', profile: 'mbnProfile' };
+    document.querySelectorAll('.mbn-item').forEach(el => el.classList.remove('active'));
+    if (mbnMap[page]) document.getElementById(mbnMap[page])?.classList.add('active');
 
     const titles = {
         home: 'Ana Sayfa',
@@ -628,30 +665,23 @@ function renderFeed() {
 }
 
 function renderPostCard(post) {
-    const author = allUsers.find(u => u.id === post.userId) || { username: 'Bilinmeyen', id: '' };
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
     const initial = author.username.charAt(0).toUpperCase();
     const isLiked = currentUser && post.likes.includes(currentUser.id);
     const isBookmarked = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
     const timeAgo = getTimeAgo(post.date);
     const topComments = post.comments.slice(-2);
 
-    // Avatar colors per user
-    const avatarGradients = [
-        'linear-gradient(135deg, #2D5A43, #8FBC8F)',
-        'linear-gradient(135deg, #BC6C25, #DDA15E)',
-        'linear-gradient(135deg, #606C38, #283618)',
-        'linear-gradient(135deg, #A4C639, #6BAA75)',
-    ];
-    const gradientIndex = author.avatarGradient !== undefined ? author.avatarGradient : (author.id ? parseInt(author.id.replace('u', '')) % avatarGradients.length : 0);
+    const gradientIndex = author.avatarGradient !== undefined ? author.avatarGradient : (author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0);
     const customAvatarStyle = author.avatarImage
         ? `background-image: url('${author.avatarImage}'); background-size: cover; background-position: center;`
-        : `background: ${AVATAR_GRADIENTS[gradientIndex] || avatarGradients[gradientIndex]};`;
+        : `background: ${AVATAR_GRADIENTS[gradientIndex] || AVATAR_GRADIENTS_LIST[gradientIndex]};`;
     const avatarContent = author.avatarImage ? '' : initial;
 
     let commentsPreview = '';
     if (topComments.length > 0) {
         const commentsHtml = topComments.map(c => {
-            const cAuthor = allUsers.find(u => u.id === c.userId) || { username: 'Bilinmeyen' };
+            const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
             return `<div class="preview-comment">
                 <span class="preview-comment-author">${escapeHtml(cAuthor.username)}</span>
                 <span class="preview-comment-text">${escapeHtml(c.text)}</span>
@@ -725,20 +755,10 @@ function expandPost(postId) {
     const post = allPosts.find(p => p.id === postId);
     if (!post) return;
 
-    const author = allUsers.find(u => u.id === post.userId) || { username: 'Bilinmeyen' };
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen' };
     const isLiked = currentUser && post.likes.includes(currentUser.id);
 
-    const avatarGradients = [
-        'linear-gradient(135deg, #2D5A43, #8FBC8F)',
-        'linear-gradient(135deg, #BC6C25, #DDA15E)',
-        'linear-gradient(135deg, #606C38, #283618)',
-        'linear-gradient(135deg, #A4C639, #6BAA75)',
-        'linear-gradient(135deg, #4A3E3F, #7B6B67)',
-        'linear-gradient(135deg, #3A5A40, #588157)',
-        'linear-gradient(135deg, #344E41, #A3B18A)',
-        'linear-gradient(135deg, #354F52, #52796F)',
-    ];
-    const gradientIndex = author.id ? parseInt(author.id.replace('u', '')) % avatarGradients.length : 0;
+    const gradientIndex = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
 
     // Render expanded post content
     document.getElementById('expandedPost').innerHTML = `
@@ -772,9 +792,9 @@ function expandPost(postId) {
 
     // Render comments panel
     const commentsHtml = post.comments.map(c => {
-        const cAuthor = allUsers.find(u => u.id === c.userId) || { username: 'Bilinmeyen' };
+        const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
         const cLiked = currentUser && c.likes.includes(currentUser.id);
-        const cIdx = cAuthor.id ? parseInt(cAuthor.id.replace('u', '')) % avatarGradients.length : 0;
+        const cIdx = cAuthor.id ? parseInt(cAuthor.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
         return `
             <div class="comment-item">
                 <div class="comment-avatar" style="background:${avatarGradients[cIdx]}">${cAuthor.username.charAt(0).toUpperCase()}</div>
@@ -1007,6 +1027,7 @@ function bookmarkPost(postId, event) {
     if (userIdx !== -1) allUsers[userIdx] = { ...currentUser };
     setStore(STORAGE_KEYS.users, allUsers);
     setStore(STORAGE_KEYS.currentUser, currentUser);
+    rebuildUserMap();
     refreshCurrentView();
 }
 
@@ -1141,24 +1162,13 @@ function handleSearchOverlayInput() {
         getCategoryName(p.category).toLowerCase().includes(query)
     ).slice(0, 6);
 
-    const avatarGradients = [
-        'linear-gradient(135deg, #2D5A43, #8FBC8F)',
-        'linear-gradient(135deg, #BC6C25, #DDA15E)',
-        'linear-gradient(135deg, #606C38, #283618)',
-        'linear-gradient(135deg, #A4C639, #6BAA75)',
-        'linear-gradient(135deg, #4A3E3F, #7B6B67)',
-        'linear-gradient(135deg, #3A5A40, #588157)',
-        'linear-gradient(135deg, #344E41, #A3B18A)',
-        'linear-gradient(135deg, #354F52, #52796F)',
-    ];
-
     if (filteredPosts.length > 0) {
         filteredPostsEl.innerHTML = `
             <div class="filtered-posts-label">İçerikler (${filteredPosts.length} sonuç)</div>
             ${filteredPosts.map(p => {
-            const author = allUsers.find(u => u.id === p.userId) || { username: 'Bilinmeyen', id: 'u0' };
+            const author = userMap.get(p.userId) || { username: 'Bilinmeyen', id: 'u0' };
             const initial = author.username.charAt(0).toUpperCase();
-            const gIdx = author.id ? parseInt(author.id.replace('u', '')) % avatarGradients.length : 0;
+            const gIdx = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
             const snippet = getSnippet(p.content, query);
             return `
                     <div class="filtered-post-item" onclick="selectSearchPost('${p.id}')">
@@ -1878,6 +1888,7 @@ async function handleEditProfile(e) {
     if (userIdx !== -1) allUsers[userIdx] = { ...currentUser };
     setStore(STORAGE_KEYS.users, allUsers);
     setStore(STORAGE_KEYS.currentUser, currentUser);
+    rebuildUserMap();
     updateAuthUI();
     refreshCurrentView();
     closeModal('editProfileModal');
@@ -1926,75 +1937,119 @@ function getTodayDate() {
 // Örnek: "Resident Evil 9: Requiem" vs "Resident Evil 4 (2005)" → ~0.5 (düşük, reddedilir)
 //        "Resident Evil 4 Remake" vs "Resident Evil 4 (2023)"    → ~0.75 (kabul edilir)
 function itadTitleScore(searched, candidate) {
-    const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
-    const ws = norm(searched).split(' ').filter(Boolean);
-    const wc = new Set(norm(candidate).split(' ').filter(Boolean));
+    // Roma rakamlarını Arap rakamlarına çevir: "Part II" → "Part 2"
+    const ROMAN = { i:1, ii:2, iii:3, iv:4, v:5, vi:6, vii:7, viii:8, ix:9, x:10 };
+    const norm = s => s.toLowerCase()
+        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map(w => ROMAN[w] !== undefined ? String(ROMAN[w]) : w)
+        .join(' ');
+
+    const ns = norm(searched);
+    const nc = norm(candidate);
+
+    // Tam eşleşme → maksimum skor (ör. "The Last of Us Part I" = "Part 1")
+    if (ns === nc) return 1.0;
+
+    const ws  = ns.split(' ').filter(Boolean);
+    const wcA = nc.split(' ').filter(Boolean);
+    const wc  = new Set(wcA);
+
     if (ws.length === 0 || wc.size === 0) return 0;
+
     const matched = ws.filter(w => wc.has(w)).length;
-    // Dice: 2 × kesişim / (|A| + |B|)
-    return (2 * matched) / (ws.length + wc.size);
+    const dice = (2 * matched) / (ws.length + wcA.length);
+
+    // Aday başlık aranandan uzunsa kelime oranı kadar ceza uygula
+    // "Minecraft" vs "Minecraft Dungeons": 0.667 × 0.5 = 0.333 → reddedilir
+    const lengthPenalty = wcA.length > ws.length ? ws.length / wcA.length : 1;
+
+    return dice * lengthPenalty;
 }
 
 // ── IsThereAnyDeal: oyun başlığına göre fiyat listesi çek ──
-async function fetchGamePrices(gameTitle) {
+async function fetchGamePrices(gameTitle, rawgId) {
     try {
-        // ITAD arama yardımcısı: sadece 'game' tiplerini döndürür
-        const itadSearch = async (query) => {
-            const res = await fetch(
-                `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(query)}&results=15&key=${ITAD_API_KEY}`
-            );
-            if (!res.ok) return [];
-            const list = await res.json();
-            return list.filter(g => g.type === 'game');
-        };
+        let itadGameId = null;
+        let itadSlug = null;
 
-        // Aşama 1: Orijinal başlıkla ara
-        let candidates = await itadSearch(gameTitle);
+        // ── Aşama 1: RAWG'dan Steam ID al → ITAD'da birebir lookup ──
+        if (rawgId) {
+            try {
+                const storesRes = await fetch(`${RAWG_BASE_URL}/games/${rawgId}/stores?key=${RAWG_API_KEY}`);
+                if (storesRes.ok) {
+                    const storesData = await storesRes.json();
+                    const steamEntry = (storesData.results || []).find(s => s.store_id === 1);
+                    if (steamEntry?.url) {
+                        const m = steamEntry.url.match(/\/app\/(\d+)/);
+                        if (m) {
+                            const steamAppId = m[1];
+                            const lookupRes = await fetch(
+                                `${ITAD_BASE}/games/lookup/v1?key=${ITAD_API_KEY}&shop=steam&game_id=${steamAppId}`
+                            );
+                            if (lookupRes.ok) {
+                                const lookupData = await lookupRes.json();
+                                if (lookupData?.game?.id) {
+                                    itadGameId = lookupData.game.id;
+                                    itadSlug   = lookupData.game.slug || '';
+                                    console.log(`ITAD: Steam ID ${steamAppId} → "${lookupData.game.title}"`);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) { /* Steam lookup başarısız, title search'e geç */ }
+        }
 
-        // Aşama 2: En iyi skor 0.6'nın altındaysa rakamları çıkarıp tekrar ara
-        // Örnek: "Resident Evil 9: Requiem" → "Resident Evil : Requiem" → "Resident Evil Requiem"
-        const bestScore1 = candidates.length
-            ? Math.max(...candidates.map(g => itadTitleScore(gameTitle, g.title)))
-            : 0;
+        // ── Aşama 2: Steam ID bulunamazsa title search (fallback) ──
+        if (!itadGameId) {
+            const itadSearch = async (query) => {
+                const res = await fetch(
+                    `${ITAD_BASE}/games/search/v1?title=${encodeURIComponent(query)}&results=15&key=${ITAD_API_KEY}`
+                );
+                if (!res.ok) return [];
+                return (await res.json()).filter(g => g.type === 'game');
+            };
 
-        if (bestScore1 < 0.6) {
-            const simplified = gameTitle
-                .replace(/\b\d+\b/g, '')   // Bağımsız rakamları sil: "9" → ""
-                .replace(/\s+/g, ' ')
-                .trim();
+            let candidates = await itadSearch(gameTitle);
 
-            if (simplified && simplified !== gameTitle) {
-                const candidates2 = await itadSearch(simplified);
-                // Birleştir ve tekrarları kaldır
-                const seen = new Set(candidates.map(g => g.id));
-                candidates2.forEach(g => { if (!seen.has(g.id)) { candidates.push(g); seen.add(g.id); } });
-                console.log(`ITAD: 2. geçiş → "${simplified}" (${candidates2.length} ek sonuç)`);
+            const bestScore1 = candidates.length
+                ? Math.max(...candidates.map(g => itadTitleScore(gameTitle, g.title)))
+                : 0;
+
+            if (bestScore1 < 0.6) {
+                const simplified = gameTitle.replace(/\b\d+\b/g, '').replace(/\s+/g, ' ').trim();
+                if (simplified && simplified !== gameTitle) {
+                    const c2 = await itadSearch(simplified);
+                    const seen = new Set(candidates.map(g => g.id));
+                    c2.forEach(g => { if (!seen.has(g.id)) { candidates.push(g); seen.add(g.id); } });
+                }
             }
+
+            const scored = candidates
+                .map(g => ({ game: g, score: itadTitleScore(gameTitle, g.title) }))
+                .sort((a, b) => b.score - a.score);
+
+            const MATCH_THRESHOLD = 0.45;
+            if (!scored.length || scored[0].score < MATCH_THRESHOLD) {
+                console.log(`ITAD: "${gameTitle}" → eşleşme bulunamadı`);
+                return null;
+            }
+
+            itadGameId = scored[0].game.id;
+            itadSlug   = scored[0].game.slug || '';
+            console.log(`ITAD title match: "${gameTitle}" → "${scored[0].game.title}" (${scored[0].score.toFixed(2)})`);
         }
 
-        // Her aday için orijinal başlığa göre skor hesapla, en iyiyi seç
-        const scored = candidates
-            .map(g => ({ game: g, score: itadTitleScore(gameTitle, g.title) }))
-            .sort((a, b) => b.score - a.score);
-
-        const MATCH_THRESHOLD = 0.45;
-        if (!scored.length || scored[0].score < MATCH_THRESHOLD) {
-            console.log(`ITAD: "${gameTitle}" → eşleşme bulunamadı (en iyi: ${scored[0]?.score?.toFixed(2) ?? 'N/A'})`);
-            return null;
-        }
-
-        const bestMatch = scored[0].game;
-        const gameID = bestMatch.id;
-        const slug = bestMatch.slug || '';
-        console.log(`ITAD: "${gameTitle}" → "${bestMatch.title}" (skor: ${scored[0].score.toFixed(2)})`);
-
-        // Fiyatları çek (POST endpoint) — country=TR ile Türkiye bölgesi fiyatları
+        // ── Aşama 3: Fiyatları çek ──
         const pricesRes = await fetch(
             `${ITAD_BASE}/games/prices/v3?key=${ITAD_API_KEY}&nondeals=true&vouchers=true&country=TR`,
             {
                 method: 'POST',
-                body: JSON.stringify([gameID])
-                // Content-Type header kaldırıldı → CORS preflight tetiklenmez
+                body: JSON.stringify([itadGameId])
             }
         );
         if (!pricesRes.ok) return null;
@@ -2004,8 +2059,8 @@ async function fetchGamePrices(gameTitle) {
         return {
             deals: gameData?.deals || [],
             historyLow: gameData?.historyLow?.all || null,
-            gameID,
-            slug,
+            gameID: itadGameId,
+            slug: itadSlug,
             title: gameTitle
         };
     } catch (e) {
@@ -2315,6 +2370,8 @@ async function fetchGameDetails(gameId) {
             allGames[gameIndex].description = cleanDescription;
             allGames[gameIndex].developer = (detail.developers || []).map(d => d.name).join(', ') || 'Bilinmiyor';
             allGames[gameIndex].publisher = (detail.publishers || []).map(p => p.name).join(', ') || 'Bilinmiyor';
+            allGames[gameIndex].developerData = (detail.developers || []).map(d => ({ name: d.name, slug: d.slug }));
+            allGames[gameIndex].publisherData = (detail.publishers || []).map(p => ({ name: p.name, slug: p.slug }));
             allGames[gameIndex].backgroundUrl = detail.background_image_additional || detail.background_image || allGames[gameIndex].coverUrl;
             allGames[gameIndex].website = detail.website || '';
             allGames[gameIndex].redditUrl = detail.reddit_url || '';
@@ -2329,6 +2386,21 @@ async function fetchGameDetails(gameId) {
             if (detail.esrb_rating) {
                 allGames[gameIndex].esrbRating = detail.esrb_rating.name;
             }
+
+            // Extract system requirements
+            const requirements = [];
+            if (detail.platforms) {
+                detail.platforms.forEach(p => {
+                    if (p.requirements && (p.requirements.minimum || p.requirements.recommended)) {
+                        requirements.push({
+                            platform: p.platform.name,
+                            minimum: p.requirements.minimum || '',
+                            recommended: p.requirements.recommended || ''
+                        });
+                    }
+                });
+            }
+            allGames[gameIndex].systemRequirements = requirements;
 
             // Fetch screenshots
             try {
@@ -2717,6 +2789,9 @@ async function openGameDetail(gameId) {
     let game = allGames.find(g => g.id === String(gameId));
     if (!game) return;
 
+    // If creator overlay is open, close it first
+    document.getElementById('creatorOverlay').classList.remove('active');
+
     // Show overlay immediately with basic data
     renderGameDetailContent(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
@@ -2740,13 +2815,13 @@ async function openGameDetail(gameId) {
     }
 
     // Fiyatları paralel olarak çek ve güncelle
-    fetchGamePrices(game.title).then(result => renderITADPricesSection(result));
+    fetchGamePrices(game.title, game.rawgId || game.id).then(result => renderITADPricesSection(result));
 }
 
 // ── Render Game Detail Content ──
 function renderGameDetailContent(game) {
     const ratingClass = getRatingClass(game.rating);
-    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
 
     // Hero section
     document.getElementById('gameDetailHero').innerHTML = `
@@ -2759,31 +2834,24 @@ function renderGameDetailContent(game) {
                 ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">📷 ${game.screenshots.length}</div>` : ''}
             </div>
             <div class="game-detail-hero-info">
+                <div class="game-detail-genres">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
                 <h2 class="game-detail-title">${escapeHtml(game.title)}</h2>
                 <div class="game-detail-hero-meta">
                     <span class="game-detail-developer">${escapeHtml(game.developer || 'Yükleniyor...')}</span>
                     <span class="game-detail-year-badge">${game.releaseYear || 'TBA'}</span>
                     ${game.rating > 0 ? `
-                        <span class="game-detail-rating-large ${ratingClass}">
-                            ${starSvg}
-                            ${game.rating}/100
-                        </span>
+                        <span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>
                     ` : `
-                        <span class="game-detail-rating-large medium">
-                            ⭐ Henüz Puanlanmadı
-                        </span>
+                        <span class="game-detail-rating-large medium">⭐ Henüz Puanlanmadı</span>
                     `}
-                </div>
-                <div class="game-detail-genres">
-                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                    ${game.esrbRating ? `<span class="game-detail-esrb-badge">${escapeHtml(game.esrbRating)}</span>` : ''}
                 </div>
             </div>
-            <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alınmıştır">RAWG.io'dan alınmıştır</a>
         </div>
+        <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alınmıştır">RAWG.io</a>
     `;
-
-    // Info section
-    const platformIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>';
 
     const description = game.description || 'Açıklama yükleniyor...';
     const developer = game.developer || 'Yükleniyor...';
@@ -2791,67 +2859,87 @@ function renderGameDetailContent(game) {
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <p class="game-detail-description">${escapeHtml(description)}</p>
-        <div class="game-detail-stats">
-            <div class="game-detail-stat">
-                <div class="game-detail-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
-                <div class="game-detail-stat-label">Metacritic</div>
-            </div>
-            <div class="game-detail-stat">
-                <div class="game-detail-stat-value">${game.rawRating ? game.rawRating.toFixed(1) + '/5' : '—'}</div>
-                <div class="game-detail-stat-label">Kullanıcı Puanı</div>
-            </div>
-            <div class="game-detail-stat">
-                <div class="game-detail-stat-value">${game.releaseYear || 'TBA'}</div>
-                <div class="game-detail-stat-label">Çıkış Yılı</div>
-            </div>
-            <div class="game-detail-stat">
-                <div class="game-detail-stat-value">${game.playtime || '—'}</div>
-                <div class="game-detail-stat-label">Ort. Oynama Süresi</div>
-            </div>
+
+        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+            <div class="gd-desc-fade"></div>
+            <div class="gd-desc-toggle">Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
         </div>
 
-        <div class="game-detail-info-grid">
-            <div class="game-detail-info-section">
-                <div class="game-detail-info-label">🎮 Platformlar</div>
-                <div class="game-detail-platforms">
-                    ${displayPlatforms.map(p => `
-                        <div class="game-detail-platform-badge">
-                            ${platformIcon}
-                            ${escapeHtml(p)}
-                        </div>
-                    `).join('')}
+        <div class="gd-info-row">
+            <div class="gd-stats">
+                <div class="gd-stat gd-stat--metacritic">
+                    <div class="gd-stat-icon">🎯</div>
+                    <div class="gd-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
+                    <div class="gd-stat-label">Metacritic</div>
+                </div>
+                <div class="gd-stat gd-stat--user">
+                    <div class="gd-stat-icon">⭐</div>
+                    <div class="gd-stat-value">${game.rawRating ? game.rawRating.toFixed(1) : '—'}</div>
+                    <div class="gd-stat-label">Kullanıcı Puanı</div>
+                </div>
+                <div class="gd-stat gd-stat--year">
+                    <div class="gd-stat-icon">📅</div>
+                    <div class="gd-stat-value">${game.releaseYear || 'TBA'}</div>
+                    <div class="gd-stat-label">Çıkış Yılı</div>
+                </div>
+                <div class="gd-stat gd-stat--playtime">
+                    <div class="gd-stat-icon">⏱️</div>
+                    <div class="gd-stat-value">${game.playtime || '—'}</div>
+                    <div class="gd-stat-label">Ort. Oynama</div>
                 </div>
             </div>
-            <div class="game-detail-info-section">
-                <div class="game-detail-info-label">🎯 Yapımcı & Yayıncı</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                    ${publisher !== developer
-                        ? `<strong style="color: var(--accent-light);">${escapeHtml(developer)}</strong> <span style="color: var(--text-muted);">•</span> ${escapeHtml(publisher)}`
-                        : `<strong style="color: var(--accent-light);">${escapeHtml(developer)}</strong>`
-                    }
-                </div>
-                ${game.esrbRating ? `
-                    <div style="margin-top: 8px;">
-                        <div class="game-detail-info-label" style="margin-bottom: 4px;">🏷️ ESRB</div>
-                        <span style="font-size: 0.88rem; color: var(--text-secondary); font-weight: 600;">${escapeHtml(game.esrbRating)}</span>
+
+            <div class="gd-meta-col">
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">🎮 Platformlar</div>
+                    <div class="gd-platforms">
+                        ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
                     </div>
-                ` : ''}
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">🎯 Yapımcı & Yayıncı</div>
+                    <div class="gd-creators">
+                        ${(game.developerData && game.developerData.length > 0
+                            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+                            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`
+                        )}
+                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
+                            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+                            : ''
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
 
         ${game.tags && game.tags.length > 0 ? `
-            <div style="margin-top: 24px;">
-                <div class="game-detail-info-label" style="margin-bottom: 10px;">🏷️ Etiketler</div>
-                <div class="game-detail-tags">
+            <div class="gd-tags-row">
+                <div class="gd-meta-label">🏷️ Etiketler</div>
+                <div class="gd-tags">
                     ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
                 </div>
             </div>
         ` : ''}
 
+        ${game.systemRequirements && game.systemRequirements.length > 0 ? `
+        <div class="game-detail-sysreq">
+            <div class="gd-meta-label" style="margin-bottom: 12px;">💻 Sistem Gereksinimleri</div>
+            ${game.systemRequirements.map(req => `
+                <div class="sysreq-platform-block">
+                    ${game.systemRequirements.length > 1 ? `<div class="sysreq-platform-name">${escapeHtml(req.platform)}</div>` : ''}
+                    <div class="sysreq-columns">
+                        ${req.minimum ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-minimum">Minimum</div><pre class="sysreq-text">${escapeHtml(req.minimum)}</pre></div>` : ''}
+                        ${req.recommended ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-recommended">Önerilen</div><pre class="sysreq-text">${escapeHtml(req.recommended)}</pre></div>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}
+
         <div class="itad-section">
-            <div class="game-detail-info-label itad-header">
-                <span>💰 Fırsat &amp; Fiyatlar</span>
+            <div class="gd-itad-header">
+                <span class="gd-meta-label">💰 Fırsat &amp; Fiyatlar</span>
                 <span class="itad-powered-by">IsThereAnyDeal</span>
             </div>
             <div id="itadPricesSection" class="itad-prices-section">
@@ -2862,6 +2950,75 @@ function renderGameDetailContent(game) {
             </div>
         </div>
     `;
+}
+
+function toggleGameDesc() {
+    const box = document.getElementById('gdDescBox');
+    if (!box) return;
+    const isExpanded = box.classList.toggle('expanded');
+    const btn = box.querySelector('.gd-desc-toggle');
+    if (btn) btn.innerHTML = isExpanded
+        ? 'Küçült <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
+        : 'Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+}
+
+// ── Creator Games Overlay ──
+async function openCreatorGames(name, slug, type) {
+    const overlay = document.getElementById('creatorOverlay');
+    const header = document.getElementById('creatorHeader');
+    const grid = document.getElementById('creatorGrid');
+
+    const label = type === 'developer' ? 'Yapımcı' : 'Yayıncı';
+    header.innerHTML = `
+        <div class="creator-header-label">${label}</div>
+        <h2 class="creator-header-title">${escapeHtml(name)}</h2>
+    `;
+    grid.innerHTML = `
+        <div class="creator-loading">
+            <div class="games-loading-spinner"></div>
+            <span>Oyunlar yükleniyor...</span>
+        </div>
+    `;
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    try {
+        const param = type === 'developer' ? 'developers' : 'publishers';
+        const today = getTodayDate();
+        const baseUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&${param}=${encodeURIComponent(slug)}&page_size=40&ordering=-metacritic&metacritic=1,100&dates=1970-01-01,${today}`;
+
+        let allResults = [];
+        let nextUrl = baseUrl;
+        while (nextUrl) {
+            const res = await fetch(nextUrl);
+            if (!res.ok) throw new Error(`API Hatası: ${res.status}`);
+            const data = await res.json();
+            allResults = allResults.concat(data.results || []);
+            nextUrl = data.next || null;
+        }
+        const games = allResults.map(mapRawgGame).filter(g => g.rating > 0 && g.releaseYear > 0);
+
+        if (games.length === 0) {
+            grid.innerHTML = `<div class="creator-empty">Bu ${label.toLowerCase()} için oyun bulunamadı.</div>`;
+            return;
+        }
+
+        // Merge into allGames so openGameDetail works
+        games.forEach(g => {
+            if (!allGames.find(ag => ag.id === g.id)) allGames.push(g);
+        });
+
+        grid.innerHTML = games.map(g => renderGameCard(g)).join('');
+    } catch (err) {
+        console.error('Creator oyunları alınırken hata:', err);
+        grid.innerHTML = `<div class="creator-empty">Oyunlar yüklenirken hata oluştu.</div>`;
+    }
+}
+
+function closeCreatorOverlay(e) {
+    if (e && e.target !== document.getElementById('creatorOverlay')) return;
+    document.getElementById('creatorOverlay').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 // ── Close Game Detail ──

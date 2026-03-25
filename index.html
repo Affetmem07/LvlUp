@@ -107,7 +107,36 @@
                     <div class="user-avatar" id="userAvatar">U</div>
                 </div>
             </div>
+            <!-- Mobil arama butonu (profil iconu yerine) -->
+            <button class="btn btn-accent neon-circle-btn mobile-search-btn" onclick="openSearchOverlay()" title="Ara">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
         </div>
+    </nav>
+
+    <!-- ==================== MOBILE BOTTOM NAV ==================== -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <button class="mbn-item" id="mbnHome" onclick="navigate('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Ana Sayfa</span>
+        </button>
+        <button class="mbn-item" id="mbnGames" onclick="navigate('games')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+            <span>Oyunlar</span>
+        </button>
+        <button class="mbn-item mbn-center" id="mbnAction" onclick="mobileNavAction()">
+            <div class="mbn-center-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="26" height="26"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+        </button>
+        <button class="mbn-item" id="mbnBrowserGames" onclick="navigate('browser-games')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2Z"/><path d="M6 15v-2"/><path d="M12 15V9"/><circle cx="12" cy="6" r="3"/></svg>
+            <span>Hazır Oyunlar</span>
+        </button>
+        <button class="mbn-item" id="mbnProfile" onclick="mobileNavProfile()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            <span>Profil</span>
+        </button>
     </nav>
 
     <!-- ==================== MAIN LAYOUT ==================== -->
@@ -429,6 +458,15 @@
                     <!-- Game detailed info rendered by JS -->
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ==================== CREATOR GAMES OVERLAY ==================== -->
+    <div class="creator-overlay" id="creatorOverlay" onclick="closeCreatorOverlay(event)">
+        <div class="creator-container">
+            <button class="creator-close" onclick="closeCreatorOverlay()">&times;</button>
+            <div class="creator-header" id="creatorHeader"></div>
+            <div class="creator-grid" id="creatorGrid"></div>
         </div>
     </div>
 
