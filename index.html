@@ -232,9 +232,9 @@
                             <div class="adv-filter-group adv-filter-group--wide">
                                 <label class="adv-filter-label">Çıkış Yılı</label>
                                 <div class="adv-year-range">
-                                    <input type="number" id="advYearFrom" class="adv-filter-input" placeholder="Başlangıç" min="1980" max="2026" oninput="applyAdvFilters()">
+                                    <input type="number" id="advYearFrom" class="adv-filter-input" placeholder="Başlangıç" min="1980" max="2026" onchange="applyAdvFilters('yearFrom')">
                                     <span class="adv-year-dash">–</span>
-                                    <input type="number" id="advYearTo" class="adv-filter-input" placeholder="Bitiş" min="1980" max="2026" oninput="applyAdvFilters()">
+                                    <input type="number" id="advYearTo" class="adv-filter-input" placeholder="Bitiş" min="1980" max="2026" onchange="applyAdvFilters('yearTo')">
                                 </div>
                             </div>
                             <div class="adv-filter-group adv-filter-group--reset">

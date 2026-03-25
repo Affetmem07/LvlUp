@@ -2435,8 +2435,33 @@ function applyAdvFilters(changedField) {
 
     advFilters.minRating = minVal;
     advFilters.maxRating = maxVal;
-    advFilters.yearFrom = document.getElementById('advYearFrom')?.value || '';
-    advFilters.yearTo = document.getElementById('advYearTo')?.value || '';
+
+    // ── Yıl Aralığı Validasyonu ──
+    const yearFromEl = document.getElementById('advYearFrom');
+    const yearToEl = document.getElementById('advYearTo');
+
+    let yearFrom = parseInt(yearFromEl?.value || '0', 10) || 0;
+    let yearTo   = parseInt(yearToEl?.value   || '0', 10) || 0;
+
+    // 1980-2026 aralığına sıkıştır
+    if (yearFrom) yearFrom = Math.min(Math.max(yearFrom, 1980), 2026);
+    if (yearTo)   yearTo   = Math.min(Math.max(yearTo,   1980), 2026);
+
+    // Bitiş yılı başlangıçtan küçük olamaz
+    if (yearFrom && yearTo && yearFrom > yearTo) {
+        showToast('Başlangıç yılı, bitiş yılından büyük olamaz!', 'error');
+        requestAnimationFrame(() => {
+            if (changedField === 'yearFrom') {
+                yearFromEl.value = '';
+            } else {
+                yearToEl.value = '';
+            }
+        });
+        return;
+    }
+
+    advFilters.yearFrom = yearFrom ? String(yearFrom) : '';
+    advFilters.yearTo   = yearTo   ? String(yearTo)   : '';
 
     updateAdvFilterTags();
     loadGamesWithAdvFilters();
