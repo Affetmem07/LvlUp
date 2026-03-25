@@ -2421,14 +2421,9 @@ function applyAdvFilters() {
 
     // Max her zaman Min'den büyük veya eşit olmalı
     if (maxVal > 0 && minVal > 0 && minVal > maxVal) {
-        [minVal, maxVal] = [maxVal, minVal];
-        minEl.value = minVal;
-        maxEl.value = maxVal;
+        showToast('Minimum puan, maksimum puandan büyük olamaz!', 'error');
+        return;
     }
-
-    // Sınırlanmış değerleri inputlara yaz
-    if (minEl?.value) minEl.value = minVal;
-    if (maxEl?.value) maxEl.value = maxVal;
 
     advFilters.minRating = minVal;
     advFilters.maxRating = maxVal;
