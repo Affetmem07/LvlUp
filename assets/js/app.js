@@ -2433,6 +2433,10 @@ function applyAdvFilters(changedField) {
         return;
     }
 
+    // Clamplanmış puan değerlerini inputlara yaz
+    if (minEl?.value) minEl.value = minVal;
+    if (maxEl?.value) maxEl.value = maxVal;
+
     advFilters.minRating = minVal;
     advFilters.maxRating = maxVal;
 
@@ -2443,9 +2447,15 @@ function applyAdvFilters(changedField) {
     let yearFrom = parseInt(yearFromEl?.value || '0', 10) || 0;
     let yearTo   = parseInt(yearToEl?.value   || '0', 10) || 0;
 
-    // 1980-2026 aralığına sıkıştır
-    if (yearFrom) yearFrom = Math.min(Math.max(yearFrom, 1980), 2026);
-    if (yearTo)   yearTo   = Math.min(Math.max(yearTo,   1980), 2026);
+    // 1980-2026 aralığına sıkıştır ve inputlara yaz
+    if (yearFrom) {
+        yearFrom = Math.min(Math.max(yearFrom, 1980), 2026);
+        yearFromEl.value = yearFrom;
+    }
+    if (yearTo) {
+        yearTo = Math.min(Math.max(yearTo, 1980), 2026);
+        yearToEl.value = yearTo;
+    }
 
     // Bitiş yılı başlangıçtan küçük olamaz
     if (yearFrom && yearTo && yearFrom > yearTo) {
