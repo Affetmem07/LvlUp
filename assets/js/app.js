@@ -471,7 +471,7 @@ function navigate(page) {
             searchResultsPage.style.display = 'block';
         } else {
             feed.style.display = '';
-            document.getElementById('feedTitle').textContent = titles[page] || 'Ana Sayfa';
+            document.getElementById('feedTitleText').textContent = (titles[page] || 'Ana Sayfa').toUpperCase();
             renderFeed();
         }
 
@@ -527,7 +527,7 @@ function filterCategory(cat) {
 
     const showFeed = () => {
         feed.style.display = '';
-        document.getElementById('feedTitle').textContent = catNames[cat] || cat;
+        document.getElementById('feedTitleText').textContent = (catNames[cat] || cat).toUpperCase();
         renderFeed();
         feed.classList.remove('page-enter');
         void feed.offsetWidth;

@@ -1015,15 +1015,32 @@ select {
     margin-bottom: 24px;
 }
 
+/* Pill-badge title – Feed sayfası */
 .feed-header h1 {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
-    font-size: 1.6rem;
-    font-weight: 700;
     margin-bottom: 16px;
-    background: linear-gradient(135deg, var(--text-primary), var(--accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+}
+
+.page-pill-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(45, 90, 67, 0.6);
+    background: rgba(15, 29, 23, 0.85);
+    color: var(--accent-light);
+    font-family: 'Inter', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    margin: 0 0 16px 0;
+}
+
+.page-pill-title svg {
+    flex-shrink: 0;
+    color: var(--accent-light);
 }
 
 .feed-tabs {
@@ -2216,7 +2233,7 @@ select {
 }
 
 .games-page-header {
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 .games-page-title {
