@@ -2539,9 +2539,9 @@ async function loadGamesWithAdvFilters() {
             const minMeta = advFilters.minRating > 0 ? advFilters.minRating : 1;
             const maxMeta = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
             url += `&metacritic=${minMeta},${maxMeta}`;
-        } else if (advFilters.ordering === '-released' || advFilters.ordering === 'released') {
-            url += `&metacritic=1,100`;
         }
+        // Not: En Yeni / En Eski için artık metacritic=1,100 eklenmez.
+        // Yeni çıkan oyunların henüz Metacritic skoru olmayabileceğinden bu kısıtı kaldırdık.
 
         const response = await fetch(url, { signal: gamesAbortController.signal });
         if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
@@ -2549,8 +2549,15 @@ async function loadGamesWithAdvFilters() {
 
         const data = await response.json();
         gamesNextPageUrl = data.next;
+
+        const isDateOrdering = advFilters.ordering === '-released' || advFilters.ordering === 'released';
         const mapped = (data.results || [])
-            .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
+            .filter(g => {
+                if (!g.background_image) return false;
+                // En Yeni/En Eski: henüz Metacritic skoru olmayan ama kullanıcı puanı olan oyunları da kabul et
+                if (isDateOrdering) return (g.rating || 0) > 0;
+                return (g.metacritic || Math.round((g.rating || 0) * 20)) > 0;
+            })
             .map(mapRawgGame);
 
         // Sadece "Tümü" seçiliyken (ordering='') client-side puan sıralaması uygula.
