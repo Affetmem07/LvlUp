@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: rgb(15, 29, 23);
+            color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 16px 12px 24px;
+            overflow-x: hidden;
+        }
+
+        /* ── Top Panel ── */
+        .top-panel {
+            background: rgba(15, 29, 23, 0.55);
+            padding: 12px 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(45, 90, 67, 0.45);
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(8px);
+        }
+
+        .top-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .top-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .top-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #6BAA75;
+            font-size: 1.45rem;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(107, 170, 117, 0.4);
+            letter-spacing: 1px;
+        }
+
+        /* ── Difficulty Buttons ── */
+        .diff-group {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(45, 90, 67, 0.4);
+        }
+
+        .diff-btn {
+            background: transparent;
+            color: #a4c639;
+            border: none;
+            padding: 6px 13px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diff-btn:hover { background: rgba(255, 255, 255, 0.06); }
+
+        .diff-btn.active {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: #fff;
+        }
+
+        /* ── Stats Box ── */
+        .stats-box {
+            display: flex;
+            gap: 16px;
+            font-size: 1.05rem;
+            color: #A4C639;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.22);
+            padding: 7px 14px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* ── Action Buttons ── */
+        .btn {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(45, 90, 67, 0.35);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #6BAA75, #2D5A43);
+        }
+
+        /* ── Control Bar ── */
+        .control-bar {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            background: rgba(45, 90, 67, 0.25);
+            color: #a4c639;
+            border: 1px solid rgba(45, 90, 67, 0.4);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(45, 90, 67, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .ctrl-btn.active {
+            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
+            color: #fff;
+            border-color: #6BAA75;
+        }
+
+        .ctrl-btn.danger {
+            color: #e07070;
+            border-color: rgba(200, 80, 80, 0.35);
+        }
+
+        .ctrl-btn.danger:hover {
+            background: rgba(200, 80, 80, 0.2);
+        }
+
+        /* ── Board Wrapper ── */
+        .board-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 16px;
+            width: 100%;
+            max-width: 700px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Sudoku Grid ── */
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            background: rgba(45, 90, 67, 0.5);
+            padding: 4px;
+            border-radius: 12px;
+            border: 2px solid rgba(107, 170, 117, 0.5);
+            box-shadow: 0 0 40px rgba(107, 170, 117, 0.1), 0 16px 48px rgba(0, 0, 0, 0.4);
+            width: min(100%, 450px);
+            aspect-ratio: 1;
+        }
+
+        .sudoku-cell {
+            background: rgba(15, 29, 23, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(14px, 3.5vmin, 22px);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.12s, color 0.12s, transform 0.08s;
+            position: relative;
+            border-radius: 3px;
+            aspect-ratio: 1;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Box borders (thick lines for 3×3 boxes) */
+        .sudoku-cell[data-col="3"],
+        .sudoku-cell[data-col="6"] {
+            border-left: 2px solid rgba(107, 170, 117, 0.6);
+        }
+
+        .sudoku-cell[data-row="3"],
+        .sudoku-cell[data-row="6"] {
+            border-top: 2px solid rgba(107, 170, 117, 0.6);
+        }
+
+        .sudoku-cell:hover:not(.given) {
+            background: rgba(45, 90, 67, 0.55);
+            transform: scale(1.04);
+            z-index: 2;
+        }
+
+        .sudoku-cell.given {
+            color: #e2f0e4;
+            cursor: default;
+            font-weight: 800;
+        }
+
+        .sudoku-cell.user-entry {
+            color: #6BAA75;
+        }
+
+        .sudoku-cell.selected {
+            background: rgba(107, 170, 117, 0.25);
+            border-radius: 5px;
+        }
+
+        .sudoku-cell.highlight-row,
+        .sudoku-cell.highlight-col,
+        .sudoku-cell.highlight-box {
+            background: rgba(45, 90, 67, 0.22);
+        }
+
+        .sudoku-cell.highlight-same {
+            background: rgba(107, 170, 117, 0.18);
+            color: #A4C639;
+        }
+
+        .sudoku-cell.error {
+            color: #e05c5c !important;
+            background: rgba(200, 60, 60, 0.18) !important;
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97);
+        }
+
+        .sudoku-cell.conflict {
+            color: #e05c5c !important;
+        }
+
+        .sudoku-cell.pencil-cell {
+            font-size: clamp(6px, 1.2vmin, 9px);
+            font-weight: 400;
+            line-height: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            align-items: center;
+            justify-items: center;
+            gap: 0;
+            padding: 2px;
+        }
+
+        .pencil-num {
+            color: rgba(107, 170, 117, 0.65);
+            font-size: clamp(5px, 1vmin, 8px);
+            font-weight: 600;
+        }
+
+        .pencil-num.empty { opacity: 0; }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-3px); }
+            40%, 60% { transform: translateX(3px); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.4); opacity: 0; }
+            60% { transform: scale(1.15); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .cell-pop { animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+
+        /* ── Number Pad ── */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: min(100%, 140px);
+        }
+
+        .numpad-btn {
+            aspect-ratio: 1;
+            background: rgba(45, 90, 67, 0.3);
+            border: 1px solid rgba(107, 170, 117, 0.35);
+            border-radius: 10px;
+            color: #a4c639;
+            font-size: clamp(16px, 3vmin, 26px);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .numpad-btn:hover {
+            background: rgba(45, 90, 67, 0.6);
+            transform: scale(1.08);
+            border-color: #6BAA75;
+        }
+
+        .numpad-btn:active { transform: scale(0.95); }
+
+        .numpad-btn.completed {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* ── Win / Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: linear-gradient(145deg, rgba(15, 29, 23, 0.98), rgba(26, 58, 42, 0.98));
+            border: 2px solid #6BAA75;
+            border-radius: 20px;
+            padding: 40px 36px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(107, 170, 117, 0.3), 0 24px 64px rgba(0,0,0,0.6);
+            max-width: 340px;
+            width: 90%;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-icon { font-size: 3.5rem; margin-bottom: 12px; }
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #6BAA75;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(107, 170, 117, 0.5);
+        }
+
+        .modal-desc {
+            color: #a8c4b0;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .modal-stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-stat {
+            background: rgba(45, 90, 67, 0.3);
+            border: 1px solid rgba(107, 170, 117, 0.3);
+            border-radius: 10px;
+            padding: 10px 16px;
+            text-align: center;
+        }
+
+        .modal-stat-value {
+            font-family: 'Orbitron', monospace;
+            color: #A4C639;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .modal-stat-label {
+            color: #7a9c80;
+            font-size: 0.72rem;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mistakes-display {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .mistake-pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(200, 80, 80, 0.3);
+            border: 1px solid rgba(200, 80, 80, 0.5);
+            transition: all 0.3s;
+        }
+
+        .mistake-pip.used {
+            background: #e05c5c;
+            box-shadow: 0 0 8px rgba(224, 92, 92, 0.5);
+        }
+
+        .mistakes-label {
+            color: #7a9c80;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .progress-bar-wrap {
+            width: 100%;
+            max-width: 560px;
+            margin-bottom: 14px;
+        }
+
+        .progress-bar-bg {
+            background: rgba(45, 90, 67, 0.25);
+            border-radius: 999px;
+            height: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(45, 90, 67, 0.3);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2D5A43, #6BAA75);
+            border-radius: 999px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 8px rgba(107, 170, 117, 0.4);
+        }
+
+        @media (max-width: 480px) {
+            .numpad { grid-template-columns: repeat(5, 1fr); width: 100%; max-width: 100%; }
+            .numpad-btn { aspect-ratio: unset; padding: 10px 0; }
+            .board-wrapper { flex-direction: column; align-items: center; }
+            .top-panel { padding: 10px 14px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP PANEL -->
+    <div class="top-panel">
+        <div class="top-left">
+            <h1 class="top-title">Sudoku</h1>
+            <div class="diff-group">
+                <button class="diff-btn active" id="btn-easy"   onclick="newGame('easy')">Kolay</button>
+                <button class="diff-btn"         id="btn-medium" onclick="newGame('medium')">Orta</button>
+                <button class="diff-btn"         id="btn-hard"   onclick="newGame('hard')">Zor</button>
+                <button class="diff-btn"         id="btn-expert" onclick="newGame('expert')">Uzman</button>
+            </div>
+        </div>
+        <div class="top-right">
+            <div class="stats-box">
+                <span title="Süre">⏱ <span id="timerText">0:00</span></span>
+            </div>
+            <button class="btn" onclick="newGame(currentDifficulty)" title="Yenile">🔄</button>
+        </div>
+    </div>
+
+    <!-- MISTAKES -->
+    <div class="mistakes-display">
+        <span class="mistakes-label">Hata:</span>
+        <div class="mistake-pip" id="pip0"></div>
+        <div class="mistake-pip" id="pip1"></div>
+        <div class="mistake-pip" id="pip2"></div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar-wrap">
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+    </div>
+
+    <!-- CONTROL BAR -->
+    <div class="control-bar">
+        <button class="ctrl-btn" id="btnUndo" onclick="undo()">↩ Geri Al</button>
+        <button class="ctrl-btn" id="btnPencil" onclick="togglePencil()">✏️ Kalem</button>
+        <button class="ctrl-btn" id="btnHint" onclick="giveHint()">💡 İpucu</button>
+        <button class="ctrl-btn danger" onclick="clearCell()">✕ Sil</button>
+    </div>
+
+    <!-- BOARD + NUMPAD -->
+    <div class="board-wrapper">
+        <div class="sudoku-grid" id="sudokuGrid"></div>
+        <div class="numpad" id="numpad"></div>
+    </div>
+
+    <!-- WIN MODAL -->
+    <div class="modal-overlay" id="winModal">
+        <div class="modal-box">
+            <div class="modal-icon">🏆</div>
+            <div class="modal-title">Tebrikler!</div>
+            <div class="modal-desc">Sudoku'yu başarıyla tamamladın!</div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="winTime">-</div>
+                    <div class="modal-stat-label">Süre</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="winMistakes">-</div>
+                    <div class="modal-stat-label">Hata</div>
+                </div>
+            </div>
+            <button class="btn" style="margin:0 auto;font-size:1rem;padding:10px 28px;" onclick="newGame(currentDifficulty)">Tekrar Oyna</button>
+        </div>
+    </div>
+
+    <!-- FAIL MODAL -->
+    <div class="modal-overlay" id="failModal">
+        <div class="modal-box" style="border-color:#e05c5c;">
+            <div class="modal-icon">💀</div>
+            <div class="modal-title" style="color:#e05c5c;">Oyun Bitti!</div>
+            <div class="modal-desc">3 hata yaptın. Bir dahaki sefere daha dikkatli ol!</div>
+            <button class="btn" style="margin:0 auto;font-size:1rem;padding:10px 28px;" onclick="newGame(currentDifficulty)">Tekrar Dene</button>
+        </div>
+    </div>
+
+    <script>
+    /* ============================================================
+       SUDOKU ENGINE
+    ============================================================ */
+
+    // --- Solver / Generator ---
+
+    function isSafe(board, row, col, num) {
+        // Row
+        for (let c = 0; c < 9; c++) if (board[row][c] === num) return false;
+        // Col
+        for (let r = 0; r < 9; r++) if (board[r][col] === num) return false;
+        // Box
+        const br = Math.floor(row / 3) * 3, bc = Math.floor(col / 3) * 3;
+        for (let r = 0; r < 3; r++)
+            for (let c = 0; c < 3; c++)
+                if (board[br + r][bc + c] === num) return false;
+        return true;
+    }
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function generateFull(board, pos = 0) {
+        if (pos === 81) return true;
+        const row = Math.floor(pos / 9), col = pos % 9;
+        const nums = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        for (const n of nums) {
+            if (isSafe(board, row, col, n)) {
+                board[row][col] = n;
+                if (generateFull(board, pos + 1)) return true;
+                board[row][col] = 0;
+            }
+        }
+        return false;
+    }
+
+    function copyBoard(board) {
+        return board.map(r => [...r]);
+    }
+
+    // Count solutions (stop after 2 for uniqueness check)
+    function countSolutions(board, limit = 2) {
+        let count = 0;
+        function solve(b, pos) {
+            if (count >= limit) return;
+            if (pos === 81) { count++; return; }
+            const row = Math.floor(pos / 9), col = pos % 9;
+            if (b[row][col] !== 0) { solve(b, pos + 1); return; }
+            for (let n = 1; n <= 9; n++) {
+                if (count >= limit) return;
+                if (isSafe(b, row, col, n)) {
+                    b[row][col] = n;
+                    solve(b, pos + 1);
+                    b[row][col] = 0;
+                }
+            }
+        }
+        const clone = copyBoard(board);
+        solve(clone, 0);
+        return count;
+    }
+
+    const CLUES = { easy: 45, medium: 35, hard: 28, expert: 23 };
+
+    function generatePuzzle(difficulty) {
+        const full = Array.from({ length: 9 }, () => Array(9).fill(0));
+        generateFull(full);
+
+        const given = copyBoard(full);
+        const cells = shuffle([...Array(81).keys()]);
+        let removed = 0;
+        const target = 81 - CLUES[difficulty];
+
+        for (const pos of cells) {
+            if (removed >= target) break;
+            const row = Math.floor(pos / 9), col = pos % 9;
+            const backup = given[row][col];
+            given[row][col] = 0;
+            if (countSolutions(given) !== 1) {
+                given[row][col] = backup;
+            } else {
+                removed++;
+            }
+        }
+        return { solution: full, puzzle: given };
+    }
+
+    /* ============================================================
+       GAME STATE
+    ============================================================ */
+    let solution       = [];
+    let puzzle         = [];   // given cells (0 = empty, number = given)
+    let board          = [];   // current player board
+    let pencilNotes    = [];   // [row][col] = Set of pencil marks
+    let selectedCell   = null; // { row, col }
+    let mistakes       = 0;
+    let maxMistakes    = 3;
+    let pencilMode     = false;
+    let timerSec       = 0;
+    let timerInterval  = null;
+    let hintsLeft      = 3;
+    let currentDifficulty = 'easy';
+    let history        = [];   // undo stack items: { row, col, prevVal, prevNotes }
+    let isGameOver     = false;
+
+    /* ============================================================
+       AUDIO
+    ============================================================ */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function ensureAudio() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, dur, vol = 0.15) {
+        ensureAudio();
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        osc.start(now); osc.stop(now + dur);
+    }
+
+    function playSuccess()  { playTone(600, 'sine', 0.08, 0.12); setTimeout(() => playTone(800, 'sine', 0.08, 0.12), 80); }
+    function playError()    { playTone(180, 'sawtooth', 0.25, 0.18); }
+    function playSelect()   { playTone(440, 'sine', 0.05, 0.07); }
+    function playComplete() {
+        [523, 659, 784, 1047].forEach((f, i) =>
+            setTimeout(() => playTone(f, 'sine', 0.18, 0.22), i * 100));
+    }
+
+    /* ============================================================
+       GAME INIT
+    ============================================================ */
+    function newGame(difficulty) {
+        currentDifficulty = difficulty;
+        isGameOver = false;
+        mistakes = 0;
+        hintsLeft = 3;
+        pencilMode = false;
+        history = [];
+        selectedCell = null;
+
+        // Update difficulty buttons
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + difficulty).classList.add('active');
+
+        // Generate
+        const gen = generatePuzzle(difficulty);
+        solution = gen.solution;
+        puzzle = gen.puzzle;
+        board = copyBoard(puzzle);
+        pencilNotes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+
+        // Timer
+        clearInterval(timerInterval);
+        timerSec = 0;
+        updateTimer();
+        timerInterval = setInterval(() => {
+            if (!isGameOver) { timerSec++; updateTimer(); }
+        }, 1000);
+
+        hideModals();
+        updateMistakePips();
+        updatePencilButton();
+        renderGrid();
+        buildNumpad();
+        updateHintButton();
+        updateProgress();
+    }
+
+    function updateTimer() {
+        const m = Math.floor(timerSec / 60).toString();
+        const s = (timerSec % 60).toString().padStart(2, '0');
+        document.getElementById('timerText').textContent = m + ':' + s;
+    }
+
+    /* ============================================================
+       GRID RENDER
+    ============================================================ */
+    function renderGrid() {
+        const grid = document.getElementById('sudokuGrid');
+        grid.innerHTML = '';
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'sudoku-cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+
+                updateCellDisplay(cell, r, c);
+                applyHighlights(cell, r, c);
+
+                cell.addEventListener('click', () => selectCell(r, c));
+                grid.appendChild(cell);
+            }
+        }
+        applyConflicts();
+    }
+
+    function updateCellDisplay(cell, r, c) {
+        const val = board[r][c];
+        const isGiven = puzzle[r][c] !== 0;
+        const notes = pencilNotes[r][c];
+
+        cell.classList.remove('given', 'user-entry', 'error', 'pencil-cell');
+
+        if (val !== 0) {
+            cell.innerHTML = val;
+            if (isGiven) {
+                cell.classList.add('given');
+            } else {
+                cell.classList.add('user-entry');
+                if (val !== solution[r][c]) cell.classList.add('error');
+            }
+        } else if (notes.size > 0) {
+            cell.classList.add('pencil-cell');
+            let html = '';
+            for (let n = 1; n <= 9; n++) {
+                html += `<span class="pencil-num${notes.has(n) ? '' : ' empty'}">${notes.has(n) ? n : ''}</span>`;
+            }
+            cell.innerHTML = html;
+        } else {
+            cell.innerHTML = '';
+        }
+    }
+
+    function getCell(r, c) {
+        return document.querySelector(`.sudoku-cell[data-row="${r}"][data-col="${c}"]`);
+    }
+
+    function applyHighlights(cell, r, c) {
+        cell.classList.remove('selected', 'highlight-row', 'highlight-col', 'highlight-box', 'highlight-same');
+        if (!selectedCell) return;
+
+        const { row: sr, col: sc } = selectedCell;
+        const sameRow  = r === sr;
+        const sameCol  = c === sc;
+        const sameBox  = Math.floor(r/3) === Math.floor(sr/3) && Math.floor(c/3) === Math.floor(sc/3);
+        const sameVal  = board[r][c] !== 0 && board[r][c] === board[sr][sc];
+
+        if (r === sr && c === sc) {
+            cell.classList.add('selected');
+        } else if (sameVal) {
+            cell.classList.add('highlight-same');
+        } else if (sameRow) {
+            cell.classList.add('highlight-row');
+        } else if (sameCol) {
+            cell.classList.add('highlight-col');
+        } else if (sameBox) {
+            cell.classList.add('highlight-box');
+        }
+    }
+
+    function refreshHighlights() {
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                applyHighlights(getCell(r, c), r, c);
+    }
+
+    function applyConflicts() {
+        // Clear all
+        document.querySelectorAll('.sudoku-cell').forEach(el => el.classList.remove('conflict'));
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const v = board[r][c];
+                if (v === 0) continue;
+                if (isConflict(r, c, v)) getCell(r, c).classList.add('conflict');
+            }
+        }
+    }
+
+    function isConflict(row, col, val) {
+        for (let c = 0; c < 9; c++) {
+            if (c !== col && board[row][c] === val) return true;
+        }
+        for (let r = 0; r < 9; r++) {
+            if (r !== row && board[r][col] === val) return true;
+        }
+        const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+        for (let r = 0; r < 3; r++)
+            for (let c = 0; c < 3; c++)
+                if ((br+r !== row || bc+c !== col) && board[br+r][bc+c] === val) return true;
+        return false;
+    }
+
+    /* ============================================================
+       INTERACTION
+    ============================================================ */
+    function selectCell(r, c) {
+        if (isGameOver) return;
+        selectedCell = { row: r, col: c };
+        playSelect();
+        refreshHighlights();
+    }
+
+    function enterNumber(num) {
+        if (!selectedCell || isGameOver) return;
+        const { row, col } = selectedCell;
+        if (puzzle[row][col] !== 0) return; // given cell
+
+        if (pencilMode) {
+            // Toggle pencil note
+            if (board[row][col] !== 0) return;
+            const notes = pencilNotes[row][col];
+            const prev = new Set(notes);
+            history.push({ row, col, prevVal: board[row][col], prevNotes: prev, wasPencil: true });
+            if (notes.has(num)) notes.delete(num); else notes.add(num);
+            const cell = getCell(row, col);
+            updateCellDisplay(cell, row, col);
+            return;
+        }
+
+        // Regular entry
+        const prev = board[row][col];
+        const prevNotes = new Set(pencilNotes[row][col]);
+        history.push({ row, col, prevVal: prev, prevNotes, wasPencil: false });
+
+        board[row][col] = num;
+        pencilNotes[row][col] = new Set();
+
+        // Remove pencil marks of same number in row / col / box
+        removePencilMarksFor(row, col, num);
+
+        const cell = getCell(row, col);
+        cell.classList.remove('pencil-cell');
+        updateCellDisplay(cell, row, col);
+        cell.classList.add('cell-pop');
+        cell.addEventListener('animationend', () => cell.classList.remove('cell-pop'), { once: true });
+        applyConflicts();
+        refreshHighlights();
+
+        if (num !== solution[row][col]) {
+            mistakes++;
+            updateMistakePips();
+            playError();
+            if (mistakes >= maxMistakes) {
+                endGame(false);
+                return;
+            }
+        } else {
+            playSuccess();
+            updateNumpadCompleted(num);
+            updateProgress();
+            if (checkWin()) endGame(true);
+        }
+    }
+
+    function removePencilMarksFor(row, col, num) {
+        // Row
+        for (let c = 0; c < 9; c++) pencilNotes[row][c].delete(num);
+        // Col
+        for (let r = 0; r < 9; r++) pencilNotes[r][col].delete(num);
+        // Box
+        const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+        for (let r = 0; r < 3; r++)
+            for (let c = 0; c < 3; c++)
+                pencilNotes[br+r][bc+c].delete(num);
+    }
+
+    function clearCell() {
+        if (!selectedCell || isGameOver) return;
+        const { row, col } = selectedCell;
+        if (puzzle[row][col] !== 0) return;
+
+        const prev = board[row][col];
+        const prevNotes = new Set(pencilNotes[row][col]);
+        history.push({ row, col, prevVal: prev, prevNotes, wasPencil: false });
+
+        board[row][col] = 0;
+        pencilNotes[row][col] = new Set();
+        const cell = getCell(row, col);
+        cell.classList.remove('pencil-cell');
+        updateCellDisplay(cell, row, col);
+        applyConflicts();
+        refreshHighlights();
+        buildNumpad();
+    }
+
+    function undo() {
+        if (history.length === 0 || isGameOver) return;
+        const { row, col, prevVal, prevNotes } = history.pop();
+        board[row][col] = prevVal;
+        pencilNotes[row][col] = new Set(prevNotes);
+        const cell = getCell(row, col);
+        updateCellDisplay(cell, row, col);
+        applyConflicts();
+        refreshHighlights();
+        buildNumpad();
+        updateProgress();
+    }
+
+    function togglePencil() {
+        pencilMode = !pencilMode;
+        updatePencilButton();
+    }
+
+    function updatePencilButton() {
+        const btn = document.getElementById('btnPencil');
+        btn.classList.toggle('active', pencilMode);
+    }
+
+    function giveHint() {
+        if (isGameOver) return;
+        // Find empty cells with wrong / no value
+        const emptyCells = [];
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c] === 0 || board[r][c] !== solution[r][c])
+                    if (puzzle[r][c] === 0)
+                        emptyCells.push({ row: r, col: c });
+
+        if (emptyCells.length === 0) return;
+        const pick = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const { row, col } = pick;
+
+        history.push({ row, col, prevVal: board[row][col], prevNotes: new Set(pencilNotes[row][col]), wasPencil: false });
+        board[row][col] = solution[row][col];
+        pencilNotes[row][col] = new Set();
+        removePencilMarksFor(row, col, solution[row][col]);
+
+        const cell = getCell(row, col);
+        updateCellDisplay(cell, row, col);
+        cell.classList.add('cell-pop');
+        cell.addEventListener('animationend', () => cell.classList.remove('cell-pop'), { once: true });
+        applyConflicts();
+        refreshHighlights();
+        selectedCell = { row, col };
+        refreshHighlights();
+        updateNumpadCompleted(solution[row][col]);
+        updateProgress();
+
+        hintsLeft--;
+        updateHintButton();
+        playSuccess();
+
+        if (checkWin()) endGame(true);
+    }
+
+    function updateHintButton() {
+        const btn = document.getElementById('btnHint');
+        btn.textContent = `💡 İpucu (${hintsLeft})`;
+        btn.disabled = hintsLeft <= 0;
+        btn.style.opacity = hintsLeft <= 0 ? '0.4' : '1';
+    }
+
+    /* ============================================================
+       WIN / FAIL
+    ============================================================ */
+    function checkWin() {
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c] !== solution[r][c]) return false;
+        return true;
+    }
+
+    function endGame(won) {
+        isGameOver = true;
+        clearInterval(timerInterval);
+        const m = Math.floor(timerSec / 60);
+        const s = (timerSec % 60).toString().padStart(2, '0');
+
+        if (won) {
+            playComplete();
+            document.getElementById('winTime').textContent = m + ':' + s;
+            document.getElementById('winMistakes').textContent = mistakes;
+            setTimeout(() => document.getElementById('winModal').classList.add('show'), 400);
+        } else {
+            playError();
+            // Reveal board
+            for (let r = 0; r < 9; r++)
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0) board[r][c] = solution[r][c];
+                }
+            renderGrid();
+            setTimeout(() => document.getElementById('failModal').classList.add('show'), 400);
+        }
+    }
+
+    function hideModals() {
+        document.getElementById('winModal').classList.remove('show');
+        document.getElementById('failModal').classList.remove('show');
+    }
+
+    /* ============================================================
+       NUMPAD
+    ============================================================ */
+    function buildNumpad() {
+        const pad = document.getElementById('numpad');
+        pad.innerHTML = '';
+        for (let n = 1; n <= 9; n++) {
+            const btn = document.createElement('button');
+            btn.className = 'numpad-btn';
+            btn.textContent = n;
+            btn.id = 'npad-' + n;
+            if (isNumberCompleted(n)) btn.classList.add('completed');
+            btn.addEventListener('click', () => enterNumber(n));
+            pad.appendChild(btn);
+        }
+    }
+
+    function isNumberCompleted(num) {
+        let count = 0;
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c] === num && board[r][c] === solution[r][c]) count++;
+        return count === 9;
+    }
+
+    function updateNumpadCompleted(num) {
+        const btn = document.getElementById('npad-' + num);
+        if (btn && isNumberCompleted(num)) btn.classList.add('completed');
+    }
+
+    /* ============================================================
+       MISTAKE PIPS & PROGRESS
+    ============================================================ */
+    function updateMistakePips() {
+        for (let i = 0; i < 3; i++) {
+            const pip = document.getElementById('pip' + i);
+            pip.classList.toggle('used', i < mistakes);
+        }
+    }
+
+    function updateProgress() {
+        let filled = 0;
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c] !== 0 && board[r][c] === solution[r][c]) filled++;
+        const pct = Math.round((filled / 81) * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+    }
+
+    /* ============================================================
+       KEYBOARD
+    ============================================================ */
+    document.addEventListener('keydown', e => {
+        if (isGameOver) return;
+
+        if (e.key >= '1' && e.key <= '9') {
+            enterNumber(parseInt(e.key));
+            return;
+        }
+
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+            clearCell(); return;
+        }
+
+        if (e.key === 'p' || e.key === 'P') { togglePencil(); return; }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
+
+        // Arrow navigation
+        if (!selectedCell) { selectedCell = { row: 0, col: 0 }; refreshHighlights(); return; }
+        const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+        if (moves[e.key]) {
+            e.preventDefault();
+            const [dr, dc] = moves[e.key];
+            const nr = Math.max(0, Math.min(8, selectedCell.row + dr));
+            const nc = Math.max(0, Math.min(8, selectedCell.col + dc));
+            selectedCell = { row: nr, col: nc };
+            refreshHighlights();
+        }
+    });
+
+    /* ============================================================
+       BOOT
+    ============================================================ */
+    newGame('easy');
+    </script>
+</body>
+</html>
