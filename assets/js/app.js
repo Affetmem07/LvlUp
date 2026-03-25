@@ -2137,6 +2137,34 @@ function mapRawgGame(rawgGame) {
     };
 }
 
+// ── Helper: Auto-fetch API pages until enough games pass local filters ──
+async function fetchAndFilterGames(initialUrl, requestTrackerId, minValid = 12, maxPages = 5) {
+    let currentUrl = initialUrl;
+    let fetchCount = 0;
+    let validGames = [];
+
+    while (currentUrl && fetchCount < maxPages && validGames.length < minValid) {
+        fetchCount++;
+        const response = await fetch(currentUrl, { signal: gamesAbortController.signal });
+        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
+        if (requestTrackerId !== gamesRequestId) return null; // Aborted/Stale request
+
+        const data = await response.json();
+        currentUrl = data.next;
+
+        const mappedChunk = (data.results || [])
+            .filter(isValidGameForDisplay)
+            .map(mapRawgGame);
+
+        validGames.push(...mappedChunk);
+    }
+
+    return {
+        games: validGames,
+        nextUrl: currentUrl
+    };
+}
+
 // ── Load Games from RAWG API ──
 async function loadGames(append = false) {
     if (gamesIsLoading && append) return;
@@ -2168,17 +2196,13 @@ async function loadGames(append = false) {
             url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=-metacritic&dates=1970-01-01,${getTodayDate()}`;
         }
 
-        const response = await fetch(url, { signal: gamesAbortController.signal });
-        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
-        if (myRequestId !== gamesRequestId) return; // Stale response
+        const result = await fetchAndFilterGames(url, myRequestId);
+        if (!result) return; // Stale
 
-        const data = await response.json();
-        gamesNextPageUrl = data.next;
+        gamesNextPageUrl = result.nextUrl;
 
-        const newGames = (data.results || [])
-            .filter(isValidGameForDisplay)
-            .map(mapRawgGame)
-            .sort((a, b) => b.rating - a.rating);
+        // Default loadGames fetches by -metacritic, we sort locally just to be perfectly uniform
+        const newGames = result.games.sort((a, b) => b.rating - a.rating);
 
         if (append) {
             allGames = [...allGames, ...newGames];
@@ -2229,19 +2253,14 @@ async function searchGamesFromAPI(query) {
 
     try {
         const url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&search=${encodeURIComponent(query)}&dates=1970-01-01,${getTodayDate()}`;
-        const response = await fetch(url, { signal: gamesAbortController.signal });
-        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
-        if (myRequestId !== gamesRequestId) return; // Stale response
+        const result = await fetchAndFilterGames(url, myRequestId);
+        if (!result) return;
 
-        const data = await response.json();
-        gamesNextPageUrl = data.next;
-
+        gamesNextPageUrl = result.nextUrl;
         const queryLower = query.toLowerCase();
         
         // Filter, map, then smart-sort: title matches first, then by rating
-        allGames = (data.results || [])
-            .filter(isValidGameForDisplay)
-            .map(mapRawgGame)
+        allGames = result.games
             .sort((a, b) => {
                 const aMatch = a.title.toLowerCase().includes(queryLower) ? 1 : 0;
                 const bMatch = b.title.toLowerCase().includes(queryLower) ? 1 : 0;
@@ -2564,24 +2583,18 @@ async function loadGamesWithAdvFilters() {
 
         // ÖNEMLİ: Puan aralığını API'ye GÖNDERMİYORUZ.
         // Metacritic skoru henüz olmayan (2026 gibi yeni) oyunları elemek istemiyoruz.
-        // Puan filtresi aşağıda tamamen client-side uygulanacak.
+        // Puan filtresi ve auto-pagination tamamen client-side hesaplanacak.
 
-        const response = await fetch(url, { signal: gamesAbortController.signal });
-        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
-        if (myRequestId !== gamesRequestId) return;
+        const result = await fetchAndFilterGames(url, myRequestId, 15, 6);
+        if (!result) return;
 
-        const data = await response.json();
-        gamesNextPageUrl = data.next;
-
-        const mapped = (data.results || [])
-            .filter(isValidGameForDisplay)
-            .map(mapRawgGame);
+        gamesNextPageUrl = result.nextUrl;
 
         // Sadece "Tümü" seçiliyken (ordering='') client-side puan sıralaması uygula.
         // Diğer seçeneklerde (En Yeni, En Eski, Kullanıcı Puanı) API sıralamasını koru.
         allGames = advFilters.ordering === ''
-            ? mapped.sort((a, b) => b.rating - a.rating)
-            : mapped;
+            ? result.games.sort((a, b) => b.rating - a.rating)
+            : result.games;
 
         renderGamesGrid();
 
