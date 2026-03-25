@@ -2148,23 +2148,6 @@ select {
     );
 }
 
-/* Category badge */
-.bgc-badge {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    z-index: 3;
-    background: rgba(45, 90, 67, 0.75);
-    border: 1px solid rgba(107,170,117,0.5);
-    border-radius: 999px;
-    color: #a4c639;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.6px;
-    padding: 4px 12px;
-    backdrop-filter: blur(8px);
-    text-transform: uppercase;
-}
 
 /* Play button – shows fully on hover */
 .bgc-play-btn {

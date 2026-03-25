@@ -2364,7 +2364,6 @@ function renderBrowserGameCard(game) {
                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%230f1d17%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2240%22 x=%2250%22 y=%2255%22 text-anchor=%22middle%22%3E🎮%3C/text%3E%3C/svg%3E'">
             </div>
             <div class="bgc-overlay"></div>
-            <div class="bgc-badge">${escapeHtml(game.category)}</div>
             <div class="bgc-play-btn">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
