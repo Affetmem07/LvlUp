@@ -2065,25 +2065,25 @@ select {
 .bg-page-title {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 28px;
+    gap: 10px;
+    padding: 10px 24px;
     border-radius: 999px;
-    border: 1.5px solid rgba(164, 198, 57, 0.4);
-    background: rgba(45, 90, 67, 0.4); 
-    color: var(--neon-green);
+    border: 1.5px solid rgba(45, 90, 67, 0.6);
+    background: rgba(15, 29, 23, 0.85); 
+    color: var(--accent-light);
     font-family: 'Inter', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
+    font-size: 1.15rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 16px rgba(164, 198, 57, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     margin: 0;
 }
 
 .bg-page-title svg {
     flex-shrink: 0;
-    color: var(--neon-green);
-    filter: drop-shadow(0 0 6px rgba(164, 198, 57, 0.4));
+    color: var(--accent-light);
+    filter: drop-shadow(0 0 6px rgba(107, 170, 117, 0.3));
 }
 
 .bg-page-count {
