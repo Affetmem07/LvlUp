@@ -434,6 +434,12 @@ function navigate(page) {
         'browser-games': 'Hazır Oyunlar',
     };
 
+    const icons = {
+        home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+        popular: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>',
+        reviews: '<circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>'
+    };
+
     // Toggle Trending Section and Feed Tabs (Show only on popular)
     const trendSect = document.getElementById('trendingSection');
     const tabsSect = document.getElementById('feedTabsContainer');
@@ -472,6 +478,10 @@ function navigate(page) {
         } else {
             feed.style.display = '';
             document.getElementById('feedTitleText').textContent = (titles[page] || 'Ana Sayfa').toUpperCase();
+            const feedIcon = document.getElementById('feedTitleIcon');
+            if (feedIcon) {
+                feedIcon.innerHTML = icons[page] || icons['home'];
+            }
             renderFeed();
         }
 
@@ -528,6 +538,10 @@ function filterCategory(cat) {
     const showFeed = () => {
         feed.style.display = '';
         document.getElementById('feedTitleText').textContent = (catNames[cat] || cat).toUpperCase();
+        const feedIcon = document.getElementById('feedTitleIcon');
+        if (feedIcon) {
+            feedIcon.innerHTML = '<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>';
+        }
         renderFeed();
         feed.classList.remove('page-enter');
         void feed.offsetWidth;
