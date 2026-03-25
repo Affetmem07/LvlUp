@@ -2403,7 +2403,7 @@ function toggleAdvFilter() {
     toggle.classList.toggle('active', isOpen);
 }
 
-function applyAdvFilters() {
+function applyAdvFilters(changedField) {
     advFilters.genre = document.getElementById('advGenre')?.value || '';
     advFilters.platform = document.getElementById('advPlatform')?.value || '';
     advFilters.ordering = document.getElementById('advOrdering')?.value || '-added';
@@ -2422,6 +2422,14 @@ function applyAdvFilters() {
     // Max her zaman Min'den büyük veya eşit olmalı
     if (maxVal > 0 && minVal > 0 && minVal > maxVal) {
         showToast('Minimum puan, maksimum puandan büyük olamaz!', 'error');
+        // Hangi alan hatalıysa onu temizle
+        if (changedField === 'min') {
+            minEl.value = '';
+            advFilters.minRating = 0;
+        } else {
+            maxEl.value = '';
+            advFilters.maxRating = 0;
+        }
         return;
     }
 
