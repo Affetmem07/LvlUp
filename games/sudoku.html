@@ -99,6 +99,13 @@
             font-family: 'Orbitron', monospace;
         }
 
+        #timerText {
+            display: inline-block;
+            min-width: 55px; /* Sabit genişlik ile titremeyi/kaymayı önlüyor */
+            text-align: right;
+            font-variant-numeric: tabular-nums; /* Rakam boyutlarını eşitler */
+        }
+
         /* ── Action Buttons ── */
         .btn {
             background: linear-gradient(135deg, #2D5A43, #1A3A2A);
@@ -497,10 +504,7 @@
 
     <!-- MISTAKES -->
     <div class="mistakes-display">
-        <span class="mistakes-label">Hata:</span>
-        <div class="mistake-pip" id="pip0"></div>
-        <div class="mistake-pip" id="pip1"></div>
-        <div class="mistake-pip" id="pip2"></div>
+        <span class="mistakes-label">Hata: <span id="mistakeCountText" style="color:#e05c5c;font-family:'Orbitron', monospace;font-size:1.1rem;margin-left:4px;">0</span></span>
     </div>
 
     <!-- PROGRESS BAR -->
@@ -513,7 +517,6 @@
     <!-- CONTROL BAR -->
     <div class="control-bar">
         <button class="ctrl-btn" id="btnUndo" onclick="undo()">↩ Geri Al</button>
-        <button class="ctrl-btn" id="btnPencil" onclick="togglePencil()">✏️ Kalem</button>
         <button class="ctrl-btn" id="btnHint" onclick="giveHint()">💡 İpucu</button>
         <button class="ctrl-btn danger" onclick="clearCell()">✕ Sil</button>
     </div>
@@ -656,8 +659,6 @@
     let pencilNotes    = [];   // [row][col] = Set of pencil marks
     let selectedCell   = null; // { row, col }
     let mistakes       = 0;
-    let maxMistakes    = 3;
-    let pencilMode     = false;
     let timerSec       = 0;
     let timerInterval  = null;
     let hintsLeft      = 3;
@@ -705,7 +706,6 @@
         isGameOver = false;
         mistakes = 0;
         hintsLeft = 3;
-        pencilMode = false;
         history = [];
         selectedCell = null;
 
@@ -730,7 +730,6 @@
 
         hideModals();
         updateMistakePips();
-        updatePencilButton();
         renderGrid();
         buildNumpad();
         updateHintButton();
@@ -868,18 +867,6 @@
         const { row, col } = selectedCell;
         if (puzzle[row][col] !== 0) return; // given cell
 
-        if (pencilMode) {
-            // Toggle pencil note
-            if (board[row][col] !== 0) return;
-            const notes = pencilNotes[row][col];
-            const prev = new Set(notes);
-            history.push({ row, col, prevVal: board[row][col], prevNotes: prev, wasPencil: true });
-            if (notes.has(num)) notes.delete(num); else notes.add(num);
-            const cell = getCell(row, col);
-            updateCellDisplay(cell, row, col);
-            return;
-        }
-
         // Regular entry
         const prev = board[row][col];
         const prevNotes = new Set(pencilNotes[row][col]);
@@ -903,10 +890,6 @@
             mistakes++;
             updateMistakePips();
             playError();
-            if (mistakes >= maxMistakes) {
-                endGame(false);
-                return;
-            }
         } else {
             playSuccess();
             updateNumpadCompleted(num);
@@ -957,16 +940,6 @@
         refreshHighlights();
         buildNumpad();
         updateProgress();
-    }
-
-    function togglePencil() {
-        pencilMode = !pencilMode;
-        updatePencilButton();
-    }
-
-    function updatePencilButton() {
-        const btn = document.getElementById('btnPencil');
-        btn.classList.toggle('active', pencilMode);
     }
 
     function giveHint() {
@@ -1085,10 +1058,8 @@
        MISTAKE PIPS & PROGRESS
     ============================================================ */
     function updateMistakePips() {
-        for (let i = 0; i < 3; i++) {
-            const pip = document.getElementById('pip' + i);
-            pip.classList.toggle('used', i < mistakes);
-        }
+        const textEl = document.getElementById('mistakeCountText');
+        if(textEl) textEl.textContent = mistakes;
     }
 
     function updateProgress() {
@@ -1114,8 +1085,6 @@
         if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
             clearCell(); return;
         }
-
-        if (e.key === 'p' || e.key === 'P') { togglePencil(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
 
         // Arrow navigation
