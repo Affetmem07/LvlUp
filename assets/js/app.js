@@ -2399,6 +2399,8 @@ function renderBrowserGamesGrid() {
     const grid = document.getElementById('browserGamesGrid');
     if (!grid) return;
     grid.innerHTML = allBrowserGames.map(game => renderBrowserGameCard(game)).join('');
+    const countEl = document.getElementById('bgPageCount');
+    if (countEl) countEl.textContent = allBrowserGames.length + ' oyun';
 }
 
 // ── Advanced Game Filters ──

@@ -2036,7 +2036,7 @@ select {
 }
 
 /* ----------------------------------------------------------------
-   BROWSER GAMES PAGE – sıfırdan tasarım
+   BROWSER GAMES PAGE – sayfa başlığı
    ---------------------------------------------------------------- */
 .browser-games-page {
     flex: 1;
@@ -2044,111 +2044,70 @@ select {
     max-width: 1200px;
     display: flex;
     flex-direction: column;
-    gap: 0;
 }
 
-/* Hero Banner */
-.browser-games-hero {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    margin: 24px 24px 0;
-    width: calc(100% - 48px);
-    flex-shrink: 0;
+/* ── Page Header ── */
+.bg-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 36px 24px 0;
+    flex-wrap: wrap;
 }
 
-.browser-games-hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(ellipse at 20% 50%, rgba(45, 90, 67, 0.55) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 30%, rgba(107, 170, 117, 0.25) 0%, transparent 50%),
-        radial-gradient(ellipse at 60% 80%, rgba(164, 198, 57, 0.15) 0%, transparent 40%),
-        linear-gradient(135deg, #0a1a10 0%, #0f1d17 50%, #071410 100%);
-    animation: heroPulse 8s ease-in-out infinite alternate;
-}
-
-@keyframes heroPulse {
-    0%   { filter: brightness(1); }
-    100% { filter: brightness(1.15); }
-}
-
-/* floating particles in hero */
-.browser-games-hero-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        radial-gradient(circle, rgba(107,170,117,0.18) 1px, transparent 1px),
-        radial-gradient(circle, rgba(164,198,57,0.12) 1px, transparent 1px);
-    background-size: 60px 60px, 90px 90px;
-    background-position: 0 0, 30px 30px;
-    animation: particleFloat 20s linear infinite;
-}
-
-@keyframes particleFloat {
-    0%   { transform: translateY(0); }
-    100% { transform: translateY(-60px); }
-}
-
-/* decorative grid lines */
-.browser-games-hero-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(107,170,117,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(107,170,117,0.06) 1px, transparent 1px);
-    background-size: 40px 40px;
-}
-
-.browser-games-hero-content {
-    position: absolute;
-    inset: 0;
+.bg-page-header-left {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    z-index: 2;
+    gap: 6px;
 }
 
-.browser-games-hero-icon {
-    font-size: 3.2rem;
-    filter: drop-shadow(0 0 20px rgba(107,170,117,0.6));
-    animation: iconFloat 3s ease-in-out infinite;
+.bg-page-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    opacity: 0.75;
 }
 
-@keyframes iconFloat {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-8px); }
-}
-
-.browser-games-hero-title {
+.bg-page-title {
     font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
-    font-size: 2.8rem;
+    font-size: 2.4rem;
     font-weight: 900;
-    background: linear-gradient(135deg, #A4C639, #6BAA75, #2D5A43);
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--neon-green) 50%, var(--accent) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 2px;
-    text-shadow: none;
     margin: 0;
-    line-height: 1;
-    -webkit-filter: drop-shadow(0 2px 16px rgba(107,170,117,0.4));
-    filter: drop-shadow(0 2px 16px rgba(107,170,117,0.4));
+    line-height: 1.1;
+    letter-spacing: 1px;
 }
 
-/* Game Grid – larger cards, fewer columns for browser games */
+.bg-page-divider {
+    width: 64px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 60%, transparent 100%);
+    margin-top: 4px;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.bg-page-count {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding-bottom: 6px;
+}
+
+/* ── Game Grid ── */
 .browser-games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 24px;
     padding: 28px 24px 40px;
 }
+
 
 /* ── Browser Game Card ── */
 .browser-game-card {
