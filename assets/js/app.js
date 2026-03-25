@@ -2527,21 +2527,25 @@ async function loadGamesWithAdvFilters() {
 
     try {
         // Tümü (ordering='') → -metacritic, diğer seçenekler direkt API'ye geçer
+        const isDateOrdering = advFilters.ordering === '-released' || advFilters.ordering === 'released';
         const apiOrdering = advFilters.ordering || '-metacritic';
+
         let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=${apiOrdering}&dates=1970-01-01,${getTodayDate()}`;
-        if (advFilters.genre) url += `&genres=${advFilters.genre}`;
+        if (advFilters.genre)    url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
         if (advFilters.gameMode) url += `&tags=${advFilters.gameMode}`;
-        if (advFilters.yearFrom) url += `&dates=${advFilters.yearFrom}-01-01,${advFilters.yearTo ? advFilters.yearTo + '-12-31' : getTodayDate()}`;
-        else if (advFilters.yearTo) url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
-        
-        if (advFilters.minRating > 0 || advFilters.maxRating > 0) {
-            const minMeta = advFilters.minRating > 0 ? advFilters.minRating : 1;
-            const maxMeta = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
-            url += `&metacritic=${minMeta},${maxMeta}`;
+
+        // Yıl aralığı — API'ye gönder (bu güvenli, yıl Metacritic ile bağlantısız)
+        if (advFilters.yearFrom) {
+            const dateTo = advFilters.yearTo ? `${advFilters.yearTo}-12-31` : getTodayDate();
+            url += `&dates=${advFilters.yearFrom}-01-01,${dateTo}`;
+        } else if (advFilters.yearTo) {
+            url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
         }
-        // Not: En Yeni / En Eski için artık metacritic=1,100 eklenmez.
-        // Yeni çıkan oyunların henüz Metacritic skoru olmayabileceğinden bu kısıtı kaldırdık.
+
+        // ÖNEMLİ: Puan aralığını API'ye GÖNDERMİYORUZ.
+        // Metacritic skoru henüz olmayan (2026 gibi yeni) oyunları elemek istemiyoruz.
+        // Puan filtresi aşağıda tamamen client-side uygulanacak.
 
         const response = await fetch(url, { signal: gamesAbortController.signal });
         if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
@@ -2550,13 +2554,20 @@ async function loadGamesWithAdvFilters() {
         const data = await response.json();
         gamesNextPageUrl = data.next;
 
-        const isDateOrdering = advFilters.ordering === '-released' || advFilters.ordering === 'released';
+        const hasRatingFilter = advFilters.minRating > 0 || advFilters.maxRating > 0;
+        const effectiveMin = advFilters.minRating > 0 ? advFilters.minRating : 0;
+        const effectiveMax = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
+
         const mapped = (data.results || [])
             .filter(g => {
                 if (!g.background_image) return false;
-                // En Yeni/En Eski: henüz Metacritic skoru olmayan ama kullanıcı puanı olan oyunları da kabul et
-                if (isDateOrdering) return (g.rating || 0) > 0;
-                return (g.metacritic || Math.round((g.rating || 0) * 20)) > 0;
+                // Oyunun hesaplanan puanı: Metacritic varsa onu kullan, yoksa RAWG kullanıcı puanını 100'lük sisteme çevir
+                const score = g.metacritic || Math.round((g.rating || 0) * 20);
+                // En azından bir puanı olsun (tamamen puansız oyunları eliyoruz)
+                if (score === 0) return false;
+                // Puan aralığı filtresi — tamamen client-side
+                if (hasRatingFilter && (score < effectiveMin || score > effectiveMax)) return false;
+                return true;
             })
             .map(mapRawgGame);
 
@@ -2567,6 +2578,7 @@ async function loadGamesWithAdvFilters() {
             : mapped;
 
         renderGamesGrid();
+
     } catch (error) {
         if (error.name === 'AbortError') return;
         console.error('RAWG Gelişmiş Filtre Hatası:', error);
