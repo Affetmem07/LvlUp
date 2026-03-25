@@ -2548,11 +2548,17 @@ async function loadGamesWithAdvFilters() {
         if (myRequestId !== gamesRequestId) return;
 
         const data = await response.json();
-        gamesNextPageUrl = data.next; // Filtrelerde de sonsuz kaydırmayı aktifleştir
-        allGames = (data.results || [])
+        gamesNextPageUrl = data.next;
+        const mapped = (data.results || [])
             .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
-            .map(mapRawgGame)
-            .sort((a, b) => b.rating - a.rating);
+            .map(mapRawgGame);
+
+        // Sadece "Tümü" seçiliyken (ordering='') client-side puan sıralaması uygula.
+        // Diğer seçeneklerde (En Yeni, En Eski, Kullanıcı Puanı) API sıralamasını koru.
+        allGames = advFilters.ordering === ''
+            ? mapped.sort((a, b) => b.rating - a.rating)
+            : mapped;
+
         renderGamesGrid();
     } catch (error) {
         if (error.name === 'AbortError') return;
