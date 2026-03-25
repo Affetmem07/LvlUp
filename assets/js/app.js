@@ -2391,6 +2391,7 @@ let advFilters = {
     ordering: '-added',
     gameMode: '',
     minRating: 0,
+    maxRating: 0,
     yearFrom: '',
     yearTo: '',
 };
@@ -2407,7 +2408,8 @@ function applyAdvFilters() {
     advFilters.platform = document.getElementById('advPlatform')?.value || '';
     advFilters.ordering = document.getElementById('advOrdering')?.value || '-added';
     advFilters.gameMode = document.getElementById('advGameMode')?.value || '';
-    advFilters.minRating = parseInt(document.getElementById('advMinRating')?.value || '0', 10);
+    advFilters.minRating = parseInt(document.getElementById('advMinRating')?.value || '0', 10) || 0;
+    advFilters.maxRating = parseInt(document.getElementById('advMaxRating')?.value || '0', 10) || 0;
     advFilters.yearFrom = document.getElementById('advYearFrom')?.value || '';
     advFilters.yearTo = document.getElementById('advYearTo')?.value || '';
 
@@ -2420,10 +2422,11 @@ function resetAdvFilters() {
     document.getElementById('advPlatform').value = '';
     document.getElementById('advOrdering').value = '-added';
     document.getElementById('advGameMode').value = '';
-    document.getElementById('advMinRating').value = '0';
+    document.getElementById('advMinRating').value = '';
+    document.getElementById('advMaxRating').value = '';
     document.getElementById('advYearFrom').value = '';
     document.getElementById('advYearTo').value = '';
-    advFilters = { genre: '', platform: '', ordering: '-added', gameMode: '', minRating: 0, yearFrom: '', yearTo: '' };
+    advFilters = { genre: '', platform: '', ordering: '-added', gameMode: '', minRating: 0, maxRating: 0, yearFrom: '', yearTo: '' };
     updateAdvFilterTags();
     loadGames();
 }
@@ -2440,7 +2443,11 @@ function updateAdvFilterTags() {
     if (advFilters.platform) tags.push(platMap[advFilters.platform] || advFilters.platform);
     if (advFilters.ordering !== '-added') tags.push(orderMap[advFilters.ordering] || advFilters.ordering);
     if (advFilters.gameMode) tags.push(modeMap[advFilters.gameMode] || advFilters.gameMode);
-    if (advFilters.minRating > 0) tags.push(`${advFilters.minRating}+`);
+    if (advFilters.minRating > 0 || advFilters.maxRating > 0) {
+        const minStr = advFilters.minRating > 0 ? String(advFilters.minRating) : '0';
+        const maxStr = advFilters.maxRating > 0 ? String(advFilters.maxRating) : '100';
+        tags.push(`⭐ ${minStr}–${maxStr}`);
+    }
     if (advFilters.yearFrom) tags.push(`${advFilters.yearFrom}–`);
     if (advFilters.yearTo) tags.push(`–${advFilters.yearTo}`);
     container.innerHTML = tags.map(t => `<span class="adv-active-tag">${t}</span>`).join('');
@@ -2470,11 +2477,11 @@ async function loadGamesWithAdvFilters() {
         if (advFilters.yearFrom) url += `&dates=${advFilters.yearFrom}-01-01,${advFilters.yearTo ? advFilters.yearTo + '-12-31' : getTodayDate()}`;
         else if (advFilters.yearTo) url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
         
-        if (advFilters.minRating > 0) {
-            url += `&metacritic=${advFilters.minRating},100`;
+        if (advFilters.minRating > 0 || advFilters.maxRating > 0) {
+            const minMeta = advFilters.minRating > 0 ? advFilters.minRating : 1;
+            const maxMeta = advFilters.maxRating > 0 ? advFilters.maxRating : 100;
+            url += `&metacritic=${minMeta},${maxMeta}`;
         } else if (advFilters.ordering === '-released' || advFilters.ordering === 'released') {
-            // Puanı olmayan on binlerce indie oyunun listeyi boş bırakmasını önlemek için 
-            // "En Yeni" veya "En Eski" sıralamasında en azından Metacritic skorunu zorunlu kılıyoruz.
             url += `&metacritic=1,100`;
         }
 

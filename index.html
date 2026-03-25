@@ -222,14 +222,12 @@
                                 </select>
                             </div>
                             <div class="adv-filter-group">
-                                <label class="adv-filter-label">Min. Puan</label>
-                                <select id="advMinRating" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="0">Tümü</option>
-                                    <option value="90">90+</option>
-                                    <option value="80">80+</option>
-                                    <option value="70">70+</option>
-                                    <option value="60">60+</option>
-                                </select>
+                                <label class="adv-filter-label">Puan Aralığı</label>
+                                <div class="adv-year-range">
+                                    <input type="number" id="advMinRating" class="adv-filter-input" placeholder="Min" min="0" max="100" oninput="applyAdvFilters()">
+                                    <span class="adv-year-dash">–</span>
+                                    <input type="number" id="advMaxRating" class="adv-filter-input" placeholder="Max" min="0" max="100" oninput="applyAdvFilters()">
+                                </div>
                             </div>
                             <div class="adv-filter-group adv-filter-group--wide">
                                 <label class="adv-filter-label">Çıkış Yılı</label>
