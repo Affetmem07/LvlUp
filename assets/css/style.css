@@ -2079,36 +2079,7 @@ select {
     gap: 6px;
 }
 
-.bg-page-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 24px;
-    border-radius: 999px;
-    border: 1.5px solid rgba(45, 90, 67, 0.6);
-    background: rgba(15, 29, 23, 0.85); 
-    color: var(--accent-light);
-    font-family: 'Inter', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    margin: 0;
-}
 
-.bg-page-title svg {
-    flex-shrink: 0;
-    color: var(--accent-light);
-    filter: drop-shadow(0 0 6px rgba(107, 170, 117, 0.3));
-}
-
-.bg-page-count {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    padding-bottom: 6px;
-}
 
 /* ── Game Grid ── */
 .browser-games-grid {
