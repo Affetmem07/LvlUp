@@ -2146,7 +2146,7 @@ async function loadGames(append = false) {
         if (append && gamesNextPageUrl) {
             url = gamesNextPageUrl;
         } else {
-            url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-metacritic&dates=1970-01-01,${getTodayDate()}`;
+            url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=1970-01-01,${getTodayDate()}`;
         }
 
         const response = await fetch(url, { signal: gamesAbortController.signal });
@@ -2158,7 +2158,8 @@ async function loadGames(append = false) {
 
         const newGames = (data.results || [])
             .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
-            .map(mapRawgGame);
+            .map(mapRawgGame)
+            .sort((a, b) => b.rating - a.rating);
 
         if (append) {
             allGames = [...allGames, ...newGames];
@@ -2387,7 +2388,8 @@ function renderBrowserGamesGrid() {
 let advFilters = {
     genre: '',
     platform: '',
-    ordering: '-metacritic',
+    ordering: '-added',
+    gameMode: '',
     minRating: 0,
     yearFrom: '',
     yearTo: '',
@@ -2403,7 +2405,8 @@ function toggleAdvFilter() {
 function applyAdvFilters() {
     advFilters.genre = document.getElementById('advGenre')?.value || '';
     advFilters.platform = document.getElementById('advPlatform')?.value || '';
-    advFilters.ordering = document.getElementById('advOrdering')?.value || '-metacritic';
+    advFilters.ordering = document.getElementById('advOrdering')?.value || '-added';
+    advFilters.gameMode = document.getElementById('advGameMode')?.value || '';
     advFilters.minRating = parseInt(document.getElementById('advMinRating')?.value || '0', 10);
     advFilters.yearFrom = document.getElementById('advYearFrom')?.value || '';
     advFilters.yearTo = document.getElementById('advYearTo')?.value || '';
@@ -2415,11 +2418,12 @@ function applyAdvFilters() {
 function resetAdvFilters() {
     document.getElementById('advGenre').value = '';
     document.getElementById('advPlatform').value = '';
-    document.getElementById('advOrdering').value = '-metacritic';
+    document.getElementById('advOrdering').value = '-added';
+    document.getElementById('advGameMode').value = '';
     document.getElementById('advMinRating').value = '0';
     document.getElementById('advYearFrom').value = '';
     document.getElementById('advYearTo').value = '';
-    advFilters = { genre: '', platform: '', ordering: '-metacritic', minRating: 0, yearFrom: '', yearTo: '' };
+    advFilters = { genre: '', platform: '', ordering: '-added', gameMode: '', minRating: 0, yearFrom: '', yearTo: '' };
     updateAdvFilterTags();
     loadGames();
 }
@@ -2430,10 +2434,12 @@ function updateAdvFilterTags() {
     const tags = [];
     const genreMap = { action:'Aksiyon', adventure:'Macera', 'role-playing-games-rpg':'RPG', shooter:'Nişancı', strategy:'Strateji', simulation:'Simülasyon', puzzle:'Bulmaca', sports:'Spor', racing:'Yarış', fighting:'Dövüş', indie:'Indie', platformer:'Platform' };
     const platMap = { 4:'PC', 187:'PS5', 18:'PS4', 186:'Xbox Series X', 1:'Xbox One', 7:'Nintendo Switch', 3:'iOS', 21:'Android' };
-    const orderMap = { '-metacritic':'Puan↓', 'metacritic':'Puan↑', '-released':'En Yeni', released:'En Eski', '-added':'Popüler', '-rating':'Kullanıcı Puanı' };
+    const orderMap = { '-released':'En Yeni', released:'En Eski', '-added':'Popüler', '-rating':'Kullanıcı Puanı', '-updated':'Son Güncellenenler' };
+    const modeMap = { singleplayer:'Tek Oyunculu', multiplayer:'Çok Oyunculu', 'co-op':'Eşli (Co-op)' };
     if (advFilters.genre) tags.push(genreMap[advFilters.genre] || advFilters.genre);
     if (advFilters.platform) tags.push(platMap[advFilters.platform] || advFilters.platform);
-    if (advFilters.ordering !== '-metacritic') tags.push(orderMap[advFilters.ordering] || advFilters.ordering);
+    if (advFilters.ordering !== '-added') tags.push(orderMap[advFilters.ordering] || advFilters.ordering);
+    if (advFilters.gameMode) tags.push(modeMap[advFilters.gameMode] || advFilters.gameMode);
     if (advFilters.minRating > 0) tags.push(`${advFilters.minRating}+`);
     if (advFilters.yearFrom) tags.push(`${advFilters.yearFrom}–`);
     if (advFilters.yearTo) tags.push(`–${advFilters.yearTo}`);
@@ -2457,6 +2463,7 @@ async function loadGamesWithAdvFilters() {
         if (advFilters.ordering) url += `&ordering=${advFilters.ordering}`;
         if (advFilters.genre) url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
+        if (advFilters.gameMode) url += `&tags=${advFilters.gameMode}`;
         if (advFilters.yearFrom) url += `&dates=${advFilters.yearFrom}-01-01,${advFilters.yearTo ? advFilters.yearTo + '-12-31' : getTodayDate()}`;
         else if (advFilters.yearTo) url += `&dates=1970-01-01,${advFilters.yearTo}-12-31`;
         
@@ -2476,7 +2483,8 @@ async function loadGamesWithAdvFilters() {
         gamesNextPageUrl = data.next; // Filtrelerde de sonsuz kaydırmayı aktifleştir
         allGames = (data.results || [])
             .filter(g => g.background_image && (g.metacritic || Math.round((g.rating || 0) * 20)) > 0)
-            .map(mapRawgGame);
+            .map(mapRawgGame)
+            .sort((a, b) => b.rating - a.rating);
         renderGamesGrid();
     } catch (error) {
         if (error.name === 'AbortError') return;

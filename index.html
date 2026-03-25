@@ -205,12 +205,20 @@
                             <div class="adv-filter-group">
                                 <label class="adv-filter-label">Sıralama</label>
                                 <select id="advOrdering" class="adv-filter-select" onchange="applyAdvFilters()">
-                                    <option value="-metacritic">Puana Göre (Yüksek)</option>
-                                    <option value="metacritic">Puana Göre (Düşük)</option>
+                                    <option value="-added">En Popüler</option>
                                     <option value="-released">En Yeni</option>
                                     <option value="released">En Eski</option>
-                                    <option value="-added">En Popüler</option>
                                     <option value="-rating">Kullanıcı Puanı</option>
+                                    <option value="-updated">Son Güncellenenler</option>
+                                </select>
+                            </div>
+                            <div class="adv-filter-group">
+                                <label class="adv-filter-label">Oyun Modu</label>
+                                <select id="advGameMode" class="adv-filter-select" onchange="applyAdvFilters()">
+                                    <option value="">Tümü</option>
+                                    <option value="singleplayer">Tek Oyunculu</option>
+                                    <option value="multiplayer">Çok Oyunculu</option>
+                                    <option value="co-op">Eşli (Co-op)</option>
                                 </select>
                             </div>
                             <div class="adv-filter-group">
