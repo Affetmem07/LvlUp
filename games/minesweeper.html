@@ -6,58 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mayın Tarlası</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
             font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
             background: rgb(15, 29, 23);
             color: #f1f5f9;
             margin: 0;
-            padding: 15px 20px;
+            padding: 10px 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
-            box-sizing: border-box;
         }
 
+        /* ── TOP PANEL ── */
         .top-panel {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 960px;
             background: rgba(15, 29, 23, 0.45);
-            padding: 15px 25px;
+            padding: 10px 20px;
             border-radius: 12px;
             border: 1px solid rgba(45, 90, 67, 0.4);
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 900px;
-            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
-        .top-left,
-        .top-right {
+        .top-left, .top-right {
             display: flex;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 12px;
+            flex-wrap: nowrap;
         }
 
         .top-title {
             color: #6BAA75;
             margin: 0;
-            font-size: 1.6rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 1.4rem;
+            white-space: nowrap;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .diff-group {
             display: flex;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid rgba(45, 90, 67, 0.4);
@@ -67,17 +67,16 @@
             background: transparent;
             color: #a4c639;
             border: none;
-            padding: 8px 16px;
+            padding: 7px 14px;
             font-family: inherit;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        .diff-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
+        .diff-btn:hover { background: rgba(255,255,255,0.05); }
 
         .diff-btn.active {
             background: linear-gradient(135deg, #2D5A43, #1A3A2A);
@@ -86,22 +85,23 @@
 
         .stats-box {
             display: flex;
-            gap: 20px;
-            font-size: 1.2rem;
+            gap: 16px;
+            font-size: 1.1rem;
             color: #A4C639;
             font-weight: bold;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            padding: 7px 14px;
             border-radius: 8px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
 
         .btn {
             background: linear-gradient(135deg, #2D5A43, #1A3A2A);
             color: white;
             border: none;
-            padding: 8px 18px;
-            font-size: 1rem;
+            padding: 7px 16px;
+            font-size: 0.95rem;
             border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
@@ -110,8 +110,8 @@
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -119,254 +119,178 @@
             background: linear-gradient(135deg, #6BAA75, #2D5A43);
         }
 
+        /* ── GRID AREA ──
+           JS calculates --sz and sets gridTemplateColumns before render,
+           so the grid always fits the container exactly — no overflow, no scroll.
+        */
         .grid-container {
             flex: 1;
             min-height: 0;
             width: 100%;
+            max-width: 960px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding-bottom: 20px;
-            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .grid {
             display: grid;
             gap: 2px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             padding: 8px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: fit-content;
-            margin: 0 auto;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .cell {
-            width: calc(min(85vw / var(--cols, 10), 65vh / var(--rows, 10)));
-            height: calc(min(85vw / var(--cols, 10), 65vh / var(--rows, 10)));
-            max-width: 35px;
-            max-height: 35px;
-            background: rgba(255, 255, 255, 0.1);
+            width: var(--sz, 28px);
+            height: var(--sz, 28px);
+            background: rgba(255,255,255,0.1);
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: clamp(14px, 3.2vmin, 24px);
+            font-size: calc(var(--sz, 28px) * 0.52);
             cursor: pointer;
             user-select: none;
             transition: background 0.1s;
         }
 
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .cell.revealed {
-            background: rgba(15, 29, 23, 0.8);
-            cursor: default;
-        }
-
-        .cell.mine {
-            background: #8B0000;
-        }
+        .cell:hover  { background: rgba(255,255,255,0.2); }
+        .cell.revealed { background: rgba(15,29,23,0.8); cursor: default; }
+        .cell.mine     { background: #8B0000; }
 
         @keyframes popIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
+            0%   { transform: scale(0.3); opacity: 0; }
+            50%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1);   opacity: 1; }
         }
 
         .cell.mine.anim {
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        .color-1 {
-            color: #6BAA75;
-        }
+        .color-1 { color: #6BAA75; }
+        .color-2 { color: #A4C639; }
+        .color-3 { color: #DDA15E; }
+        .color-4 { color: #BC6C25; }
+        .color-5 { color: #8B0000; }
+        .color-6 { color: #ffeb3b; }
+        .color-7 { color: #ff9800; }
+        .color-8 { color: #f44336; }
 
-        .color-2 {
-            color: #A4C639;
-        }
-
-        .color-3 {
-            color: #DDA15E;
-        }
-
-        .color-4 {
-            color: #BC6C25;
-        }
-
-        .color-5 {
-            color: #8B0000;
-        }
-
-        .color-6 {
-            color: #ffeb3b;
-        }
-
-        .color-7 {
-            color: #ff9800;
-        }
-
-        .color-8 {
-            color: #f44336;
-        }
-
+        /* ── GAME OVER MODAL ── */
         .game-over {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(15, 29, 23, 0.95);
-            padding: 40px;
+            inset: 0;
+            margin: auto;
+            width: min(90vw, 340px);
+            height: fit-content;
+            background: rgba(15,29,23,0.97);
+            padding: 36px 32px;
             border-radius: 16px;
             border: 2px solid #8B0000;
             text-align: center;
             display: none;
-            box-shadow: 0 0 50px rgba(139, 0, 0, 0.5);
+            box-shadow: 0 0 50px rgba(139,0,0,0.5);
+            z-index: 100;
         }
 
-        .game-over h2 {
-            color: #8B0000;
-            margin-top: 0;
-        }
+        .game-over h2 { color: #8B0000; margin-top: 0; }
 
         .game-won {
             border-color: #A4C639;
-            box-shadow: 0 0 50px rgba(164, 198, 57, 0.3);
+            box-shadow: 0 0 50px rgba(164,198,57,0.3);
         }
 
-        .game-won h2 {
-            color: #A4C639;
-        }
+        .game-won h2 { color: #A4C639; }
 
-        .show {
-            display: block !important;
-        }
+        .show { display: block !important; }
 
-        @media (max-width: 600px) {
-            body {
-                padding: 8px 10px;
-                overflow: hidden;
-            }
-
-            .grid-container {
-                overflow: auto;
-                align-items: flex-start;
-                justify-content: safe center;
-                padding: 4px 0;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .grid {
-                margin: auto;
-                flex-shrink: 0;
-            }
-
-            .cell {
-                width: max(calc(92vw / var(--cols, 10)), 26px);
-                height: max(calc(92vw / var(--cols, 10)), 26px);
-                max-width: none;
-                max-height: none;
-                min-width: 26px;
-                min-height: 26px;
-                font-size: clamp(11px, 2.5vmin, 20px);
-                border-radius: 3px;
-            }
-
-            .top-panel {
-                padding: 8px 12px;
-                margin-bottom: 8px;
-                gap: 8px;
-                flex-wrap: nowrap;
-                flex-direction: row;
-                align-items: center;
-            }
-
-            .top-left,
-            .top-right {
-                gap: 8px;
-                flex-wrap: nowrap;
-            }
-
-            .top-title {
-                display: none;
-            }
-
-            .diff-btn {
-                padding: 6px 10px;
-                font-size: 0.82rem;
-            }
-
-            .stats-box {
-                gap: 10px;
-                font-size: 0.95rem;
-                padding: 6px 10px;
-            }
-
-            .btn {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-            }
-
-            .game-over {
-                padding: 24px 20px;
-                width: 80vw;
-                max-width: 320px;
-            }
-
-            .mobile-controls {
-                padding: 8px 10px 10px;
-            }
-
-            .mobile-btn {
-                padding: 11px 14px;
-                font-size: 0.95rem;
-            }
-        }
-
-        /* Mobile Controls */
+        /* ── MOBILE CONTROLS ── */
         .mobile-controls {
-            display: flex;
-            gap: 12px;
-            padding: 10px 20px 14px;
-            width: 100%;
-            max-width: 900px;
-            box-sizing: border-box;
-            justify-content: center;
             flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+            padding: 8px 0 4px;
+            width: 100%;
+            max-width: 960px;
+            justify-content: center;
         }
 
         .mobile-btn {
             flex: 1;
-            max-width: 220px;
-            padding: 13px 20px;
-            font-size: 1.05rem;
+            max-width: 200px;
+            padding: 10px 16px;
+            font-size: 1rem;
             font-weight: bold;
             font-family: inherit;
-            border: 2px solid rgba(45, 90, 67, 0.4);
+            border: 2px solid rgba(45,90,67,0.4);
             border-radius: 12px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
             color: #a4c639;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             user-select: none;
+            white-space: nowrap;
         }
 
-        .mobile-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
+        .mobile-btn:hover { background: rgba(255,255,255,0.08); }
 
         .mobile-btn.active {
             background: linear-gradient(135deg, #2D5A43, #1A3A2A);
             color: white;
             border-color: #6BAA75;
-            box-shadow: 0 0 14px rgba(107, 170, 117, 0.45);
+            box-shadow: 0 0 14px rgba(107,170,117,0.45);
+        }
+
+        /* ── SMALL SCREENS ── */
+        @media (max-width: 480px) {
+            body { padding: 6px 8px; }
+
+            .top-panel {
+                padding: 7px 10px;
+                margin-bottom: 6px;
+                gap: 6px;
+            }
+
+            .top-title { display: none; }
+
+            .top-left, .top-right { gap: 6px; }
+
+            .diff-btn  { padding: 6px 9px;  font-size: 0.8rem; }
+            .stats-box { gap: 10px; font-size: 0.9rem; padding: 6px 10px; }
+            .btn       { padding: 6px 10px; font-size: 0.82rem; }
+
+            .mobile-controls { padding: 6px 0 2px; gap: 8px; }
+            .mobile-btn      { padding: 9px 12px;  font-size: 0.92rem; }
+            .game-over       { padding: 24px 18px; }
+        }
+
+        /* ── LANDSCAPE PHONES ── */
+        @media (max-height: 480px) and (orientation: landscape) {
+            body { padding: 4px 10px; }
+
+            .top-panel {
+                padding: 5px 12px;
+                margin-bottom: 4px;
+                border-radius: 8px;
+            }
+
+            .top-title { display: none; }
+
+            .diff-btn  { padding: 4px 10px; font-size: 0.8rem; }
+            .stats-box { font-size: 0.85rem; padding: 4px 10px; }
+            .btn       { padding: 4px 10px;  font-size: 0.82rem; }
+
+            .mobile-controls { padding: 4px 0 2px; }
+            .mobile-btn      { padding: 6px 14px;  font-size: 0.88rem; }
         }
     </style>
 </head>
@@ -377,9 +301,9 @@
         <div class="top-left">
             <h1 class="top-title">Mayın Tarlası</h1>
             <div class="diff-group">
-                <button class="diff-btn active" id="btn-easy" onclick="setDifficulty('easy')">Kolay</button>
-                <button class="diff-btn" id="btn-medium" onclick="setDifficulty('medium')">Orta</button>
-                <button class="diff-btn" id="btn-hard" onclick="setDifficulty('hard')">Zor</button>
+                <button class="diff-btn active" id="btn-easy"   onclick="setDifficulty('easy')">Kolay</button>
+                <button class="diff-btn"         id="btn-medium" onclick="setDifficulty('medium')">Orta</button>
+                <button class="diff-btn"         id="btn-hard"   onclick="setDifficulty('hard')">Zor</button>
             </div>
         </div>
         <div class="top-right">
@@ -396,189 +320,172 @@
     </div>
 
     <div class="mobile-controls">
-        <button class="mobile-btn active" id="digBtn" onclick="setMobileMode('dig')">
-            ⛏️ Kürek
-        </button>
-        <button class="mobile-btn" id="flagBtn" onclick="setMobileMode('flag')">
-            🚩 Bayrak
-        </button>
+        <button class="mobile-btn active" id="digBtn"  onclick="setMobileMode('dig')">⛏️ Kürek</button>
+        <button class="mobile-btn"        id="flagBtn" onclick="setMobileMode('flag')">🚩 Bayrak</button>
     </div>
 
     <div class="game-over" id="gameOverModal">
         <h2 id="gameOverTitle">Oyun Bitti!</h2>
-        <p id="gameOverDesc">Mayına bastın...</p>
-        <button class="btn" onclick="initGame()" style="margin-bottom:0; margin-top:20px;">Tekrar Dene</button>
+        <p  id="gameOverDesc">Mayına bastın...</p>
+        <button class="btn" onclick="initGame()" style="margin: 20px auto 0; justify-content: center;">Tekrar Dene</button>
     </div>
 
     <script>
+        /* ── AUDIO ── */
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
         function playSound(type) {
             if (!audioCtx) audioCtx = new AudioContext();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            const now = audioCtx.currentTime;
-            
+            const osc  = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+
             if (type === 'click') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(500, now + 0.05);
-                gainNode.gain.setValueAtTime(0.15, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                osc.frequency.setValueAtTime(300, t);
+                osc.frequency.exponentialRampToValueAtTime(500, t + 0.05);
+                gain.gain.setValueAtTime(0.15, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
             } else if (type === 'flag') {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.setValueAtTime(800, now + 0.05);
-                gainNode.gain.setValueAtTime(0.06, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.setValueAtTime(800, t + 0.05);
+                gain.gain.setValueAtTime(0.06, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
             } else if (type === 'pop') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
+                osc.frequency.setValueAtTime(120, t);
+                osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                osc.start(t); osc.stop(t + 0.2);
             } else if (type === 'boom') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
-                gainNode.gain.setValueAtTime(0.6, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.exponentialRampToValueAtTime(20, t + 0.5);
+                gain.gain.setValueAtTime(0.6, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                osc.start(t); osc.stop(t + 0.5);
             } else if (type === 'win') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.setValueAtTime(523.25, now + 0.1);
-                osc.frequency.setValueAtTime(659.25, now + 0.2);
-                osc.frequency.setValueAtTime(783.99, now + 0.3);
-                osc.frequency.setValueAtTime(1046.50, now + 0.4);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
+                [400, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) =>
+                    osc.frequency.setValueAtTime(f, t + i * 0.1));
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.6);
+                osc.start(t); osc.stop(t + 0.6);
             } else if (type === 'lose') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.setValueAtTime(250, now + 0.2);
-                osc.frequency.setValueAtTime(200, now + 0.4);
-                osc.frequency.setValueAtTime(150, now + 0.6);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
-                osc.start(now);
-                osc.stop(now + 1.0);
+                [300, 250, 200, 150].forEach((f, i) =>
+                    osc.frequency.setValueAtTime(f, t + i * 0.2));
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.linearRampToValueAtTime(0, t + 1.0);
+                osc.start(t); osc.stop(t + 1.0);
             }
         }
 
-        let ROWS = 10;
-        let COLS = 10;
-        let MINES = 10;
-
-        function setDifficulty(level) {
-            document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('btn-' + level).classList.add('active');
-
-            if (level === 'easy') { ROWS = 9; COLS = 9; MINES = 10; }
-            else if (level === 'medium') { ROWS = 16; COLS = 16; MINES = 40; }
-            else if (level === 'hard') { ROWS = 16; COLS = 30; MINES = 99; }
-            initGame();
-        }
-
-        let board = [];
-        let revealedCount = 0;
-        let flaggedCount = 0;
-        let isGameOver = false;
-        let isFirstClick = true;
-        let timer = 0;
-        let timerInterval;
+        /* ── GAME STATE ── */
+        let ROWS = 9, COLS = 9, MINES = 10;
+        let board = [], revealedCount = 0, flaggedCount = 0;
+        let isGameOver = false, isFirstClick = true;
+        let timer = 0, timerInterval;
         let mobileMode = 'dig';
-
-        function setMobileMode(mode) {
-            mobileMode = mode;
-            document.getElementById('digBtn').classList.toggle('active', mode === 'dig');
-            document.getElementById('flagBtn').classList.toggle('active', mode === 'flag');
-        }
 
         const gridEl = document.getElementById('grid');
 
-        function initGame() {
-            gridEl.style.setProperty('--cols', COLS);
-            gridEl.style.setProperty('--rows', ROWS);
-            gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
-
-            board = Array.from({ length: ROWS }, () =>
-                Array.from({ length: COLS }, () => ({
-                    isMine: false,
-                    isRevealed: false,
-                    isFlagged: false,
-                    neighborMines: 0
-                }))
-            );
-
-            revealedCount = 0;
-            flaggedCount = 0;
-            isGameOver = false;
-            isFirstClick = true;
-            clearInterval(timerInterval);
-            timer = 0;
-            updateStats();
-
-            document.getElementById('gameOverModal').classList.remove('show');
-            document.getElementById('gameOverModal').classList.remove('game-won');
-
-            renderBoard();
+        function setDifficulty(level) {
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + level).classList.add('active');
+            const narrow = window.innerWidth < 540;
+            if      (level === 'easy')   { ROWS = 9;  COLS = 9;  MINES = 10; }
+            else if (level === 'medium') { ROWS = 16; COLS = 16; MINES = 40; }
+            else if (level === 'hard')   { ROWS = 16; COLS = narrow ? 20 : 30; MINES = narrow ? 80 : 99; }
+            initGame();
         }
 
+        function setMobileMode(mode) {
+            mobileMode = mode;
+            document.getElementById('digBtn').classList.toggle('active',  mode === 'dig');
+            document.getElementById('flagBtn').classList.toggle('active', mode === 'flag');
+        }
+
+        /* ── CELL SIZE: measured in JS, never guessed in CSS ──
+           Reads the real pixel dimensions of .grid-container after layout,
+           then computes the largest integer cell size that fits without overflow.
+        */
+        function setCellSize() {
+            const container = document.querySelector('.grid-container');
+            const gridPad   = 16;   // .grid padding: 8px × 2
+            const gap       = 2;    // gap between cells
+
+            const availW = container.clientWidth  - gridPad;
+            const availH = container.clientHeight - gridPad;
+
+            const szW = Math.floor((availW - gap * (COLS - 1)) / COLS);
+            const szH = Math.floor((availH - gap * (ROWS - 1)) / ROWS);
+            const sz  = Math.min(szW, szH, 36);  // cap at 36px on desktop
+
+            gridEl.style.setProperty('--sz', sz + 'px');
+            gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${sz}px)`;
+        }
+
+        /* ── INIT ── */
+        function initGame() {
+            board = Array.from({ length: ROWS }, () =>
+                Array.from({ length: COLS }, () => ({
+                    isMine: false, isRevealed: false,
+                    isFlagged: false, neighborMines: 0
+                }))
+            );
+            revealedCount = 0; flaggedCount = 0;
+            isGameOver = false; isFirstClick = true;
+            clearInterval(timerInterval);
+            timer = 0;
+
+            document.getElementById('gameOverModal').classList.remove('show', 'game-won');
+
+            // Measure container AFTER current layout pass, then render.
+            requestAnimationFrame(() => {
+                setCellSize();
+                renderBoard();
+                updateStats();
+            });
+        }
+
+        // Re-fit on window resize (e.g. orientation change, browser chrome toggling)
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => { setCellSize(); renderBoard(); }, 150);
+        });
+
+        /* ── MINES & NEIGHBORS ── */
         function placeMines(firstR, firstC) {
-            // Place mines
-            let minesPlaced = 0;
-            while (minesPlaced < MINES) {
+            let placed = 0;
+            while (placed < MINES) {
                 const r = Math.floor(Math.random() * ROWS);
                 const c = Math.floor(Math.random() * COLS);
-                // Do not place a mine on the user's very first click and its 8 neighbors
-                const isSafeZone = Math.abs(r - firstR) <= 1 && Math.abs(c - firstC) <= 1;
-                if (!board[r][c].isMine && !isSafeZone) {
+                if (!board[r][c].isMine && !(Math.abs(r - firstR) <= 1 && Math.abs(c - firstC) <= 1)) {
                     board[r][c].isMine = true;
-                    minesPlaced++;
+                    placed++;
                 }
             }
-
-            // Calculate neighbors
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r < ROWS; r++)
+                for (let c = 0; c < COLS; c++)
                     if (!board[r][c].isMine) {
-                        let count = 0;
-                        for (let i = -1; i <= 1; i++) {
-                            for (let j = -1; j <= 1; j++) {
-                                if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
-                                    if (board[r + i][c + j].isMine) count++;
-                                }
-                            }
-                        }
-                        board[r][c].neighborMines = count;
+                        let n = 0;
+                        for (let dr = -1; dr <= 1; dr++)
+                            for (let dc = -1; dc <= 1; dc++)
+                                if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS && board[r+dr][c+dc].isMine) n++;
+                        board[r][c].neighborMines = n;
                     }
-                }
-            }
-
-            // Start timer
             clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!isGameOver) {
-                    timer++;
-                    updateStats();
-                }
-            }, 1000);
+            timerInterval = setInterval(() => { if (!isGameOver) { timer++; updateStats(); } }, 1000);
         }
 
         function updateStats() {
@@ -586,16 +493,14 @@
             document.getElementById('timerText').innerText = timer;
         }
 
+        /* ── RENDER ── */
         function renderBoard() {
             gridEl.innerHTML = '';
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
-
+                    const cell     = document.createElement('div');
                     const cellData = board[r][c];
+                    cell.className = 'cell';
 
                     if (cellData.isRevealed) {
                         cell.classList.add('revealed');
@@ -612,34 +517,20 @@
 
                     cell.addEventListener('click', () => {
                         if (isGameOver) return;
-
-                        // Açık sayı hücresine tıklama → orta tuş (chord)
-                        if (cellData.isRevealed && cellData.neighborMines > 0) {
-                            playSound('click');
-                            chord(r, c);
-                            return;
-                        }
+                        if (cellData.isRevealed && cellData.neighborMines > 0) { playSound('click'); chord(r, c); return; }
                         if (cellData.isRevealed) return;
-
-                        if (mobileMode === 'flag') {
-                            playSound('flag');
-                            toggleFlag(r, c);
-                        } else {
-                            if (!cellData.isFlagged) playSound('click');
-                            reveal(r, c);
-                        }
+                        if (mobileMode === 'flag') { playSound('flag'); toggleFlag(r, c); }
+                        else { if (!cellData.isFlagged) playSound('click'); reveal(r, c); }
                     });
-                    cell.addEventListener('contextmenu', (e) => {
+
+                    cell.addEventListener('contextmenu', e => {
                         e.preventDefault();
                         if (!isGameOver && !cellData.isRevealed) playSound('flag');
                         toggleFlag(r, c);
                     });
-                    cell.addEventListener('mousedown', (e) => {
-                        if (e.button === 1) { // Middle click
-                            e.preventDefault();
-                            if (!isGameOver && cellData.isRevealed) playSound('click');
-                            chord(r, c);
-                        }
+
+                    cell.addEventListener('mousedown', e => {
+                        if (e.button === 1) { e.preventDefault(); if (!isGameOver && cellData.isRevealed) playSound('click'); chord(r, c); }
                     });
 
                     gridEl.appendChild(cell);
@@ -647,63 +538,33 @@
             }
         }
 
+        /* ── GAME LOGIC ── */
         function chord(r, c) {
             if (isGameOver || !board[r][c].isRevealed || board[r][c].neighborMines === 0) return;
-
-            let numFlags = 0;
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
-                        if (board[r + i][c + j].isFlagged) {
-                            numFlags++;
-                        }
-                    }
-                }
-            }
-
-            if (numFlags === board[r][c].neighborMines) {
-                // Reveal all unflagged and unrevealed neighbors
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
-                            if (!board[r + i][c + j].isRevealed && !board[r + i][c + j].isFlagged) {
-                                reveal(r + i, c + j);
-                            }
-                        }
-                    }
-                }
-            }
+            let flags = 0;
+            for (let dr = -1; dr <= 1; dr++)
+                for (let dc = -1; dc <= 1; dc++)
+                    if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS && board[r+dr][c+dc].isFlagged) flags++;
+            if (flags === board[r][c].neighborMines)
+                for (let dr = -1; dr <= 1; dr++)
+                    for (let dc = -1; dc <= 1; dc++)
+                        if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS
+                            && !board[r+dr][c+dc].isRevealed && !board[r+dr][c+dc].isFlagged)
+                            reveal(r+dr, c+dc);
         }
 
         function reveal(r, c) {
             if (isGameOver || board[r][c].isRevealed || board[r][c].isFlagged) return;
-
-            if (isFirstClick) {
-                isFirstClick = false;
-                placeMines(r, c);
-            }
-
+            if (isFirstClick) { isFirstClick = false; placeMines(r, c); }
             board[r][c].isRevealed = true;
             revealedCount++;
-
-            if (board[r][c].isMine) {
-                gameOver(false, r, c);
-                return;
-            } else {
-                if (board[r][c].neighborMines === 0) {
-                    for (let i = -1; i <= 1; i++) {
-                        for (let j = -1; j <= 1; j++) {
-                            if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
-                                reveal(r + i, c + j);
-                            }
-                        }
-                    }
-                }
-                checkWin();
-            }
-            if (!isGameOver) {
-                renderBoard();
-            }
+            if (board[r][c].isMine) { gameOver(false, r, c); return; }
+            if (board[r][c].neighborMines === 0)
+                for (let dr = -1; dr <= 1; dr++)
+                    for (let dc = -1; dc <= 1; dc++)
+                        if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS) reveal(r+dr, c+dc);
+            checkWin();
+            if (!isGameOver) renderBoard();
         }
 
         function toggleFlag(r, c) {
@@ -717,46 +578,26 @@
         function gameOver(won, clickedR = -1, clickedC = -1) {
             isGameOver = true;
             clearInterval(timerInterval);
-
             const modal = document.getElementById('gameOverModal');
             document.getElementById('gameOverTitle').innerText = won ? 'Kazandın! 🏆' : 'Oyun Bitti! 💀';
-            document.getElementById('gameOverDesc').innerText = won ? `Tebrikler! Skorun: ${timer} ` : 'Mayına bastın...';
+            document.getElementById('gameOverDesc').innerText  = won ? `Tebrikler! Skorun: ${timer}s` : 'Mayına bastın...';
 
-            if (won) {
-                playSound('win');
-                modal.classList.add('game-won');
-                modal.classList.add('show');
-                return;
-            } else {
-                playSound('boom');
-            }
+            if (won) { playSound('win'); modal.classList.add('game-won', 'show'); return; }
+            playSound('boom');
 
             let allMines = [];
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    if (board[r][c].isMine) {
-                        board[r][c].isRevealed = true;
-                        if (r !== clickedR || c !== clickedC) {
-                            allMines.push({ r, c });
-                        }
-                    }
-                }
-            }
+            for (let r = 0; r < ROWS; r++)
+                for (let c = 0; c < COLS; c++)
+                    if (board[r][c].isMine) { board[r][c].isRevealed = true; if (r !== clickedR || c !== clickedC) allMines.push({r,c}); }
 
-            if (clickedR !== -1 && clickedC !== -1) {
-                allMines.sort((a, b) => {
-                    const distA = Math.hypot(a.r - clickedR, a.c - clickedC);
-                    const distB = Math.hypot(b.r - clickedR, b.c - clickedC);
-                    return distA - distB;
-                });
-            }
+            if (clickedR !== -1)
+                allMines.sort((a,b) => Math.hypot(a.r-clickedR,a.c-clickedC) - Math.hypot(b.r-clickedR,b.c-clickedC));
 
-            function animateMineDOM(r, c, delay) {
+            function animateMine(r, c, delay) {
                 setTimeout(() => {
-                    const childIndex = r * COLS + c;
-                    const cell = gridEl.children[childIndex];
+                    const cell = gridEl.children[r * COLS + c];
                     if (cell && !cell.classList.contains('anim')) {
-                        cell.classList.add('revealed', 'mine', 'anim');
+                        cell.classList.add('revealed','mine','anim');
                         cell.innerHTML = '💣';
                         playSound('pop');
                     }
@@ -764,26 +605,13 @@
             }
 
             let delay = 0;
-            if (clickedR !== -1 && clickedC !== -1) {
-                animateMineDOM(clickedR, clickedC, delay);
-                delay += 500;
-            }
-
-            allMines.forEach(mine => {
-                animateMineDOM(mine.r, mine.c, delay);
-                delay += 80;
-            });
-
-            setTimeout(() => {
-                playSound('lose');
-                modal.classList.add('show');
-            }, delay + 600);
+            if (clickedR !== -1) { animateMine(clickedR, clickedC, 0); delay = 500; }
+            allMines.forEach(m => { animateMine(m.r, m.c, delay); delay += 80; });
+            setTimeout(() => { playSound('lose'); modal.classList.add('show'); }, delay + 600);
         }
 
         function checkWin() {
-            if (revealedCount === (ROWS * COLS) - MINES) {
-                gameOver(true);
-            }
+            if (revealedCount === ROWS * COLS - MINES) gameOver(true);
         }
 
         initGame();

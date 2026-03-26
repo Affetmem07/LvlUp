@@ -15,7 +15,9 @@
       "Bash(curl -s -w \"\\\\n---HTTP_STATUS:%{http_code}---\" -X POST \"https://api.isthereanydeal.com/games/prices/v1?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
       "Bash(curl -s -w \"\\\\n---HTTP_STATUS:%{http_code}---\" -X POST \"https://api.isthereanydeal.com/games/prices/v3?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
       "Bash(curl -s -X POST \"https://api.isthereanydeal.com/games/prices/v3?key=e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a\" -H \"Content-Type: application/json\" -d '[\"\"018d937f-3a3b-7210-bd2d-0d1dfb1d84c0\"\"]')",
-      "WebFetch(domain:docs.isthereanydeal.com)"
+      "WebFetch(domain:docs.isthereanydeal.com)",
+      "Bash(head -5 grep -n \"HOME LAYOUT\\\\|has-sidebar\\\\|home-sidebar\\\\|featured-post\\\\|mini-post\\\\|post-mini\\\\|renderFeaturedPost\\\\|renderMiniPostCard\\\\|renderHomeSidebar\\\\|getAuthorStyle\\\\|isHomeFeed\" d:/LvlUp/assets/js/app.js)",
+      "Bash(python3 /tmp/update_css.py)"
     ]
   }
 }

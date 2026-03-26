@@ -170,7 +170,7 @@ function seedData() {
             content: 'Rockstar Games, merakla beklenen GTA 6 için yepyeni bir oynanış videosu yayınladı. Video, Vice City\'nin modern yorumunu ve geliştirilmiş fizik motorunu gözler önüne seriyor. Karakterlerin yüz ifadeleri, araç hasarı modeli ve açık dünya detayları hayranları büyüledi. Oyunun 2026 sonbaharında çıkması bekleniyor.',
             category: 'fps',
             tags: ['#GTA6', '#RockstarGames', '#OpenWorld'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/gta6city/800/450',
             likes: ['u2', 'u3', 'u4', 'u5'],
             comments: [
                 { id: 'c1', userId: 'u2', text: 'Sonunda gerçek oynanış! Grafiklere inanamıyorum 🤯', date: '2026-02-22T14:30:00Z', likes: ['u1', 'u3'] },
@@ -187,7 +187,7 @@ function seedData() {
             content: 'FromSoftware bir kez daha hayal gücünün sınırlarını zorladı. Shadow of the Erdtree DLC\'si, ana oyunun sunduğu deneyimi yepyeni bölgeler, patronlar ve mekaniklerle zenginleştiriyor. Yeni silah türleri ve büyülerin eklenmesiyle savaş sistemi daha da derinleşti. Zorluk seviyesine rağmen, her anı ödüllendirici hissettiren bir başyapıt.',
             category: 'rpg',
             tags: ['#EldenRing', '#FromSoftware', '#RPG'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/eldenring/800/450',
             likes: ['u1', 'u3', 'u5'],
             comments: [
                 { id: 'c5', userId: 'u1', text: 'Son boss\'u 50 denemede geçtim ama her saniyesine değdi! 💀', date: '2026-02-21T09:00:00Z', likes: ['u2', 'u5'] },
@@ -202,7 +202,7 @@ function seedData() {
             content: 'Riot Games, Valorant Champions Tour 2026 sezonunun detaylarını açıkladı. Bu yıl turnuva formatı tamamen yenileniyor: daha fazla bölgesel lig, genişletilmiş takım havuzu ve rekor düzeyde ödül havuzu. Türk takımlarının da yer alacağı EMEA liginde heyecan dorukta. İlk maçlar Mart ayında başlayacak.',
             category: 'moba',
             tags: ['#Valorant', '#VCT2026', '#ESports'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/valorantneon/800/450',
             likes: ['u1', 'u2'],
             comments: [
                 { id: 'c7', userId: 'u1', text: 'Türk takımları bu sene şampiyon olur inşallah! 🇹🇷', date: '2026-02-20T11:00:00Z', likes: ['u3', 'u4', 'u5'] },
@@ -218,7 +218,7 @@ function seedData() {
             content: 'Sony\'nin yeni nesil konsolu PlayStation 6\'nın teknik özellikleri sızdırıldı. AMD\'nin yeni Zen 6 mimarisine dayalı özel bir işlemci, RDNA 5 grafik kartı ve 2TB SSD ile gelecek olan konsol, 8K oyun deneyimi sunmayı hedefliyor. Ayrıca geriye dönük uyumluluk PS1\'e kadar genişletilecek.',
             category: 'genel',
             tags: ['#PS6', '#PlayStation', '#Sony', '#NextGen'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/ps6tech/800/450',
             likes: ['u1', 'u2', 'u3', 'u5'],
             comments: [
                 { id: 'c10', userId: 'u1', text: '8K oyun oynayabilecek miyiz gerçekten? Heyecanlandım! 🎮', date: '2026-02-19T16:00:00Z', likes: ['u4'] },
@@ -234,7 +234,7 @@ function seedData() {
             content: 'Nintendo\'nun yeni nesil konsolu Switch 2 resmi olarak tanıtıldı. OLED ekranının 8 inçe büyütüldüğü, DLSS destekli özel NVIDIA çipine sahip konsol, AAA oyunları taşınabilir formda sunabilecek. Mario, Zelda ve Metroid gibi sevilen serilerin lansman oyunları olarak geleceği doğrulandı.',
             category: 'genel',
             tags: ['#NintendoSwitch2', '#Nintendo', '#Gaming'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/nintendo2/800/450',
             likes: ['u1', 'u3'],
             comments: [
                 { id: 'c13', userId: 'u1', text: 'Nintendo bir kez daha oyun değiştirici bir ürün sunuyor!', date: '2026-02-18T14:00:00Z', likes: ['u5'] },
@@ -249,7 +249,7 @@ function seedData() {
             content: 'Epic Games, Fortnite\'ın yeni sezonuyla haritada büyük değişiklikler yapacağını duyurdu. Tamamen yenilenen biom sistemi, su altı keşif mekanikleri ve yıkılabilir yapıların genişletilmesi oyuncuları bekliyor. Yeni sezon ayrıca Marvel ve DC evreninden karakter crossover\'ları ile dikkat çekiyor.',
             category: 'battle-royale',
             tags: ['#Fortnite', '#BattleRoyale', '#EpicGames'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/fortnitestorm/800/450',
             likes: ['u2', 'u4'],
             comments: [
                 { id: 'c15', userId: 'u2', text: 'Su altı mekaniği harika olabilir, merak ediyorum!', date: '2026-02-17T10:00:00Z', likes: [] },
@@ -263,7 +263,7 @@ function seedData() {
             content: '3 kişilik bağımsız bir stüdyo tarafından geliştirilen metroidvania türündeki "Hollow Abyss", Steam\'de tüm zamanların en iyi inceleme puanına sahip oyun oldu. El çizimi sanat stili, etkileyici müzikleri ve derin hikaesiyle oyuncuları büyüleyen yapım, indie oyunların gücünü bir kez daha kanıtladı.',
             category: 'indie',
             tags: ['#HollowAbyss', '#IndieGame', '#Metroidvania'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/hollowdark/800/450',
             likes: ['u1', 'u3', 'u4', 'u5'],
             comments: [
                 { id: 'c16', userId: 'u3', text: 'Sanat stili inanılmaz, her kare bir tablo gibi 🎨', date: '2026-02-16T11:00:00Z', likes: ['u2', 'u1'] },
@@ -279,7 +279,7 @@ function seedData() {
             content: 'Firaxis Games\'in yeni strateji oyunu Civilization VII, serinin köklü mekaniklerini modernize ederek büyük beğeni topluyor. Dinamik iklim sistemi, geliştirilmiş diplomasi mekanikleri ve yapay zeka iyileştirmeleri oyunu öncekilerden ayıran özellikler. Modding desteği de oyunun ömrünü uzatacak.',
             category: 'strateji',
             tags: ['#Civilization7', '#Strateji', '#4XGames'],
-            imageUrl: '',
+            imageUrl: 'https://picsum.photos/seed/civ7epic/800/450',
             likes: ['u1', 'u2', 'u5'],
             comments: [
                 { id: 'c19', userId: 'u5', text: '"Bir tur daha" sendromu geri döndü, 14 saat aralıksız oynadım 😅', date: '2026-02-15T20:00:00Z', likes: ['u4', 'u1'] },
@@ -500,6 +500,14 @@ function navigate(page) {
 
     // Helper: set up the new page content and play enter animation
     const showIncoming = () => {
+        // Hide sidebar for non-home pages
+        const homeSidebar = document.getElementById('homeSidebar');
+        const mainLayout = document.getElementById('mainLayout');
+        if (page !== 'home' && page !== 'popular' && page !== 'reviews') {
+            if (homeSidebar) homeSidebar.style.display = 'none';
+            if (mainLayout) mainLayout.classList.remove('has-sidebar');
+        }
+
         if (page === 'games') {
             gamesPage.style.display = 'block';
             if (allGames.length === 0) { loadGames(); } else { renderGamesGrid(); }
@@ -661,7 +669,123 @@ function renderFeed() {
         return;
     }
 
-    container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+    const isHomeFeed = (currentPage === 'home' || !currentPage) && !currentCategory;
+    if (isHomeFeed && posts.length > 0) {
+        container.innerHTML = posts.map(post => renderFeaturedPost(post)).join('');
+        renderHomeSidebar(posts);
+    } else {
+        container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+        const sidebar = document.getElementById('homeSidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        document.getElementById('mainLayout').classList.remove('has-sidebar');
+    }
+}
+
+function getAuthorStyle(author) {
+    const idx = author.avatarGradient !== undefined
+        ? author.avatarGradient
+        : (author.id ? parseInt(author.id.replace('u','')) % AVATAR_GRADIENTS_LIST.length : 0);
+    if (author.avatarImage) {
+        return { bg: `background-image:url('${author.avatarImage}');background-size:cover;background-position:center;`, initial: '' };
+    }
+    return { bg: `background:${AVATAR_GRADIENTS[idx] || AVATAR_GRADIENTS_LIST[idx]};`, initial: author.username.charAt(0).toUpperCase() };
+}
+
+function renderFeaturedPost(post) {
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const liked      = currentUser && post.likes.includes(currentUser.id);
+    const bookmarked = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
+    const likeCount  = post.likes.length > 999 ? (post.likes.length/1000).toFixed(1)+'k' : post.likes.length;
+
+    const top = post.imageUrl
+        ? `<div class="fp-img-wrap" onclick="expandPost('${post.id}')">
+               <img src="${escapeHtml(post.imageUrl)}" alt="" onerror="this.parentElement.style.display='none'">
+               <div class="fp-author-overlay">
+                   <div class="fp-avatar-wrap">
+                       <div class="fp-avatar" style="${bg}">${initial}</div>
+                       <div class="fp-online"></div>
+                   </div>
+                   <div class="fp-author-info">
+                       <div class="fp-author-name">@${escapeHtml(author.username)}</div>
+                       <div class="fp-author-role">${getCategoryName(post.category)}</div>
+                   </div>
+               </div>
+           </div>`
+        : `<div class="fp-noimg-header" onclick="expandPost('${post.id}')">
+               <div class="fp-noimg-avatar" style="${bg}">${initial}</div>
+               <div>
+                   <div class="fp-noimg-name">@${escapeHtml(author.username)}</div>
+                   <div class="fp-noimg-role">${getCategoryName(post.category)}</div>
+               </div>
+           </div>`;
+
+    return `
+    <article class="featured-post-card" id="post-${post.id}">
+        ${top}
+        <div class="fp-body" onclick="expandPost('${post.id}')">
+            <div class="fp-title">${escapeHtml(post.title)}</div>
+            <div class="fp-desc">${escapeHtml(post.content)}</div>
+        </div>
+        <div class="fp-actions">
+            <div class="fp-actions-left">
+                <button class="fp-btn${liked?' liked':''}" onclick="toggleLike('${post.id}',event)">
+                    <svg viewBox="0 0 24 24" fill="${liked?'currentColor':'none'}" stroke="${liked?'none':'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span>${likeCount}</span>
+                </button>
+                <button class="fp-btn" onclick="expandPost('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>${post.comments.length}</span>
+                </button>
+                <button class="fp-btn" onclick="sharePost('${post.id}',event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+            </div>
+            <button class="fp-btn${bookmarked?' bookmarked':''}" onclick="bookmarkPost('${post.id}',event)">
+                <svg viewBox="0 0 24 24" fill="${bookmarked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </button>
+        </div>
+    </article>`;
+}
+
+function renderMiniPostCard(post) {
+    // artık kullanılmıyor – tüm home postlar renderFeaturedPost ile gösterilir
+    return renderFeaturedPost(post);
+}
+
+function renderHomeSidebar(posts) {
+    const sidebar    = document.getElementById('homeSidebar');
+    const mainLayout = document.getElementById('mainLayout');
+    if (!sidebar) return;
+
+    sidebar.style.display = 'flex';
+    mainLayout.classList.add('has-sidebar');
+
+    /* --- Trending tags --- */
+    const tagScore = {}, tagCat = {};
+    posts.forEach(p => p.tags.forEach(t => {
+        tagScore[t] = (tagScore[t] || 0) + p.likes.length + 1;
+        if (!tagCat[t]) tagCat[t] = getCategoryName(p.category);
+    }));
+    const top5      = Object.entries(tagScore).sort((a,b) => b[1]-a[1]).slice(0,5);
+    const badges    = ['+12%', 'Hot', 'New', 'Trend', 'Rising'];
+    const trendList = document.getElementById('sidebarTrendList');
+    if (trendList) {
+        trendList.innerHTML = top5.length
+            ? top5.map(([tag], i) => `
+                <div class="sidebar-trend-item" onclick="openSearchOverlay()">
+                    <div class="sidebar-trend-left">
+                        <div class="sidebar-trend-category">${escapeHtml(tagCat[tag] || 'Genel')}</div>
+                        <div class="sidebar-trend-tag">${escapeHtml(tag)}</div>
+                    </div>
+                    <span class="sidebar-trend-badge">${badges[i]}</span>
+                </div>`).join('')
+            : `<p style="font-size:.8rem;color:#64748b">Henüz trend yok</p>`;
+    }
+
+    /* --- Sidebar post previews hidden --- */
+    const el = document.getElementById('sidebarFeaturedPost');
+    if (el) el.style.display = 'none';
 }
 
 function renderPostCard(post) {
@@ -699,6 +823,20 @@ function renderPostCard(post) {
 
     return `
         <article class="post-card" id="post-${post.id}">
+            ${post.imageUrl ? `
+            <div class="post-hero" onclick="expandPost('${post.id}')">
+                <img src="${escapeHtml(post.imageUrl)}" class="post-hero-img" alt="${escapeHtml(post.title)}" onerror="this.parentElement.classList.add('post-hero--hidden')">
+                <div class="post-hero-gradient"></div>
+                <div class="post-hero-author">
+                    <div class="post-avatar" style="${customAvatarStyle}">${avatarContent}</div>
+                    <div class="post-meta">
+                        <div class="post-author">${escapeHtml(author.username)}</div>
+                        <div class="post-time">${timeAgo}</div>
+                    </div>
+                    <span class="post-category-badge badge-${post.category}">${getCategoryName(post.category)}</span>
+                </div>
+            </div>
+            ` : `
             <div class="post-header" onclick="expandPost('${post.id}')">
                 <div class="post-avatar" style="${customAvatarStyle}">${avatarContent}</div>
                 <div class="post-meta">
@@ -707,10 +845,12 @@ function renderPostCard(post) {
                 </div>
                 <span class="post-category-badge badge-${post.category}">${getCategoryName(post.category)}</span>
             </div>
-            <div class="post-title" onclick="expandPost('${post.id}')">${escapeHtml(post.title)}</div>
-            <div class="post-content" onclick="expandPost('${post.id}')">${escapeHtml(post.content)}</div>
-            ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" class="post-image" alt="${escapeHtml(post.title)}" onerror="this.style.display='none'">` : ''}
-            ${post.tags.length ? `<div class="post-tags">${post.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            `}
+            <div class="post-body" onclick="expandPost('${post.id}')">
+                <div class="post-title">${escapeHtml(post.title)}</div>
+                <div class="post-content">${escapeHtml(post.content)}</div>
+                ${post.tags.length ? `<div class="post-tags">${post.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
             <div class="post-actions">
                 <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}', event)">
                     <svg viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -740,12 +880,6 @@ function renderPostCard(post) {
                     </svg>
                 </button>
             </div>
-            ${commentsPreview}
-            <div class="post-quick-comment">
-                <input type="text" placeholder="Yorum yaz..." id="quick-comment-${post.id}" 
-                       onkeydown="handleQuickComment(event, '${post.id}')" onclick="event.stopPropagation()">
-                <button class="send-btn" onclick="submitQuickComment('${post.id}'); event.stopPropagation();">Gönder</button>
-            </div>
         </article>
     `;
 }
@@ -759,11 +893,12 @@ function expandPost(postId) {
     const isLiked = currentUser && post.likes.includes(currentUser.id);
 
     const gradientIndex = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
+    const authorBg = AVATAR_GRADIENTS[gradientIndex] || AVATAR_GRADIENTS_LIST[gradientIndex] || 'linear-gradient(135deg,#2D5A43,#8FBC8F)';
 
     // Render expanded post content
     document.getElementById('expandedPost').innerHTML = `
         <div class="post-header">
-            <div class="post-avatar" style="background:${avatarGradients[gradientIndex]}">${author.username.charAt(0).toUpperCase()}</div>
+            <div class="post-avatar" style="background:${authorBg}">${author.username.charAt(0).toUpperCase()}</div>
             <div class="post-meta">
                 <div class="post-author">${escapeHtml(author.username)}</div>
                 <div class="post-time">${getTimeAgo(post.date)} • ${new Date(post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
@@ -795,9 +930,10 @@ function expandPost(postId) {
         const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
         const cLiked = currentUser && c.likes.includes(currentUser.id);
         const cIdx = cAuthor.id ? parseInt(cAuthor.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
+        const cBg = AVATAR_GRADIENTS[cIdx] || AVATAR_GRADIENTS_LIST[cIdx] || 'linear-gradient(135deg,#2D5A43,#8FBC8F)';
         return `
             <div class="comment-item">
-                <div class="comment-avatar" style="background:${avatarGradients[cIdx]}">${cAuthor.username.charAt(0).toUpperCase()}</div>
+                <div class="comment-avatar" style="background:${cBg}">${cAuthor.username.charAt(0).toUpperCase()}</div>
                 <div class="comment-body">
                     <span class="comment-author">${escapeHtml(cAuthor.username)}</span>
                     <span class="comment-time">${getTimeAgo(c.date)}</span>
