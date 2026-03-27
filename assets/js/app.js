@@ -54,8 +54,28 @@ const AVATAR_GRADIENTS = [
     'linear-gradient(135deg, #354F52, #52796F)', // Pine
 ];
 
+let RAWG_API_KEY = '';
+let ITAD_API_KEY = '';
+
+async function fetchConfig() {
+    try {
+        const response = await fetch('/api/config');
+        if (!response.ok) throw new Error('API anahtarları alınamadı');
+        const data = await response.json();
+        RAWG_API_KEY = data.RAWG_API_KEY || '';
+        ITAD_API_KEY = data.ITAD_API_KEY || '';
+        if (!RAWG_API_KEY || !ITAD_API_KEY) {
+            console.warn('Bazı API anahtarları eksik. Lütfen Vercel ayarlarını kontrol edin.');
+        }
+    } catch (err) {
+        console.error('Konfigürasyon yüklenirken hata oluştu:', err);
+        showToast('Sistem ayarları yüklenemedi. Bazı özellikler çalışmayabilir.', 'error');
+    }
+}
+
 // ── Initialize ──
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchConfig();
     if (allPosts.length === 0) seedData();
     updateAuthUI();
 
@@ -2035,12 +2055,11 @@ async function handleEditProfile(e) {
 //   GAMES SYSTEM – RAWG API Integration
 // ================================================================
 
-const RAWG_API_KEY = '52931a33c5114be6b7a159707f66a3c2';
+// (API keys are now fetched dynamically from Vercel environment variables)
 const RAWG_BASE_URL = 'https://api.rawg.io/api';
 
 // ── IsThereAnyDeal API v2 ──
 // API anahtarı almak için: https://isthereanydeal.com/dev/app/
-const ITAD_API_KEY = 'e1e3c61f7355f9f2944860d2bbac454b4bd4ca8a';
 const ITAD_BASE = 'https://api.isthereanydeal.com';
 const ITAD_SHOP_ICONS = {
     'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡',
