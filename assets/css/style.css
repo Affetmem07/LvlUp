@@ -2568,12 +2568,22 @@ select {
 
 /* Game Grid */
 .games-grid {
-    display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    grid-auto-flow: row;
-    grid-auto-rows: 14px;
+    display: flex;
+    flex-direction: column;
     gap: 18px;
-    align-items: start;
+}
+
+.games-brick-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+}
+
+.games-brick-row--bottom {
+    width: calc(75% - 4.5px);
+    margin: 0 auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 /* Game Card */
@@ -2604,28 +2614,6 @@ select {
 
 .game-card--list:hover {
     transform: translateY(-3px) scale(1.01);
-}
-
-.game-card--brick-top {
-    grid-column: span 2;
-    grid-row: span 14;
-}
-
-.game-card--brick-bottom {
-    grid-column: span 2;
-    grid-row: span 14;
-}
-
-.game-card--brick-bottom-1 {
-    grid-column: 2 / span 2;
-}
-
-.game-card--brick-bottom-2 {
-    grid-column: 4 / span 2;
-}
-
-.game-card--brick-bottom-3 {
-    grid-column: 6 / span 2;
 }
 
 .game-card-cover {
@@ -4628,31 +4616,17 @@ select {
     }
 
     .games-grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        grid-auto-rows: 12px;
         gap: 12px;
     }
 
-    .game-card--brick-top {
-        grid-column: span 2;
-        grid-row: span 14;
+    .games-brick-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
     }
 
-    .game-card--brick-bottom {
-        grid-column: span 2;
-        grid-row: span 14;
-    }
-
-    .game-card--brick-bottom-1 {
-        grid-column: 2 / span 2;
-    }
-
-    .game-card--brick-bottom-2 {
-        grid-column: 4 / span 2;
-    }
-
-    .game-card--brick-bottom-3 {
-        grid-column: span 2;
+    .games-brick-row--bottom {
+        width: calc(66.666% - 4px);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .game-detail-hero {
@@ -4757,23 +4731,18 @@ select {
 
     /* Games grid: 2 kolon */
     .games-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: auto;
         gap: 10px;
     }
 
-    .game-card--list,
-    .game-card--brick-top,
-    .game-card--brick-bottom {
-        grid-column: span 1;
-        grid-row: auto;
-        aspect-ratio: 16 / 11;
+    .games-brick-row,
+    .games-brick-row--bottom {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 
-    .game-card--brick-bottom-1,
-    .game-card--brick-bottom-2,
-    .game-card--brick-bottom-3 {
-        grid-column: span 1;
+    .game-card--list {
+        aspect-ratio: 16 / 11;
     }
 
     .game-card-overlay--hover {

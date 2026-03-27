@@ -3284,7 +3284,7 @@ function renderGamesGrid() {
         return;
     }
 
-    grid.innerHTML = games.map((game, index) => renderGameCard(game, index)).join('');
+    grid.innerHTML = renderGamesBrickLayout(games);
 
     // Add sentinel element for infinite scroll
     if (gamesNextPageUrl) {
@@ -3325,22 +3325,32 @@ function setupGamesInfiniteScroll() {
 }
 
 // ── Render Game Card ──
-function renderGameCard(game, index = 0) {
+function renderGamesBrickLayout(games) {
+    let html = '';
+
+    for (let i = 0; i < games.length; i += 7) {
+        const chunk = games.slice(i, i + 7);
+        const topRow = chunk.slice(0, 4);
+        const bottomRow = chunk.slice(4, 7);
+
+        if (topRow.length) {
+            html += `<div class="games-brick-row">${topRow.map(game => renderGameCard(game)).join('')}</div>`;
+        }
+
+        if (bottomRow.length) {
+            html += `<div class="games-brick-row games-brick-row--bottom">${bottomRow.map(game => renderGameCard(game)).join('')}</div>`;
+        }
+    }
+
+    return html;
+}
+
+function renderGameCard(game) {
     const ratingClass = getRatingClass(game.rating);
-    const layoutPattern = [
-        'game-card--brick-top',
-        'game-card--brick-top',
-        'game-card--brick-top',
-        'game-card--brick-top',
-        'game-card--brick-bottom game-card--brick-bottom-1',
-        'game-card--brick-bottom game-card--brick-bottom-2',
-        'game-card--brick-bottom game-card--brick-bottom-3',
-    ];
-    const layoutClass = layoutPattern[index % layoutPattern.length];
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
 
     return `
-        <div class="game-card game-card--list ${layoutClass}" onclick="openGameDetail('${game.id}')">
+        <div class="game-card game-card--list" onclick="openGameDetail('${game.id}')">
             <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
                  loading="lazy"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
@@ -3590,7 +3600,7 @@ async function openCreatorGames(name, slug, type) {
             if (!allGames.find(ag => ag.id === g.id)) allGames.push(g);
         });
 
-        grid.innerHTML = games.map((g, index) => renderGameCard(g, index)).join('');
+        grid.innerHTML = renderGamesBrickLayout(games);
     } catch (err) {
         console.error('Creator oyunları alınırken hata:', err);
         grid.innerHTML = `<div class="creator-empty">Oyunlar yüklenirken hata oluştu.</div>`;
