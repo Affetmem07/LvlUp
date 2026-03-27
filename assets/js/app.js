@@ -133,7 +133,7 @@ function renderITADPricesSectionV3(result) {
     if (!result?.deals?.length) {
         container.innerHTML = `
             <div class="itad-offer-card itad-offer-card--empty">
-                <div class="itad-offer-label">Canli fiyat</div>
+                <div class="itad-offer-label">ITAD live price</div>
                 <div class="itad-offer-empty">Bu oyun icin su an aktif teklif bulunamadi.</div>
                 <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
                     ITAD'da kontrol et
@@ -191,7 +191,7 @@ function renderITADPricesSectionV3(result) {
 
     container.innerHTML = `
         <div class="itad-offer-card">
-            <div class="itad-offer-label">En iyi canli teklif</div>
+            <div class="itad-offer-label">Best live offer</div>
             <div class="itad-offer-price-wrap">
                 <div class="itad-offer-price">${featuredCurrent}</div>
                 ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
@@ -199,14 +199,14 @@ function renderITADPricesSectionV3(result) {
             </div>
             ${historyLowHtml}
             <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
-                Satin al
+                Buy now
             </a>
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
                 Tum fiyatlari gor
             </a>
             <div class="itad-offer-meta">
-                <span>TR pazar taramasi</span>
-                <span>Dijital teslimat</span>
+                <span>TR market scan</span>
+                <span>Digital delivery</span>
             </div>
         </div>
         <div class="itad-deals-grid">${dealsHtml}</div>
@@ -4927,10 +4927,6 @@ renderITADPricesSection = function (result) {
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
                 Tum fiyatlari gor
             </a>
-            <div class="itad-offer-meta">
-                <span>TR market scan</span>
-                <span>Digital delivery</span>
-            </div>
         </div>
         <div class="itad-deals-grid">${dealsHtml}</div>
     `;
@@ -4947,9 +4943,9 @@ renderGameDetailContentV2 = function (game) {
     const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
     const splitTitle = splitGameTitleForHeroLatest(game.title);
     const statsRibbon = [
-        { label: 'Oynanis', value: game.playtime || '-' },
-        { label: 'Takip', value: game.added ? `${formatCompactNumberLatest(game.added)}+` : '-' },
-        { label: 'Inceleme', value: game.ratingsCount ? `${formatCompactNumberLatest(game.ratingsCount)}+` : '-' }
+        { label: 'Playtime', value: game.playtime || '-' },
+        { label: 'Active', value: game.added ? `${formatCompactNumberLatest(game.added)}+` : '-' },
+        { label: 'Reviews', value: game.ratingsCount ? `${formatCompactNumberLatest(game.ratingsCount)}+` : '-' }
     ];
 
     document.getElementById('gameDetailHero').innerHTML = `
@@ -4962,7 +4958,7 @@ renderGameDetailContentV2 = function (game) {
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
                     ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
-                    <span class="gd-meta-inline">Cikis Yili: ${game.releaseYear || 'TBA'}</span>
+                    <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
                     ${game.esrbRating ? `<span class="gd-meta-inline">${escapeHtml(game.esrbRating)}</span>` : ''}
                 </div>
                 <h2 class="game-detail-title gd-cinematic-title">
@@ -4978,7 +4974,7 @@ renderGameDetailContentV2 = function (game) {
                 <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
                     <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
                          onerror="this.style.background='var(--bg-elevated)'">
-                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} gorsel</div>` : ''}
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} shots</div>` : ''}
                 </div>
                 <div class="gd-hero-stats-card">
                     ${statsRibbon.map(item => `
@@ -4998,7 +4994,7 @@ renderGameDetailContentV2 = function (game) {
             <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
-                    <h3>Oyun Deneyimi</h3>
+                    <h3>About The Experience</h3>
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
@@ -5010,7 +5006,7 @@ renderGameDetailContentV2 = function (game) {
                     </div>
                     <aside class="gd-info-card">
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Gelistirici</div>
+                            <div class="gd-info-label">Developed by</div>
                             <div class="gd-info-value gd-info-value--stack">
                                 ${(game.developerData && game.developerData.length > 0
             ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
@@ -5018,7 +5014,7 @@ renderGameDetailContentV2 = function (game) {
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Yayinci</div>
+                            <div class="gd-info-label">Published by</div>
                             <div class="gd-info-value gd-info-value--stack">
                                 ${(game.publisherData && game.publisherData.length > 0
             ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
@@ -5026,17 +5022,17 @@ renderGameDetailContentV2 = function (game) {
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Platformlar</div>
+                            <div class="gd-info-label">Platforms</div>
                             <div class="gd-platforms">
                                 ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">RAWG Verileri</div>
+                            <div class="gd-info-label">RAWG stats</div>
                             <div class="gd-rawg-stat-list">
                                 <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>Kullanici</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Cikis</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
+                                <div><span>User</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                                <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
                             </div>
                         </div>
                     </aside>
@@ -5046,7 +5042,7 @@ renderGameDetailContentV2 = function (game) {
             <section class="gd-section gd-section--specs">
                 <div class="gd-specs-header">
                     <div>
-                        <div class="gd-section-heading">Teknik Ozellikler</div>
+                        <div class="gd-section-heading">Technical Specifications</div>
                     </div>
                 </div>
                 <div class="gd-specs-layout">
@@ -5056,7 +5052,7 @@ renderGameDetailContentV2 = function (game) {
                     <aside class="gd-price-column">
                         <div class="gd-price-card">
                             <div class="gd-price-head">
-                                <span>Canli fiyat</span>
+                                <span>Live price</span>
                                 <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
                             </div>
                             <div id="itadPricesSection" class="itad-prices-section">
