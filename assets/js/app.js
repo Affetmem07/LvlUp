@@ -3328,11 +3328,6 @@ function setupGamesInfiniteScroll() {
 function renderGameCard(game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
-    const primaryGenre = game.genres[0] || 'Oyun';
-    const hoverTags = [
-        primaryGenre,
-        ...(game.platforms || []).slice(0, 1),
-    ].slice(0, 2);
 
     return `
         <div class="game-card game-card--list" onclick="openGameDetail('${game.id}')">
@@ -3348,11 +3343,6 @@ function renderGameCard(game) {
                 ` : ''}
                 <div class="game-card-overlay-body">
                     <div class="game-card-title">${escapeHtml(game.title)}</div>
-                    <div class="game-card-extras">
-                        ${hoverTags.map((tag, index) => index === 0
-                            ? `<span class="game-card-genre">${escapeHtml(tag)}</span>`
-                            : `<span class="game-card-platform">${escapeHtml(tag)}</span>`).join('')}
-                    </div>
                 </div>
             </div>
         </div>

@@ -2678,29 +2678,6 @@ select {
     line-height: 1.22;
 }
 
-.game-card--list .game-card-platform,
-.game-card--list .game-card-platform {
-    font-size: 0.68rem;
-    padding: 4px 9px;
-    background: rgba(255,255,255,0.14);
-    color: rgba(255,255,255,0.9);
-    border: none;
-}
-
-.game-card--list .game-card-genre {
-    font-size: 0.68rem;
-    padding: 4px 9px;
-    background: rgba(107, 170, 117, 0.28);
-    color: #d7f5dc;
-    border: none;
-}
-
-.game-card:hover .game-card-extras {
-    margin-top: 10px;
-    opacity: 1;
-    max-height: 150px;
-}
-
 .game-card-genre {
     font-size: 0.7rem;
     padding: 3px 8px;
