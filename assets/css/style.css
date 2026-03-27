@@ -2635,6 +2635,12 @@ select {
     opacity: 1;
 }
 
+.game-card-rating--corner {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
 .game-card-overlay-body {
     display: flex;
     flex-direction: column;
