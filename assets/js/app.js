@@ -4097,7 +4097,6 @@ function renderGameDetailContentV5(game) {
     const publisher = game.publisher || 'Yukleniyor...';
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
     const screenshots = (game.screenshots || []).slice(0, 4);
-    const summary = description.length > 260 ? `${description.slice(0, 260).trim()}...` : description;
 
     document.getElementById('gameDetailHero').innerHTML = `
         <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
@@ -4106,16 +4105,13 @@ function renderGameDetailContentV5(game) {
         <div class="gd-v5-hero-shell">
             <div class="gd-v5-hero-copy">
                 <div class="gd-v5-topline">
-                    <span class="gd-v5-kicker">Oyun Detayi</span>
                     <span class="gd-v5-year">${game.releaseYear || 'TBA'}</span>
                 </div>
                 <h2 class="game-detail-title gd-v5-title">${escapeHtml(game.title)}</h2>
-                <p class="gd-v5-summary">${escapeHtml(summary)}</p>
                 <div class="game-detail-genres gd-v5-genres">
                     ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
                 </div>
                 <div class="gd-v5-meta">
-                    <span class="game-detail-developer">${escapeHtml(developer)}</span>
                     ${game.rating > 0
                         ? `<span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>`
                         : `<span class="game-detail-rating-large medium">Skor bekleniyor</span>`}
