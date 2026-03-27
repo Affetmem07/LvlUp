@@ -29,7 +29,26 @@ function createPostCoverDataUrl(options = {}) {
     } = options;
 
     const safeLabel = escapeHtml(String(label).slice(0, 18).toUpperCase());
-    const safeTitle = escapeHtml(String(title).slice(0, 44));
+    const rawTitle = String(title).replace(/\s+/g, ' ').trim().slice(0, 44);
+    const titleWords = rawTitle.split(' ');
+    const titleLines = [];
+    let currentLine = '';
+
+    titleWords.forEach((word) => {
+        const nextLine = currentLine ? `${currentLine} ${word}` : word;
+        if (nextLine.length <= 16 || currentLine.length === 0) {
+            currentLine = nextLine;
+            return;
+        }
+
+        if (titleLines.length < 2) titleLines.push(currentLine);
+        currentLine = word;
+    });
+
+    if (currentLine && titleLines.length < 2) titleLines.push(currentLine);
+    while (titleLines.length < 2) titleLines.push('');
+
+    const safeTitleLines = titleLines.map((line) => escapeHtml(line));
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
             <defs>
@@ -47,11 +66,14 @@ function createPostCoverDataUrl(options = {}) {
             <circle cx="950" cy="120" r="180" fill="${accent}" opacity="0.16" />
             <circle cx="1080" cy="560" r="220" fill="${accent}" opacity="0.1" />
             <path d="M720 40 L1160 40 L840 360 L420 360 Z" fill="url(#shine)" opacity="0.38" />
-            <rect x="70" y="74" rx="24" ry="24" width="220" height="54" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.14" />
-            <text x="110" y="109" fill="${accent}" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="3">${safeLabel}</text>
-            <text x="74" y="500" fill="#f4f7f5" font-size="68" font-family="Inter, Arial, sans-serif" font-weight="800">${safeTitle}</text>
-            <rect x="74" y="540" rx="10" ry="10" width="330" height="10" fill="#ffffff" fill-opacity="0.14" />
-            <rect x="74" y="568" rx="10" ry="10" width="250" height="10" fill="#ffffff" fill-opacity="0.08" />
+            <rect x="430" y="74" rx="24" ry="24" width="340" height="54" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.14" />
+            <text x="600" y="109" text-anchor="middle" fill="${accent}" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="3">${safeLabel}</text>
+            <text x="600" y="470" text-anchor="middle" fill="#f4f7f5" font-size="64" font-family="Inter, Arial, sans-serif" font-weight="800">
+                <tspan x="600" dy="0">${safeTitleLines[0]}</tspan>
+                <tspan x="600" dy="76">${safeTitleLines[1]}</tspan>
+            </text>
+            <rect x="400" y="580" rx="10" ry="10" width="400" height="10" fill="#ffffff" fill-opacity="0.14" />
+            <rect x="470" y="608" rx="10" ry="10" width="260" height="10" fill="#ffffff" fill-opacity="0.08" />
         </svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
