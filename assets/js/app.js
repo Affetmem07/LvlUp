@@ -130,6 +130,13 @@ let currentGameFilter = 'all';
 let currentGameSearch = '';
 let currentProfileTab = 'posts';
 let selectedAvatarColor = 0;
+let homeHeroGames = {
+    newest: [],
+    popular: [],
+    loading: false,
+    loaded: false,
+    error: false,
+};
 
 const AVATAR_GRADIENTS = [
     'linear-gradient(135deg, #2D5A43, #8FBC8F)', // Forest
@@ -792,6 +799,7 @@ function renderFeed() {
         if (sidebar) sidebar.style.display = 'none';
         if (mainLayout) mainLayout.classList.remove('has-sidebar');
         container.innerHTML = renderPinterestHome(posts);
+        ensureHomeHeroGamesLoaded();
     } else {
         if (feed) feed.classList.remove('home-pinterest-mode');
         container.innerHTML = posts.map(post => renderPostCard(post)).join('');
@@ -801,7 +809,6 @@ function renderFeed() {
 }
 
 function renderPinterestHome(posts) {
-    const spotlight = posts.slice(0, 5);
     const tags = [...new Set(posts.flatMap(post => post.tags || []))].slice(0, 8);
 
     return `
@@ -818,7 +825,7 @@ function renderPinterestHome(posts) {
                     </div>
                 </div>
                 <div class="pinterest-hero-stack">
-                    ${spotlight.map((post, index) => renderPinterestSpotlight(post, index)).join('')}
+                    ${renderPinterestHomeHeroGames()}
                 </div>
             </div>
 
@@ -828,19 +835,149 @@ function renderPinterestHome(posts) {
         </section>`;
 }
 
-function renderPinterestSpotlight(post, index) {
-    const image = post.imageUrl
-        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
-        : `<div class="pinterest-spotlight-fallback">${escapeHtml(getCategoryName(post.category))}</div>`;
+function renderPinterestHomeHeroGames() {
+    const cards = getHomeHeroCardSequence();
+    return cards.map((item, index) => renderPinterestSpotlightGame(item, index)).join('');
+}
+
+function getHomeHeroCardSequence() {
+    const newest = homeHeroGames.newest || [];
+    const popular = homeHeroGames.popular || [];
+
+    if (!newest.length && !popular.length) {
+        return Array.from({ length: 5 }, (_, index) => ({ kind: 'placeholder', id: `hero-placeholder-${index}` }));
+    }
+
+    return [
+        newest[0] || popular[0] || null,
+        popular[0] || newest[0] || null,
+        popular[1] || newest[1] || popular[0] || null,
+        newest[1] || newest[0] || popular[1] || null,
+        popular[2] || popular[1] || newest[1] || null,
+    ].map((game, index) => game ? { kind: index === 0 || index === 3 ? 'newest' : 'popular', game } : { kind: 'placeholder', id: `hero-fallback-${index}` });
+}
+
+function renderPinterestSpotlightGame(item, index) {
+    if (!item || item.kind === 'placeholder' || !item.game) {
+        return `
+            <article class="pinterest-spotlight-card spotlight-${index + 1} is-placeholder">
+                <div class="pinterest-spotlight-media no-image">
+                    <div class="pinterest-spotlight-fallback">RAWG</div>
+                </div>
+                <div class="pinterest-spotlight-overlay">
+                    <span>${homeHeroGames.error ? 'Bağlantı' : 'Yükleniyor'}</span>
+                    <strong>${homeHeroGames.error ? 'Oyunlar şu an alınamadı' : 'Oyunlar hazırlanıyor...'}</strong>
+                </div>
+            </article>`;
+    }
+
+    const { game, kind } = item;
+    const image = game.backgroundUrl || game.coverUrl;
+    const kicker = kind === 'newest' ? 'En Yeni' : 'Popüler';
+    const subLabel = game.genres && game.genres.length > 0
+        ? game.genres[0]
+        : (game.platforms && game.platforms.length > 0 ? game.platforms[0] : 'Oyun');
+    const meta = kind === 'newest'
+        ? (game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'TBA'))
+        : `${Math.max(0, game.added || 0).toLocaleString('tr-TR')} takip`;
+    const imageMarkup = image
+        ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
+        : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`;
 
     return `
-        <article class="pinterest-spotlight-card spotlight-${(index % 3) + 1}" onclick="expandPost('${post.id}')">
-            <div class="pinterest-spotlight-media">${image}</div>
+        <article class="pinterest-spotlight-card spotlight-${index + 1}" onclick="openGameDetail('${game.id}')">
+            <div class="pinterest-spotlight-media">${imageMarkup}</div>
             <div class="pinterest-spotlight-overlay">
-                <span>${escapeHtml(getCategoryName(post.category))}</span>
-                <strong>${escapeHtml(post.title)}</strong>
+                <span>${escapeHtml(kicker)}</span>
+                <strong>${escapeHtml(game.title)}</strong>
+                <small>${escapeHtml(subLabel)} • ${escapeHtml(String(meta))}</small>
             </div>
         </article>`;
+}
+
+function mergeGamesIntoLibrary(games) {
+    games.forEach((game) => {
+        if (!game || !game.id) return;
+        const existingIndex = allGames.findIndex((item) => item.id === game.id);
+        if (existingIndex === -1) {
+            allGames.push(game);
+        } else {
+            allGames[existingIndex] = { ...allGames[existingIndex], ...game };
+        }
+    });
+}
+
+function formatGameReleaseDate(dateStr) {
+    if (!dateStr) return 'TBA';
+    try {
+        return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(dateStr));
+    } catch {
+        return dateStr;
+    }
+}
+
+async function fetchHomeHeroGames() {
+    if (!RAWG_API_KEY) {
+        homeHeroGames = { newest: [], popular: [], loading: false, loaded: true, error: true };
+        return;
+    }
+
+    homeHeroGames.loading = true;
+    homeHeroGames.error = false;
+
+    try {
+        const today = getTodayDate();
+        const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=8&ordering=-released&dates=1970-01-01,${today}`;
+        const popularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=8&ordering=-added&dates=1970-01-01,${today}`;
+
+        const [newestRes, popularRes] = await Promise.all([
+            fetch(newestUrl),
+            fetch(popularUrl),
+        ]);
+
+        if (!newestRes.ok || !popularRes.ok) {
+            throw new Error(`RAWG home hero fetch failed: ${newestRes.status}/${popularRes.status}`);
+        }
+
+        const [newestData, popularData] = await Promise.all([
+            newestRes.json(),
+            popularRes.json(),
+        ]);
+
+        const newestGames = (newestData.results || [])
+            .filter(isValidGameForDisplay)
+            .map(mapRawgGame)
+            .slice(0, 2);
+
+        const newestIds = new Set(newestGames.map((game) => game.id));
+        const popularGames = (popularData.results || [])
+            .filter(isValidGameForDisplay)
+            .map(mapRawgGame)
+            .filter((game) => !newestIds.has(game.id))
+            .slice(0, 3);
+
+        mergeGamesIntoLibrary([...newestGames, ...popularGames]);
+        homeHeroGames = {
+            newest: newestGames,
+            popular: popularGames,
+            loading: false,
+            loaded: true,
+            error: false,
+        };
+    } catch (error) {
+        console.error('Ana sayfa RAWG oyunları alınamadı:', error);
+        homeHeroGames = { newest: [], popular: [], loading: false, loaded: true, error: true };
+    }
+}
+
+function ensureHomeHeroGamesLoaded() {
+    if (currentPage !== 'home' || homeHeroGames.loading || homeHeroGames.loaded) return;
+
+    fetchHomeHeroGames().then(() => {
+        if (currentPage === 'home') {
+            renderFeed();
+        }
+    });
 }
 
 function renderPinterestPin(post, index) {

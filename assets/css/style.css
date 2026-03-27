@@ -5436,6 +5436,10 @@ select {
     grid-row: span 2;
 }
 
+.pinterest-spotlight-card.is-placeholder {
+    pointer-events: none;
+}
+
 .pinterest-spotlight-media,
 .pinterest-spotlight-media img {
     width: 100%;
@@ -5487,6 +5491,20 @@ select {
 .pinterest-spotlight-overlay strong {
     font-size: 0.96rem;
     line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pinterest-spotlight-overlay small {
+    font-size: 0.72rem;
+    color: rgba(241, 245, 249, 0.72);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .pinterest-masonry-grid {
