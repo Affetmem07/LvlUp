@@ -4508,6 +4508,197 @@ select {
     }
 }
 
+/* ================================================================
+   GAME DETAIL THEME ALIGNMENT
+   ================================================================ */
+.game-detail-container {
+    background:
+        radial-gradient(circle at top left, rgba(107, 170, 117, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(15, 29, 23, 0.96) 0%, rgba(10, 20, 16, 0.98) 100%);
+    border: 1px solid var(--border-accent);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+}
+
+.game-detail-hero {
+    background:
+        radial-gradient(circle at top left, rgba(107, 170, 117, 0.16), transparent 24%),
+        linear-gradient(140deg, rgba(26, 58, 42, 0.92) 0%, rgba(15, 29, 23, 0.82) 42%, rgba(10, 20, 16, 0.94) 100%);
+}
+
+.game-detail-hero-bg {
+    filter: blur(0) brightness(0.46) saturate(1);
+}
+
+.gd-hero-backdrop {
+    background:
+        radial-gradient(circle at 18% 24%, rgba(107, 170, 117, 0.16), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(164, 198, 57, 0.08), transparent 28%),
+        linear-gradient(115deg, rgba(26, 58, 42, 0.08), rgba(8, 12, 10, 0.62) 56%);
+}
+
+.gd-score-pill {
+    background: linear-gradient(135deg, var(--accent-light), var(--neon-green));
+    color: #0f1d17;
+    box-shadow: 0 10px 24px rgba(107, 170, 117, 0.24);
+}
+
+.gd-meta-inline {
+    background: rgba(15, 29, 23, 0.46);
+    border: 1px solid rgba(107, 170, 117, 0.14);
+    color: rgba(241, 245, 249, 0.74);
+}
+
+.gd-cinematic-title .accent {
+    color: var(--accent-light);
+}
+
+.game-detail-genre-tag {
+    background: rgba(45, 90, 67, 0.18);
+    border: 1px solid rgba(107, 170, 117, 0.22);
+    color: var(--accent-light);
+}
+
+.gd-poster-card {
+    background: rgba(15, 29, 23, 0.44);
+    border: 1px solid rgba(107, 170, 117, 0.12);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
+}
+
+.game-detail-cover-badge {
+    background: rgba(15, 29, 23, 0.84);
+    border: 1px solid rgba(107, 170, 117, 0.16);
+    color: var(--text-primary);
+}
+
+.gd-hero-stats-card {
+    border: 1px solid rgba(107, 170, 117, 0.14);
+    background: rgba(26, 58, 42, 0.22);
+}
+
+.gd-hero-stats-card .gd-hero-stat {
+    background: rgba(15, 29, 23, 0.92);
+}
+
+.gd-hero-stats-card .gd-hero-stat strong {
+    color: var(--accent-light);
+}
+
+.gd-section {
+    background: linear-gradient(180deg, rgba(15, 29, 23, 0.9), rgba(12, 24, 19, 0.94));
+    border: 1px solid rgba(107, 170, 117, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.gd-section-title span {
+    background: linear-gradient(180deg, var(--accent-light), var(--neon-green));
+}
+
+.gd-section-title h3,
+.gd-section-heading {
+    color: var(--text-primary);
+}
+
+.gd-desc-box,
+.gd-info-card,
+.gd-price-card,
+.gd-spec-card {
+    background: linear-gradient(180deg, rgba(20, 35, 28, 0.86), rgba(15, 29, 23, 0.94));
+    border: 1px solid rgba(107, 170, 117, 0.12);
+}
+
+.gd-desc-box {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.gd-desc-toggle {
+    border-top: 1px solid rgba(107, 170, 117, 0.12);
+    color: var(--accent-light);
+}
+
+.gd-info-block {
+    border-bottom: 1px solid rgba(107, 170, 117, 0.1);
+}
+
+.gd-info-label,
+.itad-offer-label {
+    color: var(--text-muted);
+}
+
+.gd-platform-chip {
+    background: rgba(45, 90, 67, 0.18);
+    border: 1px solid rgba(107, 170, 117, 0.24);
+    color: var(--accent-light);
+}
+
+.gd-spec-card--minimum .gd-spec-card-title,
+.gd-spec-card--recommended .gd-spec-card-title {
+    color: var(--accent-light);
+}
+
+.gd-spec-row {
+    border-bottom: 1px solid rgba(107, 170, 117, 0.1);
+}
+
+.gd-price-card {
+    background:
+        radial-gradient(circle at top left, rgba(107, 170, 117, 0.08), transparent 36%),
+        linear-gradient(180deg, rgba(10, 20, 16, 0.98), rgba(8, 15, 12, 1) 100%);
+}
+
+.gd-price-brand {
+    color: var(--text-primary);
+}
+
+.gd-price-brand:hover {
+    color: var(--accent-light);
+}
+
+.itad-offer-price {
+    color: var(--text-primary);
+}
+
+.itad-offer-regular {
+    color: rgba(148, 163, 184, 0.4);
+}
+
+.itad-offer-discount {
+    background: rgba(107, 170, 117, 0.14);
+    color: var(--accent-light);
+}
+
+.itad-buy-btn {
+    background: linear-gradient(90deg, var(--accent-light), var(--neon-green));
+    color: #102017;
+}
+
+.itad-wishlist-btn {
+    background: rgba(26, 58, 42, 0.74);
+    color: var(--text-primary);
+    border: 1px solid rgba(107, 170, 117, 0.16);
+}
+
+.itad-deal-card {
+    background: rgba(15, 29, 23, 0.72);
+    border: 1px solid rgba(107, 170, 117, 0.1);
+}
+
+.itad-deal-card.is-sale {
+    border-color: rgba(164, 198, 57, 0.22);
+    background: rgba(20, 35, 28, 0.88);
+}
+
+.itad-shop-name {
+    color: var(--text-secondary);
+}
+
+.itad-current-price {
+    color: var(--text-primary);
+}
+
+.itad-deal-card.is-sale .itad-current-price {
+    color: var(--neon-green);
+}
+
 .sysreq-col {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
