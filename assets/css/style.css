@@ -7119,17 +7119,18 @@ select {
 }
 
 .game-detail-hero-bg {
-    filter: blur(0) brightness(0.28) saturate(1.05);
-    transform: scale(1.08);
+    filter: blur(0) brightness(0.52) saturate(1.08);
+    transform: scale(1.04);
+    object-position: center 24%;
 }
 
 .gd-hero-backdrop {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.24), transparent 24%),
-        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.12), transparent 28%),
-        linear-gradient(115deg, rgba(7, 255, 191, 0.06), rgba(11, 16, 20, 0.84) 56%);
+        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.12), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.05), transparent 28%),
+        linear-gradient(115deg, rgba(7, 255, 191, 0.02), rgba(11, 16, 20, 0.54) 56%);
 }
 
 .gd-hero-orb {
@@ -7164,15 +7165,16 @@ select {
     gap: 40px;
     padding: 28px 28px 12px;
     background:
-        linear-gradient(180deg, rgba(6, 10, 13, 0.18), rgba(6, 10, 13, 0.4)),
-        linear-gradient(180deg, transparent 58%, rgba(8, 12, 16, 0.92) 100%);
+        linear-gradient(180deg, rgba(6, 10, 13, 0.08), rgba(6, 10, 13, 0.22)),
+        linear-gradient(180deg, transparent 68%, rgba(8, 12, 16, 0.74) 100%);
 }
 
 .gd-hero-copy {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    min-height: 560px;
+    gap: 10px;
+    min-height: 0;
+    align-self: start;
 }
 
 .gd-hero-meta-strip {
@@ -7207,8 +7209,8 @@ select {
 .gd-cinematic-title {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin: 0 0 2px;
+    gap: 0;
+    margin: 0;
     font-size: clamp(3.4rem, 8vw, 5.8rem);
     font-weight: 900;
     line-height: 0.9;
@@ -7221,12 +7223,17 @@ select {
     color: #00f0b5;
 }
 
+.gd-hero-tag-row {
+    margin-top: 2px;
+    align-self: flex-start;
+}
+
 .game-detail-genre-tag {
     background: rgba(56, 45, 78, 0.5);
     border: 1px solid rgba(146, 113, 232, 0.15);
     color: #b99dff;
     border-radius: 2px;
-    padding: 7px 12px;
+    padding: 6px 12px;
 }
 
 .gd-hero-side {
