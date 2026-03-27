@@ -5002,21 +5002,11 @@ renderGameDetailContentV2 = function (game) {
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
-                        <p class="gd-lead-copy">${escapeHtml(heroBlurb)}</p>
                         <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
                             <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
                             <div class="gd-desc-fade"></div>
                             <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
                         </div>
-                        ${screenshots.length > 0 ? `
-                            <div class="gd-inline-gallery">
-                                ${screenshots.map((shot, index) => `
-                                    <button class="gd-inline-shot" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Screenshot ${index + 1}">
-                                        <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
-                                    </button>
-                                `).join('')}
-                            </div>
-                        ` : ''}
                     </div>
                     <aside class="gd-info-card">
                         <div class="gd-info-block">
@@ -5052,15 +5042,6 @@ renderGameDetailContentV2 = function (game) {
                     </aside>
                 </div>
             </section>
-
-            ${(game.tags && game.tags.length > 0) ? `
-                <section class="gd-section gd-section--tags">
-                    <div class="gd-section-heading">Tags</div>
-                    <div class="gd-tags">
-                        ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
-                    </div>
-                </section>
-            ` : ''}
 
             <section class="gd-section gd-section--specs">
                 <div class="gd-specs-header">
