@@ -7931,6 +7931,14 @@ select {
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
 }
 
+.gd-story-card:not(.gd-story-card--wide) .gd-story-media {
+    min-height: 152px;
+}
+
+.gd-story-card--wide .gd-story-media {
+    min-height: 188px;
+}
+
 .gd-story-media::before {
     content: "";
     position: absolute;
@@ -8020,7 +8028,7 @@ select {
 .gd-story-body {
     position: relative;
     z-index: 1;
-    padding: 18px 18px 14px;
+    padding: 16px 16px 12px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -8029,7 +8037,7 @@ select {
 .gd-story-footer {
     position: relative;
     z-index: 1;
-    padding: 0 18px 18px;
+    padding: 0 16px 16px;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -8053,12 +8061,40 @@ select {
 }
 
 .gd-story-card .gd-desc-box {
-    padding-top: 20px;
+    padding: 18px 20px 0;
+    background: linear-gradient(180deg, rgba(12, 26, 20, 0.94), rgba(7, 16, 12, 0.98)) !important;
 }
 
 .gd-info-card--compact {
-    gap: 16px;
-    padding: 18px;
+    gap: 14px;
+    padding: 16px;
+}
+
+.gd-story-card .gd-desc-text {
+    font-size: 0.94rem;
+    line-height: 1.78;
+    color: rgba(241, 245, 249, 0.84);
+    -webkit-line-clamp: 6;
+}
+
+.gd-story-card .gd-desc-toggle {
+    padding: 12px 0;
+    font-size: 0.82rem;
+}
+
+.gd-story-card .gd-info-block {
+    gap: 10px;
+    padding-bottom: 14px;
+}
+
+.gd-story-card .gd-info-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+}
+
+.gd-story-card .gd-creator-plain,
+.gd-story-card .creator-link {
+    font-size: 0.9rem;
 }
 
 .gd-chip-cloud {
@@ -8068,19 +8104,33 @@ select {
 }
 
 .gd-chip-cloud .gd-platform-chip {
-    min-height: 40px;
+    min-height: 36px;
     align-items: center;
     display: inline-flex;
+    padding: 7px 11px;
+    font-size: 0.8rem;
 }
 
 .gd-story-card .gd-rawg-stat-list div {
-    padding-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .gd-story-card .gd-rawg-stat-list div:last-child {
     padding-bottom: 0;
     border-bottom: 0;
+}
+
+.gd-story-card .gd-rawg-stat-list span {
+    font-size: 0.77rem;
+    color: rgba(241, 245, 249, 0.56);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.gd-story-card .gd-rawg-stat-list strong {
+    font-size: 0.96rem;
+    color: #f4fff9;
 }
 
 .gd-spec-shell,
@@ -8104,25 +8154,57 @@ select {
 }
 
 .gd-price-card--story {
-    padding: 20px;
+    padding: 18px;
 }
 
 .gd-price-card--story .gd-price-head {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+}
+
+.gd-story-card .gd-spec-card {
+    padding: 16px 18px;
+}
+
+.gd-story-card .gd-spec-card-title {
+    margin-bottom: 12px;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+}
+
+.gd-story-card .gd-spec-empty {
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: rgba(241, 245, 249, 0.58);
 }
 
 .gd-story-card .itad-offer-card {
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
     border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .gd-story-card .itad-deals-grid {
-    gap: 10px;
+    gap: 8px;
 }
 
 .gd-story-card .itad-deal-card {
     background: rgba(20, 35, 28, 0.72);
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 10px 12px;
+}
+
+.gd-price-card--story .itad-offer-price {
+    font-size: 2.5rem;
+}
+
+.gd-price-card--story .itad-buy-btn,
+.gd-price-card--story .itad-wishlist-btn {
+    min-height: 48px;
+    font-size: 0.88rem;
 }
 
 @media (max-width: 980px) {
@@ -8162,7 +8244,7 @@ select {
     }
 
     .gd-story-media {
-        min-height: 190px;
+        min-height: 176px;
         padding: 18px 18px 24px;
     }
 
