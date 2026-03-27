@@ -916,6 +916,32 @@ function formatGameReleaseDate(dateStr) {
     }
 }
 
+function getDateBeforeToday({ years = 0, months = 0, days = 0 } = {}) {
+    const date = new Date();
+    if (years) date.setFullYear(date.getFullYear() - years);
+    if (months) date.setMonth(date.getMonth() - months);
+    if (days) date.setDate(date.getDate() - days);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function isValidHomeHeroRawgGame(game) {
+    return Boolean(
+        game &&
+        game.name &&
+        game.background_image &&
+        game.released
+    );
+}
+
+function dedupeMappedGames(games) {
+    const seen = new Set();
+    return games.filter((game) => {
+        if (!game || !game.id || seen.has(game.id)) return false;
+        seen.add(game.id);
+        return true;
+    });
+}
+
 async function fetchHomeHeroGames() {
     if (!RAWG_API_KEY) {
         homeHeroGames = { newest: [], popular: [], loading: false, loaded: true, error: true };
@@ -927,8 +953,10 @@ async function fetchHomeHeroGames() {
 
     try {
         const today = getTodayDate();
-        const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=8&ordering=-released&dates=1970-01-01,${today}`;
-        const popularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=8&ordering=-added&dates=1970-01-01,${today}`;
+        const newestStartDate = getDateBeforeToday({ years: 2 });
+        const popularStartDate = getDateBeforeToday({ years: 3 });
+        const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-released&dates=${newestStartDate},${today}`;
+        const popularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=${popularStartDate},${today}`;
 
         const [newestRes, popularRes] = await Promise.all([
             fetch(newestUrl),
@@ -944,16 +972,18 @@ async function fetchHomeHeroGames() {
             popularRes.json(),
         ]);
 
-        const newestGames = (newestData.results || [])
-            .filter(isValidGameForDisplay)
+        const newestGames = dedupeMappedGames((newestData.results || [])
+            .filter(isValidHomeHeroRawgGame)
             .map(mapRawgGame)
+            .sort((a, b) => new Date(b.released || 0) - new Date(a.released || 0)))
             .slice(0, 2);
 
         const newestIds = new Set(newestGames.map((game) => game.id));
-        const popularGames = (popularData.results || [])
-            .filter(isValidGameForDisplay)
+        const popularGames = dedupeMappedGames((popularData.results || [])
+            .filter(isValidHomeHeroRawgGame)
             .map(mapRawgGame)
             .filter((game) => !newestIds.has(game.id))
+            .sort((a, b) => (b.added || 0) - (a.added || 0)))
             .slice(0, 3);
 
         mergeGamesIntoLibrary([...newestGames, ...popularGames]);
