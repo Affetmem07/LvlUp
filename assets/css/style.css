@@ -7433,7 +7433,8 @@ select {
 
 .game-detail-hero {
     height: auto;
-    min-height: 700px;
+    min-height: 620px;
+    display: flex;
     background: linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
 }
 
@@ -7481,13 +7482,16 @@ select {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 372px;
     align-items: start;
+    align-content: start;
+    width: 100%;
+    min-height: inherit;
+    flex: 1;
     gap: 40px;
-    min-height: 100%;
     box-sizing: border-box;
     padding: 28px 28px 0;
     background:
         linear-gradient(180deg, rgba(6, 10, 13, 0.08), rgba(6, 10, 13, 0.22)),
-        linear-gradient(180deg, transparent 60%, rgba(8, 12, 16, 0.74) 100%);
+        linear-gradient(180deg, transparent 52%, rgba(8, 12, 16, 0.78) 100%);
 }
 
 .gd-hero-copy {
