@@ -56,6 +56,701 @@
     --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ================================================================
+   GAME DETAIL REDESIGN OVERRIDES
+   ================================================================ */
+.game-detail-container {
+    max-width: 1220px;
+    background:
+        radial-gradient(circle at top left, rgba(41, 231, 184, 0.1), transparent 32%),
+        linear-gradient(180deg, #10171c 0%, #0b1014 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 36px 110px rgba(0, 0, 0, 0.6);
+}
+
+.game-detail-close {
+    top: 20px;
+    right: 22px;
+}
+
+.game-detail-hero {
+    height: auto;
+    min-height: 700px;
+    background: linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
+}
+
+.game-detail-hero-bg {
+    filter: blur(0) brightness(0.28) saturate(1.05);
+    transform: scale(1.08);
+}
+
+.gd-hero-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.24), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.12), transparent 28%),
+        linear-gradient(115deg, rgba(7, 255, 191, 0.06), rgba(11, 16, 20, 0.84) 56%);
+}
+
+.gd-hero-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(14px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.gd-hero-orb--one {
+    width: 320px;
+    height: 320px;
+    left: -120px;
+    bottom: -140px;
+    background: radial-gradient(circle, rgba(11, 255, 196, 0.38), transparent 70%);
+}
+
+.gd-hero-orb--two {
+    width: 420px;
+    height: 420px;
+    right: -120px;
+    top: -120px;
+    background: radial-gradient(circle, rgba(123, 190, 255, 0.24), transparent 72%);
+}
+
+.gd-cinematic-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 372px;
+    align-items: start;
+    gap: 40px;
+    padding: 28px 28px 12px;
+    background:
+        linear-gradient(180deg, rgba(6, 10, 13, 0.18), rgba(6, 10, 13, 0.4)),
+        linear-gradient(180deg, transparent 58%, rgba(8, 12, 16, 0.92) 100%);
+}
+
+.gd-hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 24px;
+    padding-top: 6px;
+    min-height: 560px;
+}
+
+.gd-hero-meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.gd-score-pill,
+.gd-meta-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+}
+
+.gd-score-pill {
+    background: linear-gradient(135deg, #ff7183, #ff5a76);
+    color: #1f0910;
+}
+
+.gd-score-pill.high svg,
+.gd-score-pill.medium svg,
+.gd-score-pill.low svg {
+    width: 14px;
+    height: 14px;
+}
+
+.gd-meta-inline {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.gd-cinematic-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    font-size: clamp(3.4rem, 8vw, 5.8rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+.gd-cinematic-title .accent {
+    color: #00f0b5;
+}
+
+.gd-hero-tag-row {
+    max-width: 760px;
+}
+
+.game-detail-genre-tag {
+    background: rgba(56, 45, 78, 0.5);
+    border: 1px solid rgba(146, 113, 232, 0.15);
+    color: #b99dff;
+    border-radius: 2px;
+    padding: 8px 12px;
+    letter-spacing: 0.04em;
+}
+
+.gd-hero-side {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 0;
+}
+
+.gd-poster-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.46);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.44);
+    cursor: pointer;
+}
+
+.gd-poster-card .game-detail-cover {
+    width: 100%;
+    height: 560px;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+.game-detail-cover-badge {
+    bottom: 14px;
+    right: 14px;
+    background: rgba(8, 10, 12, 0.76);
+}
+
+.gd-hero-stats-card {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.gd-hero-stats-card .gd-hero-stat {
+    padding: 22px 16px;
+    background: rgba(17, 20, 26, 0.84);
+    text-align: left;
+}
+
+.gd-hero-stats-card .gd-hero-stat span {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.48);
+}
+
+.gd-hero-stats-card .gd-hero-stat strong {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.7rem;
+    color: #abffcd;
+}
+
+.game-detail-body {
+    padding: 0 28px 32px;
+}
+
+.game-detail-info {
+    gap: 24px;
+}
+
+.gd-detail-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.gd-section {
+    border-radius: 18px;
+    background: rgba(16, 18, 24, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 24px;
+}
+
+.gd-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.gd-section-title span {
+    width: 3px;
+    height: 28px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #98ffd4, #56ffc5);
+}
+
+.gd-section-title h3,
+.gd-section-heading {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #f4f7fb;
+    text-transform: uppercase;
+}
+
+.gd-about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 354px;
+    gap: 22px;
+}
+
+.gd-about-main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.gd-lead-copy {
+    margin: 0;
+    color: rgba(241, 245, 249, 0.7);
+    font-size: 1.02rem;
+    line-height: 1.8;
+}
+
+.gd-desc-box {
+    margin: 0;
+    border-radius: 14px;
+    padding: 20px 22px 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gd-desc-text {
+    margin-bottom: 14px;
+    color: rgba(241, 245, 249, 0.78);
+    -webkit-line-clamp: 5;
+}
+
+.gd-desc-fade {
+    background: linear-gradient(to bottom, transparent, rgba(14, 17, 22, 0.96));
+}
+
+.gd-desc-toggle {
+    padding: 14px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #85ffd4;
+}
+
+.gd-inline-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.gd-inline-shot {
+    height: 150px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0b1014;
+    cursor: pointer;
+}
+
+.gd-inline-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gd-info-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gd-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gd-info-block:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.gd-info-label {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 800;
+}
+
+.gd-info-value--stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.gd-rawg-stat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gd-rawg-stat-list div,
+.gd-spec-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.gd-rawg-stat-list span,
+.gd-spec-row span {
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.gd-rawg-stat-list strong,
+.gd-spec-row strong {
+    color: #eef4ff;
+    font-size: 0.94rem;
+    text-align: right;
+}
+
+.gd-platform-chip {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(8, 255, 191, 0.08);
+    border: 1px solid rgba(8, 255, 191, 0.18);
+    color: #a0ffd7;
+}
+
+.gd-section--tags {
+    padding-top: 20px;
+}
+
+.gd-section--tags .gd-section-heading {
+    margin-bottom: 14px;
+}
+
+.gd-tags {
+    gap: 10px;
+}
+
+.game-detail-tag {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.gd-specs-header {
+    margin-bottom: 18px;
+}
+
+.gd-specs-header p {
+    margin: 8px 0 0;
+    color: rgba(241, 245, 249, 0.54);
+}
+
+.gd-specs-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 348px;
+    gap: 24px;
+    align-items: start;
+}
+
+.gd-specs-grid {
+    min-width: 0;
+}
+
+.gd-spec-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.gd-spec-platform {
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9dffce;
+    font-weight: 800;
+}
+
+.gd-spec-duo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.gd-spec-card {
+    padding: 28px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gd-spec-card--minimum .gd-spec-card-title {
+    color: #a0ffd7;
+}
+
+.gd-spec-card--recommended .gd-spec-card-title {
+    color: #b08eff;
+}
+
+.gd-spec-card-title {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.gd-spec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.gd-spec-row {
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gd-spec-row:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.gd-spec-empty {
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.7;
+}
+
+.gd-price-card {
+    padding: 20px;
+    border-radius: 16px;
+    background: #050607;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gd-price-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.gd-price-head span {
+    color: rgba(255, 255, 255, 0.52);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.gd-price-head strong {
+    color: #fff;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+}
+
+.itad-prices-section {
+    min-height: 0;
+}
+
+.itad-offer-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.itad-offer-card--empty {
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.itad-offer-label {
+    color: rgba(255, 255, 255, 0.52);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.itad-offer-price-wrap {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.itad-offer-price {
+    color: #fff;
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.itad-offer-regular {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1.1rem;
+    text-decoration: line-through;
+}
+
+.itad-offer-discount {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 240, 181, 0.14);
+    color: #85ffd4;
+    font-weight: 800;
+}
+
+.itad-history-low {
+    margin-bottom: 0;
+}
+
+.itad-buy-btn,
+.itad-wishlist-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 900;
+    transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.itad-buy-btn {
+    background: linear-gradient(90deg, #98ffd4, #17f1a7);
+    color: #083223;
+}
+
+.itad-wishlist-btn {
+    background: rgba(114, 92, 188, 0.22);
+    color: #bfa6ff;
+    border: 1px solid rgba(167, 141, 255, 0.18);
+}
+
+.itad-buy-btn:hover,
+.itad-wishlist-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+}
+
+.itad-offer-empty {
+    color: rgba(255, 255, 255, 0.58);
+    line-height: 1.7;
+}
+
+.itad-offer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+}
+
+.itad-deals-grid {
+    gap: 10px;
+}
+
+.itad-deal-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+.itad-shop-name {
+    color: rgba(255, 255, 255, 0.74);
+}
+
+@media (max-width: 980px) {
+    .gd-cinematic-hero,
+    .gd-about-grid,
+    .gd-specs-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .game-detail-hero {
+        min-height: 0;
+    }
+
+    .gd-hero-copy {
+        min-height: 0;
+    }
+
+    .gd-hero-side {
+        max-width: 420px;
+    }
+}
+
+@media (max-width: 720px) {
+    .game-detail-overlay {
+        padding: 14px;
+    }
+
+    .game-detail-body,
+    .gd-cinematic-hero,
+    .gd-section {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .gd-cinematic-title {
+        font-size: clamp(2.4rem, 13vw, 4rem);
+    }
+
+    .gd-poster-card .game-detail-cover {
+        height: 440px;
+    }
+
+    .gd-hero-stats-card,
+    .gd-inline-gallery,
+    .gd-spec-duo {
+        grid-template-columns: 1fr;
+    }
+
+    .gd-hero-stats-card .gd-hero-stat strong {
+        font-size: 1.4rem;
+    }
+}
+
 /* ── Reset & Base ── */
 *,
 *::before,
@@ -6402,5 +7097,476 @@ select {
     .pinterest-pin-footer {
         align-items: flex-start;
         flex-direction: column;
+    }
+}
+
+/* ================================================================
+   GAME DETAIL REDESIGN OVERRIDES END
+   ================================================================ */
+.game-detail-container {
+    max-width: 1220px;
+    background:
+        radial-gradient(circle at top left, rgba(41, 231, 184, 0.1), transparent 32%),
+        linear-gradient(180deg, #10171c 0%, #0b1014 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 36px 110px rgba(0, 0, 0, 0.6);
+}
+
+.game-detail-hero {
+    height: auto;
+    min-height: 700px;
+    background: linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
+}
+
+.game-detail-hero-bg {
+    filter: blur(0) brightness(0.28) saturate(1.05);
+    transform: scale(1.08);
+}
+
+.gd-hero-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.24), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.12), transparent 28%),
+        linear-gradient(115deg, rgba(7, 255, 191, 0.06), rgba(11, 16, 20, 0.84) 56%);
+}
+
+.gd-hero-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(14px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.gd-hero-orb--one {
+    width: 320px;
+    height: 320px;
+    left: -120px;
+    bottom: -140px;
+    background: radial-gradient(circle, rgba(11, 255, 196, 0.38), transparent 70%);
+}
+
+.gd-hero-orb--two {
+    width: 420px;
+    height: 420px;
+    right: -120px;
+    top: -120px;
+    background: radial-gradient(circle, rgba(123, 190, 255, 0.24), transparent 72%);
+}
+
+.gd-cinematic-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 372px;
+    align-items: start;
+    gap: 40px;
+    padding: 28px 28px 12px;
+    background:
+        linear-gradient(180deg, rgba(6, 10, 13, 0.18), rgba(6, 10, 13, 0.4)),
+        linear-gradient(180deg, transparent 58%, rgba(8, 12, 16, 0.92) 100%);
+}
+
+.gd-hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 560px;
+}
+
+.gd-hero-meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.gd-score-pill,
+.gd-meta-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+}
+
+.gd-score-pill {
+    background: linear-gradient(135deg, #ff7183, #ff5a76);
+    color: #1f0910;
+}
+
+.gd-meta-inline {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.gd-cinematic-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    font-size: clamp(3.4rem, 8vw, 5.8rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+.gd-cinematic-title .accent {
+    color: #00f0b5;
+}
+
+.game-detail-genre-tag {
+    background: rgba(56, 45, 78, 0.5);
+    border: 1px solid rgba(146, 113, 232, 0.15);
+    color: #b99dff;
+    border-radius: 2px;
+    padding: 8px 12px;
+}
+
+.gd-hero-side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.gd-poster-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.46);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.44);
+}
+
+.gd-poster-card .game-detail-cover {
+    width: 100%;
+    height: 560px;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+.gd-hero-stats-card {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.gd-hero-stats-card .gd-hero-stat {
+    padding: 22px 16px;
+    background: rgba(17, 20, 26, 0.84);
+}
+
+.gd-hero-stats-card .gd-hero-stat span {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.48);
+}
+
+.gd-hero-stats-card .gd-hero-stat strong {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.7rem;
+    color: #abffcd;
+}
+
+.game-detail-body {
+    padding: 0 28px 32px;
+}
+
+.gd-detail-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.gd-section {
+    border-radius: 18px;
+    background: rgba(16, 18, 24, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 24px;
+}
+
+.gd-section-title,
+.gd-about-grid,
+.gd-specs-layout {
+    display: grid;
+}
+
+.gd-section-title {
+    grid-template-columns: 3px 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.gd-section-title span {
+    width: 3px;
+    height: 28px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #98ffd4, #56ffc5);
+}
+
+.gd-section-title h3,
+.gd-section-heading {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #f4f7fb;
+}
+
+.gd-about-grid {
+    grid-template-columns: minmax(0, 1fr) 354px;
+    gap: 22px;
+}
+
+.gd-about-main,
+.gd-info-card,
+.gd-spec-stack,
+.itad-offer-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.gd-about-main,
+.gd-info-card {
+    gap: 18px;
+}
+
+.gd-lead-copy,
+.gd-specs-header p {
+    margin: 0;
+    color: rgba(241, 245, 249, 0.7);
+    line-height: 1.8;
+}
+
+.gd-desc-box {
+    margin: 0;
+    border-radius: 14px;
+    padding: 20px 22px 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gd-desc-text {
+    margin-bottom: 14px;
+    color: rgba(241, 245, 249, 0.78);
+    -webkit-line-clamp: 5;
+}
+
+.gd-desc-fade {
+    background: linear-gradient(to bottom, transparent, rgba(14, 17, 22, 0.96));
+}
+
+.gd-desc-toggle {
+    padding: 14px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #85ffd4;
+}
+
+.gd-inline-gallery,
+.gd-spec-duo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.gd-spec-duo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.gd-inline-shot {
+    height: 150px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0b1014;
+}
+
+.gd-inline-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gd-info-card,
+.gd-price-card,
+.gd-spec-card {
+    padding: 22px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gd-price-card {
+    background: #050607;
+}
+
+.gd-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gd-info-block:last-child,
+.gd-spec-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.gd-info-label,
+.itad-offer-label {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 800;
+}
+
+.gd-rawg-stat-list,
+.gd-spec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gd-rawg-stat-list div,
+.gd-spec-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.gd-platform-chip,
+.game-detail-tag {
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+.gd-platform-chip {
+    background: rgba(8, 255, 191, 0.08);
+    border: 1px solid rgba(8, 255, 191, 0.18);
+    color: #a0ffd7;
+}
+
+.game-detail-tag {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.gd-specs-layout {
+    grid-template-columns: minmax(0, 1fr) 348px;
+    gap: 24px;
+    align-items: start;
+}
+
+.gd-spec-card-title {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.gd-spec-card--minimum .gd-spec-card-title {
+    color: #a0ffd7;
+}
+
+.gd-spec-card--recommended .gd-spec-card-title {
+    color: #b08eff;
+}
+
+.gd-spec-row {
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.itad-prices-section {
+    min-height: 0;
+}
+
+.itad-offer-card {
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.itad-offer-price-wrap {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.itad-offer-price {
+    color: #fff;
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.itad-buy-btn,
+.itad-wishlist-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 900;
+}
+
+.itad-buy-btn {
+    background: linear-gradient(90deg, #98ffd4, #17f1a7);
+    color: #083223;
+}
+
+.itad-wishlist-btn {
+    background: rgba(114, 92, 188, 0.22);
+    color: #bfa6ff;
+    border: 1px solid rgba(167, 141, 255, 0.18);
+}
+
+@media (max-width: 980px) {
+    .gd-cinematic-hero,
+    .gd-about-grid,
+    .gd-specs-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .game-detail-overlay {
+        padding: 14px;
+    }
+
+    .gd-cinematic-title {
+        font-size: clamp(2.4rem, 13vw, 4rem);
+    }
+
+    .gd-poster-card .game-detail-cover {
+        height: 440px;
+    }
+
+    .gd-hero-stats-card,
+    .gd-inline-gallery,
+    .gd-spec-duo {
+        grid-template-columns: 1fr;
     }
 }
