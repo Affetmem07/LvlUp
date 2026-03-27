@@ -4814,7 +4814,7 @@ const renderSystemRequirementCardsLatest = (requirements) => {
                     <div class="gd-spec-empty">RAWG bu oyun icin sistem gereksinimi donmuyor.</div>
                 </div>
                 <div class="gd-spec-card gd-spec-card--recommended">
-                    <div class="gd-spec-card-title">Recommended</div>
+                    <div class="gd-spec-card-title">Onerilen</div>
                     <div class="gd-spec-empty">Detay geldikce burada onerilen donanim gorunecek.</div>
                 </div>
             </div>
@@ -4829,7 +4829,7 @@ const renderSystemRequirementCardsLatest = (requirements) => {
             ${platformLabel}
             <div class="gd-spec-duo">
                 ${renderRequirementCardLatest('Minimum', 'minimum', primary.minimum, primary.minimum || primary.recommended)}
-                ${renderRequirementCardLatest('Recommended', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
+                ${renderRequirementCardLatest('Onerilen', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
             </div>
         </div>
     `;
@@ -4912,7 +4912,7 @@ renderITADPricesSection = function (result) {
 
     container.innerHTML = `
         <div class="itad-offer-card">
-            <div class="itad-offer-label">Best offer</div>
+            <div class="itad-offer-label">En iyi teklif</div>
             <div class="itad-offer-price-wrap">
                 <div class="itad-offer-price">${featuredCurrent}</div>
                 ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
@@ -4934,16 +4934,16 @@ renderGameDetailContentV2 = function (game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
     const description = game.description || 'Aciklama yukleniyor...';
-    const developer = game.developer || 'Yukleniyor...';
-    const publisher = game.publisher || 'Yukleniyor...';
+    const developer = game.developer || 'Bilinmiyor';
+    const publisher = game.publisher || 'Bilinmiyor';
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
     const screenshots = (game.screenshots || []).slice(0, 3);
     const splitTitle = splitGameTitleForHeroLatest(game.title);
     const formattedReleaseDate = game.released
         ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(game.released))
-        : (game.releaseYear || 'TBA');
+        : (game.releaseYear || 'Yakinda');
     const statsRibbon = [
-        { label: 'Oynanis', value: game.playtime || '-' }
+        { label: 'Oynama suresi', value: game.playtime || '-' }
     ];
 
     document.getElementById('gameDetailHero').innerHTML = `
@@ -4956,7 +4956,7 @@ renderGameDetailContentV2 = function (game) {
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
                     ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
-                    <span class="gd-meta-inline">Cikis Yili: ${game.releaseYear || 'TBA'}</span>
+                    <span class="gd-meta-inline">Cikis yili: ${game.releaseYear || 'Yakinda'}</span>
                     ${game.esrbRating ? `<span class="gd-meta-inline">${escapeHtml(game.esrbRating)}</span>` : ''}
                 </div>
                 <h2 class="game-detail-title gd-cinematic-title">
@@ -4992,7 +4992,7 @@ renderGameDetailContentV2 = function (game) {
             <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
-                    <h3>Game description</h3>
+                    <h3>Oyun aciklamasi</h3>
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
@@ -5004,7 +5004,7 @@ renderGameDetailContentV2 = function (game) {
                     </div>
                     <aside class="gd-info-card">
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Developed by</div>
+                            <div class="gd-info-label">Gelistirici</div>
                             <div class="gd-info-value gd-info-value--stack">
                                 ${(game.developerData && game.developerData.length > 0
             ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
@@ -5012,7 +5012,7 @@ renderGameDetailContentV2 = function (game) {
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Published by</div>
+                            <div class="gd-info-label">Yayinci</div>
                             <div class="gd-info-value gd-info-value--stack">
                                 ${(game.publisherData && game.publisherData.length > 0
             ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
@@ -5020,17 +5020,17 @@ renderGameDetailContentV2 = function (game) {
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">Platforms</div>
+                            <div class="gd-info-label">Platformlar</div>
                             <div class="gd-platforms">
                                 ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
                             </div>
                         </div>
                         <div class="gd-info-block">
-                            <div class="gd-info-label">RAWG stats</div>
+                            <div class="gd-info-label">RAWG verileri</div>
                             <div class="gd-rawg-stat-list">
                                 <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Release</span><strong>${formattedReleaseDate}</strong></div>
+                                <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                                <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
                             </div>
                         </div>
                     </aside>
@@ -5040,7 +5040,7 @@ renderGameDetailContentV2 = function (game) {
             <section class="gd-section gd-section--specs">
                 <div class="gd-specs-header">
                     <div>
-                        <div class="gd-section-heading">Technical Specifications</div>
+                        <div class="gd-section-heading">Teknik ozellikler</div>
                     </div>
                 </div>
                 <div class="gd-specs-layout">
