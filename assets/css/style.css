@@ -4509,6 +4509,114 @@ select {
 }
 
 /* ================================================================
+   GAME DETAIL FINAL FOREST OVERRIDE
+   ================================================================ */
+.game-detail-container {
+    background:
+        radial-gradient(circle at top left, rgba(107, 170, 117, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(15, 29, 23, 0.98) 0%, rgba(11, 21, 17, 0.99) 100%) !important;
+    border: 1px solid rgba(107, 170, 117, 0.16) !important;
+}
+
+.game-detail-hero {
+    background:
+        radial-gradient(circle at top left, rgba(107, 170, 117, 0.12), transparent 24%),
+        linear-gradient(140deg, rgba(26, 58, 42, 0.86) 0%, rgba(15, 29, 23, 0.72) 42%, rgba(10, 20, 16, 0.92) 100%) !important;
+}
+
+.gd-hero-backdrop {
+    background:
+        radial-gradient(circle at 18% 24%, rgba(107, 170, 117, 0.14), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(164, 198, 57, 0.06), transparent 28%),
+        linear-gradient(115deg, rgba(26, 58, 42, 0.06), rgba(8, 12, 10, 0.66) 56%) !important;
+}
+
+.gd-score-pill {
+    background: linear-gradient(135deg, var(--accent-light), var(--neon-green)) !important;
+    color: #102017 !important;
+    box-shadow: 0 10px 24px rgba(107, 170, 117, 0.22) !important;
+}
+
+.gd-meta-inline {
+    background: rgba(15, 29, 23, 0.52) !important;
+    border: 1px solid rgba(107, 170, 117, 0.14) !important;
+    color: rgba(241, 245, 249, 0.74) !important;
+}
+
+.gd-cinematic-title .accent {
+    color: var(--accent-light) !important;
+}
+
+.game-detail-genre-tag,
+.gd-platform-chip {
+    background: rgba(45, 90, 67, 0.18) !important;
+    border: 1px solid rgba(107, 170, 117, 0.22) !important;
+    color: var(--accent-light) !important;
+}
+
+.gd-hero-stats-card {
+    border: 1px solid rgba(107, 170, 117, 0.12) !important;
+    background: rgba(20, 35, 28, 0.42) !important;
+}
+
+.gd-hero-stats-card .gd-hero-stat {
+    background: rgba(15, 29, 23, 0.94) !important;
+}
+
+.gd-hero-stats-card .gd-hero-stat strong {
+    color: var(--accent-light) !important;
+}
+
+.gd-section,
+.gd-desc-box,
+.gd-info-card,
+.gd-price-card,
+.gd-spec-card {
+    background: linear-gradient(180deg, rgba(20, 35, 28, 0.88), rgba(15, 29, 23, 0.96)) !important;
+    border: 1px solid rgba(107, 170, 117, 0.12) !important;
+}
+
+.gd-section-title span {
+    background: linear-gradient(180deg, var(--accent-light), var(--neon-green)) !important;
+}
+
+.gd-desc-toggle {
+    color: var(--accent-light) !important;
+    border-top: 1px solid rgba(107, 170, 117, 0.12) !important;
+}
+
+.gd-spec-card--minimum .gd-spec-card-title,
+.gd-spec-card--recommended .gd-spec-card-title,
+.gd-price-brand:hover {
+    color: var(--accent-light) !important;
+}
+
+.itad-offer-discount {
+    background: rgba(107, 170, 117, 0.14) !important;
+    color: var(--accent-light) !important;
+}
+
+.itad-buy-btn {
+    background: linear-gradient(90deg, var(--accent-light), var(--neon-green)) !important;
+    color: #102017 !important;
+}
+
+.itad-wishlist-btn {
+    background: rgba(26, 58, 42, 0.78) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(107, 170, 117, 0.16) !important;
+}
+
+.itad-deal-card {
+    background: rgba(15, 29, 23, 0.76) !important;
+    border: 1px solid rgba(107, 170, 117, 0.1) !important;
+}
+
+.itad-deal-card.is-sale .itad-current-price {
+    color: var(--neon-green) !important;
+}
+
+/* ================================================================
    GAME DETAIL THEME ALIGNMENT
    ================================================================ */
 .game-detail-container {
