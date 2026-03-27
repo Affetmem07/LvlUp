@@ -4970,6 +4970,22 @@ renderGameDetailContentV2 = function (game) {
 
             <aside class="gd-hero-side">
                 <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
+                    <div class="gd-brick-cluster" aria-hidden="true">
+                        <span class="gd-brick gd-brick--wide"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick gd-brick--wide"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick gd-brick--wide"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick gd-brick--wide"></span>
+                        <span class="gd-brick"></span>
+                        <span class="gd-brick"></span>
+                    </div>
                     <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
                          onerror="this.style.background='var(--bg-elevated)'">
                     ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} gorsel</div>` : ''}
