@@ -80,7 +80,7 @@
 }
 
 .game-detail-hero-bg {
-    filter: blur(0) brightness(0.28) saturate(1.05);
+    filter: blur(0) brightness(0.4) saturate(1.08);
     transform: scale(1.08);
 }
 
@@ -88,9 +88,9 @@
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.24), transparent 24%),
-        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.12), transparent 28%),
-        linear-gradient(115deg, rgba(7, 255, 191, 0.06), rgba(11, 16, 20, 0.84) 56%);
+        radial-gradient(circle at 18% 24%, rgba(7, 255, 191, 0.18), transparent 24%),
+        radial-gradient(circle at 82% 74%, rgba(91, 208, 255, 0.08), transparent 28%),
+        linear-gradient(115deg, rgba(7, 255, 191, 0.04), rgba(11, 16, 20, 0.7) 56%);
 }
 
 .gd-hero-orb {
@@ -7171,7 +7171,7 @@ select {
 .gd-hero-copy {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 14px;
     min-height: 560px;
 }
 
@@ -7195,8 +7195,9 @@ select {
 }
 
 .gd-score-pill {
-    background: linear-gradient(135deg, #ff7183, #ff5a76);
-    color: #1f0910;
+    background: linear-gradient(135deg, #9fffd4, #27e6a4);
+    color: #083223;
+    box-shadow: 0 10px 24px rgba(39, 230, 164, 0.22);
 }
 
 .gd-meta-inline {
@@ -7207,7 +7208,7 @@ select {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin: 0;
+    margin: 0 0 2px;
     font-size: clamp(3.4rem, 8vw, 5.8rem);
     font-weight: 900;
     line-height: 0.9;
@@ -7225,7 +7226,7 @@ select {
     border: 1px solid rgba(146, 113, 232, 0.15);
     color: #b99dff;
     border-radius: 2px;
-    padding: 8px 12px;
+    padding: 7px 12px;
 }
 
 .gd-hero-side {
