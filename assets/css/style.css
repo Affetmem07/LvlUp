@@ -8078,3 +8078,107 @@ select {
         grid-template-columns: 1fr;
     }
 }
+
+/* Final active game-detail asymmetry override */
+.game-detail-overlay.active .gd-cinematic-hero {
+    position: relative;
+}
+
+.game-detail-overlay.active .gd-cinematic-hero::before,
+.game-detail-overlay.active .gd-cinematic-hero::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    filter: blur(10px);
+    opacity: 0.85;
+}
+
+.game-detail-overlay.active .gd-cinematic-hero::before {
+    top: -36px;
+    left: 8%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(88, 255, 168, 0.14) 0%, rgba(88, 255, 168, 0) 72%);
+}
+
+.game-detail-overlay.active .gd-cinematic-hero::after {
+    right: 11%;
+    bottom: 42px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(126, 255, 186, 0.1) 0%, rgba(126, 255, 186, 0) 75%);
+}
+
+.game-detail-overlay.active .gd-hero-copy {
+    transform: translate(-18px, -12px) !important;
+}
+
+.game-detail-overlay.active .gd-hero-side {
+    transform: translate(14px, 20px) rotate(-1.8deg) !important;
+}
+
+.game-detail-overlay.active .gd-poster-card {
+    transform: rotate(2.3deg) !important;
+    box-shadow: 0 28px 56px rgba(0, 0, 0, 0.42);
+}
+
+.game-detail-overlay.active .gd-hero-stats-card {
+    margin-left: 26px !important;
+    margin-top: 18px !important;
+    transform: rotate(-2deg) !important;
+}
+
+.game-detail-overlay.active .gd-detail-layout {
+    gap: 42px !important;
+}
+
+.game-detail-overlay.active .gd-section--about {
+    transform: translateX(-10px) rotate(-0.45deg) !important;
+}
+
+.game-detail-overlay.active .gd-desc-box {
+    transform: translate(14px, 10px) rotate(0.5deg) !important;
+}
+
+.game-detail-overlay.active .gd-info-card {
+    transform: translate(-16px, -18px) rotate(0.95deg) !important;
+}
+
+.game-detail-overlay.active .gd-section--specs {
+    transform: translateX(12px) rotate(0.35deg) !important;
+}
+
+.game-detail-overlay.active .gd-price-column {
+    transform: translate(16px, 24px) !important;
+}
+
+.game-detail-overlay.active .gd-price-card {
+    transform: rotate(-1.15deg) !important;
+}
+
+@media (max-width: 980px) {
+
+    .game-detail-overlay.active .gd-hero-copy,
+    .game-detail-overlay.active .gd-hero-side,
+    .game-detail-overlay.active .gd-poster-card,
+    .game-detail-overlay.active .gd-hero-stats-card,
+    .game-detail-overlay.active .gd-section--about,
+    .game-detail-overlay.active .gd-desc-box,
+    .game-detail-overlay.active .gd-info-card,
+    .game-detail-overlay.active .gd-section--specs,
+    .game-detail-overlay.active .gd-price-column,
+    .game-detail-overlay.active .gd-price-card {
+        transform: none !important;
+    }
+
+    .game-detail-overlay.active .gd-hero-stats-card {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .game-detail-overlay.active .gd-cinematic-hero::before,
+    .game-detail-overlay.active .gd-cinematic-hero::after {
+        display: none;
+    }
+}
