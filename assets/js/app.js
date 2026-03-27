@@ -22,14 +22,12 @@ function setStore(key, value) {
 function createPostCoverDataUrl(options = {}) {
     const {
         label = 'LVLUP',
-        title = 'Gaming Spotlight',
         accent = '#6BAA75',
         secondary = '#2D5A43',
         background = '#08130e'
     } = options;
 
     const safeLabel = escapeHtml(String(label).slice(0, 18).toUpperCase());
-    const safeTitle = escapeHtml(String(title).slice(0, 44));
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
             <defs>
@@ -44,28 +42,30 @@ function createPostCoverDataUrl(options = {}) {
                 </linearGradient>
             </defs>
             <rect width="1200" height="675" fill="url(#bg)" />
-            <circle cx="950" cy="120" r="180" fill="${accent}" opacity="0.16" />
-            <circle cx="1080" cy="560" r="220" fill="${accent}" opacity="0.1" />
-            <path d="M720 40 L1160 40 L840 360 L420 360 Z" fill="url(#shine)" opacity="0.38" />
-            <rect x="70" y="74" rx="24" ry="24" width="220" height="54" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.14" />
-            <text x="110" y="109" fill="${accent}" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="3">${safeLabel}</text>
-            <text x="74" y="500" fill="#f4f7f5" font-size="68" font-family="Inter, Arial, sans-serif" font-weight="800">${safeTitle}</text>
-            <rect x="74" y="540" rx="10" ry="10" width="330" height="10" fill="#ffffff" fill-opacity="0.14" />
-            <rect x="74" y="568" rx="10" ry="10" width="250" height="10" fill="#ffffff" fill-opacity="0.08" />
+            <circle cx="1060" cy="130" r="170" fill="${accent}" opacity="0.16" />
+            <circle cx="1120" cy="590" r="160" fill="${accent}" opacity="0.08" />
+            <circle cx="20" cy="130" r="46" fill="#ffffff" opacity="0.12" />
+            <path d="M280 40 L1180 40 L930 390 L280 390 Z" fill="url(#shine)" opacity="0.34" />
+            <rect x="86" y="74" rx="22" ry="22" width="184" height="46" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.12" />
+            <text x="118" y="105" fill="${accent}" font-size="26" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="3">${safeLabel}</text>
+            <rect x="0" y="420" width="1200" height="255" fill="#06110d" fill-opacity="0.52" />
+            <rect x="88" y="470" rx="10" ry="10" width="410" height="18" fill="#ffffff" fill-opacity="0.12" />
+            <rect x="88" y="504" rx="10" ry="10" width="320" height="18" fill="#ffffff" fill-opacity="0.1" />
+            <rect x="88" y="538" rx="10" ry="10" width="220" height="18" fill="#ffffff" fill-opacity="0.08" />
         </svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 const DEMO_POST_IMAGE_MAP = {
-    p1: createPostCoverDataUrl({ label: 'FPS', title: 'GTA 6', accent: '#7FE08D', secondary: '#1C4C37', background: '#091710' }),
-    p2: createPostCoverDataUrl({ label: 'RPG', title: 'Elden Ring DLC', accent: '#B6E07D', secondary: '#314E24', background: '#0d1308' }),
-    p3: createPostCoverDataUrl({ label: 'MOBA', title: 'Valorant Tour', accent: '#7AE0C4', secondary: '#11463D', background: '#071411' }),
-    p4: createPostCoverDataUrl({ label: 'GENEL', title: 'PS6 Leak', accent: '#87C5FF', secondary: '#1D3D5B', background: '#08111a' }),
-    p5: createPostCoverDataUrl({ label: 'GENEL', title: 'Switch 2', accent: '#F6D86B', secondary: '#5E4C1B', background: '#171108' }),
-    p6: createPostCoverDataUrl({ label: 'ONLINE', title: 'Fortnite Event', accent: '#C996FF', secondary: '#40316B', background: '#0d0b19' }),
-    p7: createPostCoverDataUrl({ label: 'INDIE', title: 'Hollow Knight', accent: '#A8C2FF', secondary: '#2C355E', background: '#090d18' }),
-    p8: createPostCoverDataUrl({ label: 'STRATEJI', title: 'Civilization VII', accent: '#8DE0B9', secondary: '#1F4F45', background: '#081612' }),
+    p1: createPostCoverDataUrl({ label: 'FPS', accent: '#7FE08D', secondary: '#1C4C37', background: '#091710' }),
+    p2: createPostCoverDataUrl({ label: 'RPG', accent: '#B6E07D', secondary: '#314E24', background: '#0d1308' }),
+    p3: createPostCoverDataUrl({ label: 'MOBA', accent: '#7AE0C4', secondary: '#11463D', background: '#071411' }),
+    p4: createPostCoverDataUrl({ label: 'GENEL', accent: '#87C5FF', secondary: '#1D3D5B', background: '#08111a' }),
+    p5: createPostCoverDataUrl({ label: 'GENEL', accent: '#F6D86B', secondary: '#5E4C1B', background: '#171108' }),
+    p6: createPostCoverDataUrl({ label: 'ONLINE', accent: '#C996FF', secondary: '#40316B', background: '#0d0b19' }),
+    p7: createPostCoverDataUrl({ label: 'INDIE', accent: '#A8C2FF', secondary: '#2C355E', background: '#090d18' }),
+    p8: createPostCoverDataUrl({ label: 'STRATEJI', accent: '#8DE0B9', secondary: '#1F4F45', background: '#081612' }),
 };
 
 function normalizeDemoPostImages(posts) {
@@ -74,8 +74,7 @@ function normalizeDemoPostImages(posts) {
         const fallbackImage = DEMO_POST_IMAGE_MAP[post.id];
         if (!fallbackImage) return post;
 
-        const imageUrl = typeof post.imageUrl === 'string' ? post.imageUrl : '';
-        if (!imageUrl || imageUrl.includes('picsum.photos')) {
+        if (post.imageUrl !== fallbackImage) {
             changed = true;
             return { ...post, imageUrl: fallbackImage };
         }
