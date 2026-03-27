@@ -4618,6 +4618,91 @@ select {
 }
 
 /* ================================================================
+   GAME DETAIL ACTIVE ASYMMETRY
+   ================================================================ */
+.gd-cinematic-hero--asym {
+    position: relative;
+    overflow: visible;
+}
+
+.gd-cinematic-hero--asym::before {
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    left: 10%;
+    top: 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(107, 170, 117, 0.14), transparent 72%);
+    filter: blur(12px);
+    pointer-events: none;
+}
+
+.gd-hero-copy--asym {
+    transform: translateY(-10px) !important;
+}
+
+.gd-hero-side--asym {
+    transform: translateY(18px) rotate(-1.5deg) !important;
+}
+
+.gd-hero-side--asym .gd-poster-card {
+    transform: rotate(2.4deg) !important;
+}
+
+.gd-hero-side--asym .gd-hero-stats-card {
+    margin-left: 26px !important;
+    transform: rotate(-2.2deg) !important;
+}
+
+.gd-detail-layout--asym {
+    position: relative;
+}
+
+.gd-section--about-asym {
+    transform: rotate(-0.5deg) !important;
+}
+
+.gd-section--about-asym .gd-desc-box {
+    transform: rotate(0.4deg) !important;
+}
+
+.gd-info-card--asym {
+    transform: translateY(-14px) rotate(0.9deg) !important;
+}
+
+.gd-section--specs-asym {
+    transform: rotate(0.35deg) !important;
+}
+
+.gd-price-column--asym {
+    transform: translate(10px, 20px) !important;
+}
+
+.gd-price-card--asym {
+    transform: rotate(-1.2deg) !important;
+}
+
+@media (max-width: 980px) {
+    .gd-hero-copy--asym,
+    .gd-hero-side--asym,
+    .gd-hero-side--asym .gd-poster-card,
+    .gd-hero-side--asym .gd-hero-stats-card,
+    .gd-section--about-asym,
+    .gd-section--about-asym .gd-desc-box,
+    .gd-info-card--asym,
+    .gd-section--specs-asym,
+    .gd-price-column--asym,
+    .gd-price-card--asym {
+        transform: none !important;
+    }
+
+    .gd-hero-side--asym .gd-hero-stats-card {
+        margin-left: 0 !important;
+    }
+}
+
+/* ================================================================
    GAME DETAIL SUBTLE ASYMMETRY
    ================================================================ */
 .gd-cinematic-hero--asym {
