@@ -19,6 +19,73 @@ function setStore(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 
+function createPostCoverDataUrl(options = {}) {
+    const {
+        label = 'LVLUP',
+        title = 'Gaming Spotlight',
+        accent = '#6BAA75',
+        secondary = '#2D5A43',
+        background = '#08130e'
+    } = options;
+
+    const safeLabel = escapeHtml(String(label).slice(0, 18).toUpperCase());
+    const safeTitle = escapeHtml(String(title).slice(0, 44));
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${background}" />
+                    <stop offset="55%" stop-color="${secondary}" />
+                    <stop offset="100%" stop-color="#05110b" />
+                </linearGradient>
+                <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16" />
+                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+            <rect width="1200" height="675" fill="url(#bg)" />
+            <circle cx="950" cy="120" r="180" fill="${accent}" opacity="0.16" />
+            <circle cx="1080" cy="560" r="220" fill="${accent}" opacity="0.1" />
+            <path d="M720 40 L1160 40 L840 360 L420 360 Z" fill="url(#shine)" opacity="0.38" />
+            <rect x="70" y="74" rx="24" ry="24" width="220" height="54" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.14" />
+            <text x="110" y="109" fill="${accent}" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="3">${safeLabel}</text>
+            <text x="74" y="500" fill="#f4f7f5" font-size="68" font-family="Inter, Arial, sans-serif" font-weight="800">${safeTitle}</text>
+            <rect x="74" y="540" rx="10" ry="10" width="330" height="10" fill="#ffffff" fill-opacity="0.14" />
+            <rect x="74" y="568" rx="10" ry="10" width="250" height="10" fill="#ffffff" fill-opacity="0.08" />
+        </svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+const DEMO_POST_IMAGE_MAP = {
+    p1: createPostCoverDataUrl({ label: 'FPS', title: 'GTA 6', accent: '#7FE08D', secondary: '#1C4C37', background: '#091710' }),
+    p2: createPostCoverDataUrl({ label: 'RPG', title: 'Elden Ring DLC', accent: '#B6E07D', secondary: '#314E24', background: '#0d1308' }),
+    p3: createPostCoverDataUrl({ label: 'MOBA', title: 'Valorant Tour', accent: '#7AE0C4', secondary: '#11463D', background: '#071411' }),
+    p4: createPostCoverDataUrl({ label: 'GENEL', title: 'PS6 Leak', accent: '#87C5FF', secondary: '#1D3D5B', background: '#08111a' }),
+    p5: createPostCoverDataUrl({ label: 'GENEL', title: 'Switch 2', accent: '#F6D86B', secondary: '#5E4C1B', background: '#171108' }),
+    p6: createPostCoverDataUrl({ label: 'ONLINE', title: 'Fortnite Event', accent: '#C996FF', secondary: '#40316B', background: '#0d0b19' }),
+    p7: createPostCoverDataUrl({ label: 'INDIE', title: 'Hollow Knight', accent: '#A8C2FF', secondary: '#2C355E', background: '#090d18' }),
+    p8: createPostCoverDataUrl({ label: 'STRATEJI', title: 'Civilization VII', accent: '#8DE0B9', secondary: '#1F4F45', background: '#081612' }),
+};
+
+function normalizeDemoPostImages(posts) {
+    let changed = false;
+    const normalized = posts.map((post) => {
+        const fallbackImage = DEMO_POST_IMAGE_MAP[post.id];
+        if (!fallbackImage) return post;
+
+        const imageUrl = typeof post.imageUrl === 'string' ? post.imageUrl : '';
+        if (!imageUrl || imageUrl.includes('picsum.photos')) {
+            changed = true;
+            return { ...post, imageUrl: fallbackImage };
+        }
+
+        return post;
+    });
+
+    return { posts: normalized, changed };
+}
+
 // ── State ──
 let currentUser = getStore(STORAGE_KEYS.currentUser);
 let allPosts = getStore(STORAGE_KEYS.posts) || [];
@@ -77,6 +144,11 @@ async function fetchConfig() {
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchConfig();
     if (allPosts.length === 0) seedData();
+    const normalizedPosts = normalizeDemoPostImages(allPosts);
+    if (normalizedPosts.changed) {
+        allPosts = normalizedPosts.posts;
+        setStore(STORAGE_KEYS.posts, allPosts);
+    }
     updateAuthUI();
 
     // Generate Ambient Leaves (Dark Forest)
@@ -190,7 +262,7 @@ function seedData() {
             content: 'Rockstar Games, merakla beklenen GTA 6 için yepyeni bir oynanış videosu yayınladı. Video, Vice City\'nin modern yorumunu ve geliştirilmiş fizik motorunu gözler önüne seriyor. Karakterlerin yüz ifadeleri, araç hasarı modeli ve açık dünya detayları hayranları büyüledi. Oyunun 2026 sonbaharında çıkması bekleniyor.',
             category: 'fps',
             tags: ['#GTA6', '#RockstarGames', '#OpenWorld'],
-            imageUrl: 'https://picsum.photos/seed/gta6city/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p1,
             likes: ['u2', 'u3', 'u4', 'u5'],
             comments: [
                 { id: 'c1', userId: 'u2', text: 'Sonunda gerçek oynanış! Grafiklere inanamıyorum 🤯', date: '2026-02-22T14:30:00Z', likes: ['u1', 'u3'] },
@@ -207,7 +279,7 @@ function seedData() {
             content: 'FromSoftware bir kez daha hayal gücünün sınırlarını zorladı. Shadow of the Erdtree DLC\'si, ana oyunun sunduğu deneyimi yepyeni bölgeler, patronlar ve mekaniklerle zenginleştiriyor. Yeni silah türleri ve büyülerin eklenmesiyle savaş sistemi daha da derinleşti. Zorluk seviyesine rağmen, her anı ödüllendirici hissettiren bir başyapıt.',
             category: 'rpg',
             tags: ['#EldenRing', '#FromSoftware', '#RPG'],
-            imageUrl: 'https://picsum.photos/seed/eldenring/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p2,
             likes: ['u1', 'u3', 'u5'],
             comments: [
                 { id: 'c5', userId: 'u1', text: 'Son boss\'u 50 denemede geçtim ama her saniyesine değdi! 💀', date: '2026-02-21T09:00:00Z', likes: ['u2', 'u5'] },
@@ -222,7 +294,7 @@ function seedData() {
             content: 'Riot Games, Valorant Champions Tour 2026 sezonunun detaylarını açıkladı. Bu yıl turnuva formatı tamamen yenileniyor: daha fazla bölgesel lig, genişletilmiş takım havuzu ve rekor düzeyde ödül havuzu. Türk takımlarının da yer alacağı EMEA liginde heyecan dorukta. İlk maçlar Mart ayında başlayacak.',
             category: 'moba',
             tags: ['#Valorant', '#VCT2026', '#ESports'],
-            imageUrl: 'https://picsum.photos/seed/valorantneon/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p3,
             likes: ['u1', 'u2'],
             comments: [
                 { id: 'c7', userId: 'u1', text: 'Türk takımları bu sene şampiyon olur inşallah! 🇹🇷', date: '2026-02-20T11:00:00Z', likes: ['u3', 'u4', 'u5'] },
@@ -238,7 +310,7 @@ function seedData() {
             content: 'Sony\'nin yeni nesil konsolu PlayStation 6\'nın teknik özellikleri sızdırıldı. AMD\'nin yeni Zen 6 mimarisine dayalı özel bir işlemci, RDNA 5 grafik kartı ve 2TB SSD ile gelecek olan konsol, 8K oyun deneyimi sunmayı hedefliyor. Ayrıca geriye dönük uyumluluk PS1\'e kadar genişletilecek.',
             category: 'genel',
             tags: ['#PS6', '#PlayStation', '#Sony', '#NextGen'],
-            imageUrl: 'https://picsum.photos/seed/ps6tech/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p4,
             likes: ['u1', 'u2', 'u3', 'u5'],
             comments: [
                 { id: 'c10', userId: 'u1', text: '8K oyun oynayabilecek miyiz gerçekten? Heyecanlandım! 🎮', date: '2026-02-19T16:00:00Z', likes: ['u4'] },
@@ -254,7 +326,7 @@ function seedData() {
             content: 'Nintendo\'nun yeni nesil konsolu Switch 2 resmi olarak tanıtıldı. OLED ekranının 8 inçe büyütüldüğü, DLSS destekli özel NVIDIA çipine sahip konsol, AAA oyunları taşınabilir formda sunabilecek. Mario, Zelda ve Metroid gibi sevilen serilerin lansman oyunları olarak geleceği doğrulandı.',
             category: 'genel',
             tags: ['#NintendoSwitch2', '#Nintendo', '#Gaming'],
-            imageUrl: 'https://picsum.photos/seed/nintendo2/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p5,
             likes: ['u1', 'u3'],
             comments: [
                 { id: 'c13', userId: 'u1', text: 'Nintendo bir kez daha oyun değiştirici bir ürün sunuyor!', date: '2026-02-18T14:00:00Z', likes: ['u5'] },
@@ -269,7 +341,7 @@ function seedData() {
             content: 'Epic Games, Fortnite\'ın yeni sezonuyla haritada büyük değişiklikler yapacağını duyurdu. Tamamen yenilenen biom sistemi, su altı keşif mekanikleri ve yıkılabilir yapıların genişletilmesi oyuncuları bekliyor. Yeni sezon ayrıca Marvel ve DC evreninden karakter crossover\'ları ile dikkat çekiyor.',
             category: 'battle-royale',
             tags: ['#Fortnite', '#BattleRoyale', '#EpicGames'],
-            imageUrl: 'https://picsum.photos/seed/fortnitestorm/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p6,
             likes: ['u2', 'u4'],
             comments: [
                 { id: 'c15', userId: 'u2', text: 'Su altı mekaniği harika olabilir, merak ediyorum!', date: '2026-02-17T10:00:00Z', likes: [] },
@@ -283,7 +355,7 @@ function seedData() {
             content: '3 kişilik bağımsız bir stüdyo tarafından geliştirilen metroidvania türündeki "Hollow Abyss", Steam\'de tüm zamanların en iyi inceleme puanına sahip oyun oldu. El çizimi sanat stili, etkileyici müzikleri ve derin hikaesiyle oyuncuları büyüleyen yapım, indie oyunların gücünü bir kez daha kanıtladı.',
             category: 'indie',
             tags: ['#HollowAbyss', '#IndieGame', '#Metroidvania'],
-            imageUrl: 'https://picsum.photos/seed/hollowdark/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p7,
             likes: ['u1', 'u3', 'u4', 'u5'],
             comments: [
                 { id: 'c16', userId: 'u3', text: 'Sanat stili inanılmaz, her kare bir tablo gibi 🎨', date: '2026-02-16T11:00:00Z', likes: ['u2', 'u1'] },
@@ -299,7 +371,7 @@ function seedData() {
             content: 'Firaxis Games\'in yeni strateji oyunu Civilization VII, serinin köklü mekaniklerini modernize ederek büyük beğeni topluyor. Dinamik iklim sistemi, geliştirilmiş diplomasi mekanikleri ve yapay zeka iyileştirmeleri oyunu öncekilerden ayıran özellikler. Modding desteği de oyunun ömrünü uzatacak.',
             category: 'strateji',
             tags: ['#Civilization7', '#Strateji', '#4XGames'],
-            imageUrl: 'https://picsum.photos/seed/civ7epic/800/450',
+            imageUrl: DEMO_POST_IMAGE_MAP.p8,
             likes: ['u1', 'u2', 'u5'],
             comments: [
                 { id: 'c19', userId: 'u5', text: '"Bir tur daha" sendromu geri döndü, 14 saat aralıksız oynadım 😅', date: '2026-02-15T20:00:00Z', likes: ['u4', 'u1'] },

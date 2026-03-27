@@ -5447,6 +5447,14 @@ select {
     display: block;
 }
 
+.pinterest-spotlight-media.no-image {
+    display: flex;
+    align-items: end;
+    justify-content: flex-start;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(45,90,67,0.55), rgba(10,18,14,0.92));
+}
+
 .pinterest-spotlight-fallback {
     display: flex;
     align-items: end;
