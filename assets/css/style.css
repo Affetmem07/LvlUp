@@ -4618,6 +4618,108 @@ select {
 }
 
 /* ================================================================
+   GAME DETAIL SUBTLE ASYMMETRY
+   ================================================================ */
+.gd-cinematic-hero--asym {
+    position: relative;
+}
+
+.gd-cinematic-hero--asym::before,
+.gd-cinematic-hero--asym::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    filter: blur(10px);
+    opacity: 0.55;
+}
+
+.gd-cinematic-hero--asym::before {
+    width: 180px;
+    height: 180px;
+    top: 26px;
+    left: 18%;
+    background: radial-gradient(circle, rgba(107, 170, 117, 0.14), transparent 70%);
+}
+
+.gd-cinematic-hero--asym::after {
+    width: 130px;
+    height: 130px;
+    right: 26px;
+    bottom: 54px;
+    background: radial-gradient(circle, rgba(164, 198, 57, 0.12), transparent 72%);
+}
+
+.gd-hero-copy--asym {
+    transform: translateY(-8px);
+}
+
+.gd-hero-side--asym {
+    transform: translateY(18px) rotate(-1.2deg);
+}
+
+.gd-hero-side--asym .gd-poster-card {
+    transform: rotate(2.2deg);
+}
+
+.gd-hero-side--asym .gd-hero-stats-card {
+    margin-left: 28px;
+    transform: rotate(-2deg);
+}
+
+.gd-detail-layout--asym {
+    position: relative;
+}
+
+.gd-section--about-asym {
+    transform: rotate(-0.45deg);
+}
+
+.gd-section--about-asym .gd-desc-box {
+    transform: rotate(0.35deg);
+}
+
+.gd-info-card--asym {
+    transform: translateY(-12px) rotate(0.7deg);
+}
+
+.gd-section--specs-asym {
+    transform: rotate(0.35deg);
+}
+
+.gd-section--specs-asym .gd-specs-grid {
+    transform: translateX(-8px);
+}
+
+.gd-price-column--asym {
+    transform: translate(10px, 22px);
+}
+
+.gd-price-card--asym {
+    transform: rotate(-1.1deg);
+}
+
+@media (max-width: 980px) {
+    .gd-hero-copy--asym,
+    .gd-hero-side--asym,
+    .gd-hero-side--asym .gd-poster-card,
+    .gd-hero-side--asym .gd-hero-stats-card,
+    .gd-section--about-asym,
+    .gd-section--about-asym .gd-desc-box,
+    .gd-info-card--asym,
+    .gd-section--specs-asym,
+    .gd-section--specs-asym .gd-specs-grid,
+    .gd-price-column--asym,
+    .gd-price-card--asym {
+        transform: none;
+    }
+
+    .gd-hero-side--asym .gd-hero-stats-card {
+        margin-left: 0;
+    }
+}
+
+/* ================================================================
    GAME DETAIL THEME ALIGNMENT
    ================================================================ */
 .game-detail-container {
