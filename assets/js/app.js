@@ -235,34 +235,6 @@ function renderGameDetailContentV3(game) {
         <div class="gd-hero-backdrop"></div>
         <div class="gd-hero-orb gd-hero-orb--one"></div>
         <div class="gd-hero-orb gd-hero-orb--two"></div>
-        <div class="gd-hero-brick-badge" aria-hidden="true">
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-        </div>
         <div class="game-detail-hero-content gd-cinematic-hero">
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
@@ -3497,34 +3469,6 @@ function renderGameDetailContentV2(game) {
         <div class="gd-hero-backdrop"></div>
         <div class="gd-hero-orb gd-hero-orb--one"></div>
         <div class="gd-hero-orb gd-hero-orb--two"></div>
-        <div class="gd-hero-brick-badge" aria-hidden="true">
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-        </div>
         <div class="game-detail-hero-content gd-cinematic-hero">
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
@@ -5008,34 +4952,6 @@ renderGameDetailContentV2 = function (game) {
         <div class="gd-hero-backdrop"></div>
         <div class="gd-hero-orb gd-hero-orb--one"></div>
         <div class="gd-hero-orb gd-hero-orb--two"></div>
-        <div class="gd-hero-brick-badge" aria-hidden="true">
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row gd-hero-brick-row--offset">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-            <div class="gd-hero-brick-row">
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-                <span class="gd-hero-brick"></span>
-            </div>
-        </div>
         <div class="game-detail-hero-content gd-cinematic-hero">
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
