@@ -235,8 +235,8 @@ function renderGameDetailContentV3(game) {
         <div class="gd-hero-backdrop"></div>
         <div class="gd-hero-orb gd-hero-orb--one"></div>
         <div class="gd-hero-orb gd-hero-orb--two"></div>
-        <div class="game-detail-hero-content gd-cinematic-hero gd-cinematic-hero--asym">
-            <div class="gd-hero-copy gd-hero-copy--asym">
+        <div class="game-detail-hero-content gd-cinematic-hero">
+            <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
                     ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
                     <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
@@ -251,7 +251,7 @@ function renderGameDetailContentV3(game) {
                 </div>
             </div>
 
-            <aside class="gd-hero-side gd-hero-side--asym">
+            <aside class="gd-hero-side">
                 <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
                     <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
                          onerror="this.style.background='var(--bg-elevated)'">
@@ -271,8 +271,8 @@ function renderGameDetailContentV3(game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout gd-detail-layout--asym">
-            <section class="gd-section gd-section--about gd-section--about-asym">
+        <div class="gd-detail-layout">
+            <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
                     <h3>Game description</h3>
@@ -295,7 +295,7 @@ function renderGameDetailContentV3(game) {
                             </div>
                         ` : ''}
                     </div>
-                    <aside class="gd-info-card gd-info-card--asym">
+                    <aside class="gd-info-card">
                         <div class="gd-info-block">
                             <div class="gd-info-label">Developed by</div>
                             <div class="gd-info-value gd-info-value--stack">
@@ -339,7 +339,7 @@ function renderGameDetailContentV3(game) {
                 </section>
             ` : ''}
 
-            <section class="gd-section gd-section--specs gd-section--specs-asym">
+            <section class="gd-section gd-section--specs">
                 <div class="gd-specs-header">
                     <div>
                         <div class="gd-section-heading">Technical Specifications</div>
@@ -350,8 +350,8 @@ function renderGameDetailContentV3(game) {
                     <div class="gd-specs-grid">
                         ${renderSystemRequirementCardsV3(game.systemRequirements)}
                     </div>
-                    <aside class="gd-price-column gd-price-column--asym">
-                        <div class="gd-price-card gd-price-card--asym">
+                    <aside class="gd-price-column">
+                        <div class="gd-price-card">
                             <div class="gd-price-head">
                                 <strong>ITAD</strong>
                             </div>
@@ -3469,8 +3469,8 @@ function renderGameDetailContentV2(game) {
         <div class="gd-hero-backdrop"></div>
         <div class="gd-hero-orb gd-hero-orb--one"></div>
         <div class="gd-hero-orb gd-hero-orb--two"></div>
-        <div class="game-detail-hero-content gd-cinematic-hero gd-cinematic-hero--asym">
-            <div class="gd-hero-copy gd-hero-copy--asym">
+        <div class="game-detail-hero-content gd-cinematic-hero">
+            <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
                     ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
                     <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
@@ -3485,7 +3485,7 @@ function renderGameDetailContentV2(game) {
                 </div>
             </div>
 
-            <aside class="gd-hero-side gd-hero-side--asym">
+            <aside class="gd-hero-side">
                 <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
                     <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
                          onerror="this.style.background='var(--bg-elevated)'">
@@ -3505,8 +3505,8 @@ function renderGameDetailContentV2(game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout gd-detail-layout--asym">
-            <section class="gd-section gd-section--about gd-section--about-asym">
+        <div class="gd-detail-layout">
+            <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
                     <h3>Game description</h3>
@@ -3519,7 +3519,7 @@ function renderGameDetailContentV2(game) {
                             <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
                         </div>
                     </div>
-                    <aside class="gd-info-card gd-info-card--asym">
+                    <aside class="gd-info-card">
                         <div class="gd-info-block">
                             <div class="gd-info-label">Developed by</div>
                             <div class="gd-info-value gd-info-value--stack">
@@ -3554,7 +3554,7 @@ function renderGameDetailContentV2(game) {
                 </div>
             </section>
 
-            <section class="gd-section gd-section--specs gd-section--specs-asym">
+            <section class="gd-section gd-section--specs">
                 <div class="gd-specs-header">
                     <div>
                         <div class="gd-section-heading">Technical Specifications</div>
@@ -3565,8 +3565,8 @@ function renderGameDetailContentV2(game) {
                     <div class="gd-specs-grid">
                         ${renderSystemRequirementCards(game.systemRequirements)}
                     </div>
-                    <aside class="gd-price-column gd-price-column--asym">
-                        <div class="gd-price-card gd-price-card--asym">
+                    <aside class="gd-price-column">
+                        <div class="gd-price-card">
                             <div class="gd-price-head">
                                 <strong>ITAD</strong>
                             </div>
