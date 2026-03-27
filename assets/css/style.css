@@ -7897,3 +7897,127 @@ select {
         grid-template-columns: 1fr;
     }
 }
+
+/* ================================================================
+   GAME DETAIL MASONRY LAYOUT OVERRIDES
+   ================================================================ */
+.game-detail-body {
+    padding: 0 28px 32px;
+}
+
+.gd-detail-layout--masonry {
+    --gd-masonry-row: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.22fr) minmax(300px, 0.78fr);
+    grid-auto-rows: var(--gd-masonry-row);
+    grid-auto-flow: row dense;
+    gap: 22px;
+    align-items: start;
+}
+
+.gd-masonry-card {
+    min-width: 0;
+    margin: 0;
+}
+
+.gd-masonry-card--about,
+.gd-masonry-card--specs {
+    grid-column: 1;
+}
+
+.gd-masonry-card--studios,
+.gd-masonry-card--platforms,
+.gd-masonry-card--stats,
+.gd-masonry-card--price {
+    grid-column: 2;
+}
+
+.gd-section-title--compact {
+    margin-bottom: 16px;
+}
+
+.gd-section-title--compact h3 {
+    font-size: 0.96rem;
+}
+
+.gd-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.gd-masonry-card .gd-info-block:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.gd-masonry-card--platforms .gd-platforms {
+    gap: 10px;
+}
+
+.gd-platform-empty {
+    color: rgba(241, 245, 249, 0.58);
+    line-height: 1.7;
+}
+
+.gd-masonry-card--stats .gd-rawg-stat-list {
+    gap: 14px;
+}
+
+.gd-masonry-card--specs .gd-specs-grid {
+    min-width: 0;
+}
+
+.gd-price-card--flush {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.gd-masonry-card--price .gd-price-head {
+    margin-bottom: 18px;
+}
+
+.gd-masonry-card--price .gd-price-head span {
+    display: inline-flex;
+}
+
+.gd-masonry-card--price .itad-loading {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 980px) {
+    .gd-detail-layout--masonry {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+
+    .gd-masonry-card,
+    .gd-masonry-card--about,
+    .gd-masonry-card--specs,
+    .gd-masonry-card--studios,
+    .gd-masonry-card--platforms,
+    .gd-masonry-card--stats,
+    .gd-masonry-card--price {
+        grid-column: auto;
+        grid-row-end: auto !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .game-detail-body {
+        padding: 0 14px 20px;
+    }
+
+    .gd-detail-layout--masonry {
+        gap: 16px;
+    }
+
+    .gd-section {
+        padding: 18px;
+    }
+}

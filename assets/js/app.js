@@ -4839,6 +4839,44 @@ const renderSystemRequirementCardsLatest = (requirements) => {
     `;
 };
 
+let gameDetailMasonryFrame = null;
+
+function syncGameDetailMasonry() {
+    const layout = document.querySelector('#gameDetailInfo .gd-detail-layout--masonry');
+    if (!layout) return;
+
+    const cards = layout.querySelectorAll('.gd-masonry-card');
+    if (window.innerWidth <= 980) {
+        cards.forEach(card => {
+            card.style.gridRowEnd = '';
+        });
+        return;
+    }
+
+    const styles = window.getComputedStyle(layout);
+    const rowUnit = parseFloat(styles.getPropertyValue('--gd-masonry-row')) || parseFloat(styles.gridAutoRows) || 8;
+    const rowGap = parseFloat(styles.rowGap || styles.gap) || 22;
+
+    cards.forEach(card => {
+        card.style.gridRowEnd = '';
+        const span = Math.ceil((card.getBoundingClientRect().height + rowGap) / (rowUnit + rowGap));
+        card.style.gridRowEnd = `span ${Math.max(span, 1)}`;
+    });
+}
+
+function queueGameDetailMasonrySync() {
+    if (gameDetailMasonryFrame) {
+        cancelAnimationFrame(gameDetailMasonryFrame);
+    }
+
+    gameDetailMasonryFrame = requestAnimationFrame(() => {
+        gameDetailMasonryFrame = null;
+        syncGameDetailMasonry();
+    });
+}
+
+window.addEventListener('resize', queueGameDetailMasonrySync);
+
 renderITADPricesSection = function (result) {
     const container = document.getElementById('itadPricesSection');
     if (!container) return;
@@ -4865,6 +4903,7 @@ renderITADPricesSection = function (result) {
                 </a>
             </div>
         `;
+        queueGameDetailMasonrySync();
         return;
     }
 
@@ -4932,6 +4971,7 @@ renderITADPricesSection = function (result) {
         </div>
         <div class="itad-deals-grid">${dealsHtml}</div>
     `;
+    queueGameDetailMasonrySync();
 };
 
 renderGameDetailContentV2 = function (game) {
@@ -4941,7 +4981,6 @@ renderGameDetailContentV2 = function (game) {
     const developer = game.developer || 'Bilinmiyor';
     const publisher = game.publisher || 'Bilinmiyor';
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
-    const screenshots = (game.screenshots || []).slice(0, 3);
     const splitTitle = splitGameTitleForHeroLatest(game.title);
     const formattedReleaseDate = game.released
         ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(game.released))
@@ -4992,82 +5031,96 @@ renderGameDetailContentV2 = function (game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout">
-            <section class="gd-section gd-section--about">
+        <div class="gd-detail-layout gd-detail-layout--masonry">
+            <section class="gd-section gd-masonry-card gd-masonry-card--about">
                 <div class="gd-section-title">
                     <span></span>
                     <h3>Oyun aciklamasi</h3>
                 </div>
-                <div class="gd-about-grid">
-                    <div class="gd-about-main">
-                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
-                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
-                            <div class="gd-desc-fade"></div>
-                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
-                        </div>
-                    </div>
-                    <aside class="gd-info-card">
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Gelistirici</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.developerData && game.developerData.length > 0
-            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Yayinci</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.publisherData && game.publisherData.length > 0
-            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Platformlar</div>
-                            <div class="gd-platforms">
-                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">RAWG verileri</div>
-                            <div class="gd-rawg-stat-list">
-                                <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
-                            </div>
-                        </div>
-                    </aside>
+                <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                    <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                    <div class="gd-desc-fade"></div>
+                    <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
             </section>
 
-            <section class="gd-section gd-section--specs">
-                <div class="gd-specs-header">
-                    <div>
-                        <div class="gd-section-heading">Teknik ozellikler</div>
+            <aside class="gd-section gd-masonry-card gd-masonry-card--studios">
+                <div class="gd-section-title gd-section-title--compact">
+                    <span></span>
+                    <h3>Yapim ekibi</h3>
+                </div>
+                <div class="gd-card-stack">
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">Gelistirici</div>
+                        <div class="gd-info-value gd-info-value--stack">
+                            ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                        </div>
+                        </div>
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">Yayinci</div>
+                        <div class="gd-info-value gd-info-value--stack">
+                            ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
+                        </div>
                     </div>
                 </div>
-                <div class="gd-specs-layout">
-                    <div class="gd-specs-grid">
-                        ${renderSystemRequirementCardsLatest(game.systemRequirements)}
-                    </div>
-                    <aside class="gd-price-column">
-                        <div class="gd-price-card">
-                            <div class="gd-price-head">
-                                <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
-                            </div>
-                            <div id="itadPricesSection" class="itad-prices-section">
-                                <div class="itad-loading">
-                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
-                                    <span>Fiyatlar yukleniyor...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
+            </aside>
+
+            <aside class="gd-section gd-masonry-card gd-masonry-card--platforms">
+                <div class="gd-section-title gd-section-title--compact">
+                    <span></span>
+                    <h3>Platformlar</h3>
+                </div>
+                <div class="gd-platforms">
+                    ${(displayPlatforms && displayPlatforms.length > 0)
+            ? displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')
+            : '<span class="gd-platform-empty">Platform bilgisi bulunamadi.</span>'}
+                </div>
+            </aside>
+
+            <aside class="gd-section gd-masonry-card gd-masonry-card--stats">
+                <div class="gd-section-title gd-section-title--compact">
+                    <span></span>
+                    <h3>RAWG verileri</h3>
+                </div>
+                <div class="gd-rawg-stat-list">
+                    <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
+                    <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                    <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
+                </div>
+            </aside>
+
+            <section class="gd-section gd-masonry-card gd-masonry-card--specs">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Teknik ozellikler</h3>
+                </div>
+                <div class="gd-specs-grid">
+                    ${renderSystemRequirementCardsLatest(game.systemRequirements)}
                 </div>
             </section>
+
+            <aside class="gd-section gd-masonry-card gd-masonry-card--price">
+                <div class="gd-price-card gd-price-card--flush">
+                    <div class="gd-price-head">
+                        <span>Canli fiyat takibi</span>
+                        <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
+                    </div>
+                    <div id="itadPricesSection" class="itad-prices-section">
+                        <div class="itad-loading">
+                            <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                            <span>Fiyatlar yukleniyor...</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
     `;
+
+    queueGameDetailMasonrySync();
 };
 
 toggleGameDesc = function () {
@@ -5078,5 +5131,6 @@ toggleGameDesc = function () {
     if (btn) btn.innerHTML = isExpanded
         ? 'Kucult <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
         : 'Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+    queueGameDetailMasonrySync();
 };
 
