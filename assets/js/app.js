@@ -3385,7 +3385,7 @@ async function openGameDetail(gameId) {
     document.getElementById('creatorOverlay').classList.remove('active');
 
     // Show overlay immediately with basic data
-    renderGameDetailContentV4(game);
+    renderGameDetailContentV5(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -3402,7 +3402,7 @@ async function openGameDetail(gameId) {
         const detailed = await fetchGameDetails(game.rawgId || gameId);
         if (detailed) {
             game = detailed;
-            renderGameDetailContentV4(game);
+            renderGameDetailContentV5(game);
         }
     }
 
@@ -4069,6 +4069,166 @@ function renderGameDetailContentV4(game) {
                 <section class="gd-v4-panel gd-v4-panel--market">
                     <div class="gd-v4-panel-head">
                         <span>Fiyat Radar</span>
+                        <strong>Pazar Takibi</strong>
+                    </div>
+                    <div class="itad-section">
+                        <div class="gd-itad-header">
+                            <span class="gd-meta-label">Canli fiyat akisi</span>
+                            <span class="itad-powered-by">IsThereAnyDeal</span>
+                        </div>
+                        <div id="itadPricesSection" class="itad-prices-section">
+                            <div class="itad-loading">
+                                <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                                <span>Fiyatlar yukleniyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    `;
+}
+
+function renderGameDetailContentV5(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    const description = game.description || 'Aciklama yukleniyor...';
+    const developer = game.developer || 'Yukleniyor...';
+    const publisher = game.publisher || 'Yukleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+    const screenshots = (game.screenshots || []).slice(0, 4);
+    const summary = description.length > 260 ? `${description.slice(0, 260).trim()}...` : description;
+
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="gd-v5-hero-shade"></div>
+        <div class="gd-v5-hero-shell">
+            <div class="gd-v5-hero-copy">
+                <div class="gd-v5-topline">
+                    <span class="gd-v5-kicker">Oyun Detayi</span>
+                    <span class="gd-v5-year">${game.releaseYear || 'TBA'}</span>
+                </div>
+                <h2 class="game-detail-title gd-v5-title">${escapeHtml(game.title)}</h2>
+                <p class="gd-v5-summary">${escapeHtml(summary)}</p>
+                <div class="game-detail-genres gd-v5-genres">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+                <div class="gd-v5-meta">
+                    <span class="game-detail-developer">${escapeHtml(developer)}</span>
+                    ${game.rating > 0
+                        ? `<span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>`
+                        : `<span class="game-detail-rating-large medium">Skor bekleniyor</span>`}
+                    ${game.esrbRating ? `<span class="game-detail-esrb-badge">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+            </div>
+            <div class="gd-v5-hero-card">
+                <div class="game-detail-cover-wrapper gd-v5-cover-wrap" onclick="openScreenshotLightbox('${escapeHtml(game.id)}')">
+                    <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover gd-v5-cover"
+                         onerror="this.style.background='var(--bg-elevated)'">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">Shots ${game.screenshots.length}</div>` : ''}
+                </div>
+                <div class="gd-v5-quickstats">
+                    <div class="gd-v5-quickstat"><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '—'}</strong></div>
+                    <div class="gd-v5-quickstat"><span>Kullanici</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong></div>
+                    <div class="gd-v5-quickstat"><span>Sure</span><strong>${game.playtime || '—'}</strong></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+        <div class="gd-v5-layout">
+            <main class="gd-v5-main">
+                <section class="gd-v5-panel">
+                    <div class="gd-v5-panel-head">
+                        <span>Aciklama</span>
+                        <strong>Oyun Hakkinda</strong>
+                    </div>
+                    <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                        <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                        <div class="gd-desc-fade"></div>
+                        <div class="gd-desc-toggle">Devamini Gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                    </div>
+                </section>
+
+                ${screenshots.length > 0 ? `
+                    <section class="gd-v5-panel">
+                        <div class="gd-v5-panel-head">
+                            <span>Galeri</span>
+                            <strong>Ekran Goruntuleri</strong>
+                        </div>
+                        <div class="gd-v5-gallery">
+                            ${screenshots.map((shot, index) => `
+                                <button class="gd-v5-gallery-item" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Galeriyi ac ${index + 1}">
+                                    <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
+                                </button>
+                            `).join('')}
+                        </div>
+                    </section>
+                ` : ''}
+
+                ${game.systemRequirements && game.systemRequirements.length > 0 ? `
+                    <section class="gd-v5-panel">
+                        <div class="gd-v5-panel-head">
+                            <span>Performans</span>
+                            <strong>Sistem Gereksinimleri</strong>
+                        </div>
+                        <div class="game-detail-sysreq">
+                            ${game.systemRequirements.map(req => `
+                                <div class="sysreq-platform-block">
+                                    ${game.systemRequirements.length > 1 ? `<div class="sysreq-platform-name">${escapeHtml(req.platform)}</div>` : ''}
+                                    <div class="sysreq-columns">
+                                        ${req.minimum ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-minimum">Minimum</div><pre class="sysreq-text">${escapeHtml(req.minimum)}</pre></div>` : ''}
+                                        ${req.recommended ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-recommended">Onerilen</div><pre class="sysreq-text">${escapeHtml(req.recommended)}</pre></div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                ` : ''}
+            </main>
+
+            <aside class="gd-v5-side">
+                <section class="gd-v5-panel">
+                    <div class="gd-v5-panel-head">
+                        <span>Bilgiler</span>
+                        <strong>Platform ve Stüdyo</strong>
+                    </div>
+                    <div class="gd-meta-block">
+                        <div class="gd-meta-label">Platformlar</div>
+                        <div class="gd-platforms">
+                            ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="gd-meta-block">
+                        <div class="gd-meta-label">Yapimci ve Yayinci</div>
+                        <div class="gd-creators">
+                            ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                            ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
+            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : '')}
+                        </div>
+                    </div>
+                </section>
+
+                ${game.tags && game.tags.length > 0 ? `
+                    <section class="gd-v5-panel">
+                        <div class="gd-v5-panel-head">
+                            <span>Etiketler</span>
+                            <strong>Kesif Alanlari</strong>
+                        </div>
+                        <div class="gd-tags">
+                            ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                    </section>
+                ` : ''}
+
+                <section class="gd-v5-panel">
+                    <div class="gd-v5-panel-head">
+                        <span>Fiyat</span>
                         <strong>Pazar Takibi</strong>
                     </div>
                     <div class="itad-section">
