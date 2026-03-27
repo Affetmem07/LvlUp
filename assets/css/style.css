@@ -2570,7 +2570,9 @@ select {
 .games-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
+    grid-auto-flow: dense;
+    grid-auto-rows: 8px;
+    gap: 18px;
 }
 
 /* Game Card */
@@ -2593,11 +2595,30 @@ select {
 
 .game-card--list {
     min-height: 0;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: auto;
+    height: 100%;
 }
 
 .game-card--list:hover {
     transform: translateY(-4px);
+}
+
+.game-card--mosaic-feature {
+    grid-column: span 2;
+    grid-row: span 35;
+}
+
+.game-card--mosaic-wide {
+    grid-column: span 2;
+    grid-row: span 26;
+}
+
+.game-card--mosaic-tall {
+    grid-row: span 34;
+}
+
+.game-card--mosaic-compact {
+    grid-row: span 22;
 }
 
 .game-card-cover {
@@ -4602,6 +4623,11 @@ select {
         gap: 12px;
     }
 
+    .game-card--mosaic-feature,
+    .game-card--mosaic-wide {
+        grid-column: span 2;
+    }
+
     .game-detail-hero {
         height: 260px;
     }
@@ -4708,9 +4734,13 @@ select {
         gap: 10px;
     }
 
-    .game-card--list {
-        min-height: 0;
-        aspect-ratio: 16 / 11;
+    .game-card--list,
+    .game-card--mosaic-feature,
+    .game-card--mosaic-wide,
+    .game-card--mosaic-tall,
+    .game-card--mosaic-compact {
+        grid-column: span 1;
+        grid-row: span 24;
     }
 
     .game-card-overlay--hover {
