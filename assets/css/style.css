@@ -75,7 +75,7 @@
 
 .game-detail-hero {
     height: auto;
-    min-height: 700px;
+    min-height: 620px;
     background: linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
 }
 
@@ -7482,10 +7482,12 @@ select {
     grid-template-columns: minmax(0, 1fr) 372px;
     align-items: start;
     gap: 40px;
-    padding: 28px 28px 12px;
+    min-height: 100%;
+    box-sizing: border-box;
+    padding: 28px 28px 0;
     background:
         linear-gradient(180deg, rgba(6, 10, 13, 0.08), rgba(6, 10, 13, 0.22)),
-        linear-gradient(180deg, transparent 68%, rgba(8, 12, 16, 0.74) 100%);
+        linear-gradient(180deg, transparent 60%, rgba(8, 12, 16, 0.74) 100%);
 }
 
 .gd-hero-copy {
