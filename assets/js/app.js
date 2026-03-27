@@ -114,6 +114,58 @@ function renderSystemRequirementCardsV3(requirements) {
     `;
 }
 
+function renderSystemRequirementCardsNew(requirements) {
+    if (!requirements || requirements.length === 0) {
+        return `
+            <div class="gd-req-card gd-req-card--minimum">
+                <div class="gd-req-title">Minimum</div>
+                <div class="gd-spec-empty" style="color: rgba(255,255,255,0.5); line-height: 1.7;">RAWG bu oyun için sistem gereksinimi dönmüyor.</div>
+            </div>
+            <div class="gd-req-card gd-req-card--recommended">
+                <div class="gd-req-title">Önerilen</div>
+                <div class="gd-spec-empty" style="color: rgba(255,255,255,0.5); line-height: 1.7;">Detay geldikçe burada önerilen donanım görünecek.</div>
+            </div>
+        `;
+    }
+
+    const primary = requirements.find(req => /pc|windows/i.test(req.platform)) || requirements[0];
+    const minimum = primary.minimum || {};
+    const recommended = primary.recommended || {};
+
+    const getReqItem = (label, value) => {
+        if (!value) return '';
+        return `
+            <div class="gd-req-item">
+                <span class="gd-req-item-label">${escapeHtml(label)}</span>
+                <span class="gd-req-item-value">${escapeHtml(value)}</span>
+            </div>
+        `;
+    };
+
+    return `
+        <div class="gd-req-card gd-req-card--minimum">
+            <div class="gd-req-title">Minimum</div>
+            <div class="gd-req-list">
+                ${getReqItem('İşletim Sistemi', minimum.os)}
+                ${getReqItem('İşlemci', minimum.processor)}
+                ${getReqItem('RAM', minimum.memory)}
+                ${getReqItem('Ekran Kartı', minimum.graphics)}
+                ${getReqItem('Depolama', minimum.storage)}
+            </div>
+        </div>
+        <div class="gd-req-card gd-req-card--recommended">
+            <div class="gd-req-title">Önerilen</div>
+            <div class="gd-req-list">
+                ${getReqItem('İşletim Sistemi', recommended.os)}
+                ${getReqItem('İşlemci', recommended.processor)}
+                ${getReqItem('RAM', recommended.memory)}
+                ${getReqItem('Ekran Kartı', recommended.graphics)}
+                ${getReqItem('Depolama', recommended.storage)}
+            </div>
+        </div>
+    `;
+}
+
 function renderITADPricesSectionV3(result) {
     const container = document.getElementById('itadPricesSection');
     if (!container) return;
@@ -132,10 +184,10 @@ function renderITADPricesSectionV3(result) {
 
     if (!result?.deals?.length) {
         container.innerHTML = `
-            <div class="itad-offer-card itad-offer-card--empty">
-                <div class="itad-offer-label">ITAD live price</div>
-                <div class="itad-offer-empty">Bu oyun icin su an aktif teklif bulunamadi.</div>
-                <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
+            <div class="gd-price-current">
+                <div class="gd-price-store-name">ITAD live price</div>
+                <div class="itad-offer-empty" style="color: rgba(255,255,255,0.58); line-height: 1.7; margin-bottom: 14px;">Bu oyun için şu an aktif teklif bulunamadı.</div>
+                <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="gd-buy-btn">
                     ITAD'da kontrol et
                 </a>
             </div>
@@ -155,9 +207,9 @@ function renderITADPricesSectionV3(result) {
     })[0];
 
     const dealsHtml = dealsToShow.map(deal => {
-        const shopNameRaw = deal.shop?.name || 'Magaza';
+        const shopNameRaw = deal.shop?.name || 'Mağaza';
         const shopName = ITAD_SHOP_NAME_MAP[shopNameRaw] || shopNameRaw;
-        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || 'Store';
+        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || '🏪';
         const cut = deal.cut || 0;
         const isDiscounted = cut > 0;
         const priceCur = deal.price?.currency || 'USD';
@@ -186,30 +238,30 @@ function renderITADPricesSectionV3(result) {
     const featuredCut = featuredDeal?.cut || 0;
     const featuredBuyUrl = featuredDeal?.url || searchUrl;
     const historyLowHtml = result.historyLow?.amount != null
-        ? `<div class="itad-history-low">Tum zamanlarin en dusugu: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
+        ? `<div class="gd-price-history-value">Tüm zamanların en düşüğü: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
         : '';
 
     container.innerHTML = `
-        <div class="itad-offer-card">
-            <div class="itad-offer-label">Best offer</div>
-            <div class="itad-offer-price-wrap">
-                <div class="itad-offer-price">${featuredCurrent}</div>
-                ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
-                ${featuredCut > 0 ? `<div class="itad-offer-discount">-%${featuredCut}</div>` : ''}
+        <div class="gd-price-current">
+            <div class="gd-price-store-name">Best offer</div>
+            <div class="gd-price-amount">
+                <div class="gd-price-current-value">${featuredCurrent}</div>
+                ${featuredRegular ? `<div class="gd-price-original">${featuredRegular}</div>` : ''}
+                ${featuredCut > 0 ? `<div class="gd-price-discount">-%${featuredCut}</div>` : ''}
             </div>
             ${historyLowHtml}
-            <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
-                Satin al
-            </a>
-            <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
-                Tum fiyatlari gor
-            </a>
-            <div class="itad-offer-meta">
-                <span>TR market scan</span>
-                <span>Digital delivery</span>
+            <div class="gd-price-actions">
+                <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="gd-buy-btn">
+                    Satın Al
+                </a>
+                <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="gd-wishlist-btn" title="Tüm fiyatları gör">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </a>
             </div>
         </div>
-        <div class="itad-deals-grid">${dealsHtml}</div>
+        ${dealsHtml ? `<div class="itad-deals-grid">${dealsHtml}</div>` : ''}
     `;
 }
 
@@ -271,98 +323,135 @@ function renderGameDetailContentV3(game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout">
-            <section class="gd-section gd-section--about">
-                <div class="gd-section-title">
-                    <span></span>
-                    <h3>Game description</h3>
+        <div class="gd-new-layout">
+            <!-- Game Description Section -->
+            <section class="gd-card-section gd-section--description">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">📝</div>
+                    <h3 class="gd-card-title">Oyun Açıklaması</h3>
                 </div>
-                <div class="gd-about-grid">
-                    <div class="gd-about-main">
-                        <p class="gd-lead-copy">${escapeHtml(heroBlurb)}</p>
-                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDescV3()">
-                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
-                            <div class="gd-desc-fade"></div>
-                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
-                        </div>
-                        ${screenshots.length > 0 ? `
-                            <div class="gd-inline-gallery">
-                                ${screenshots.map((shot, index) => `
-                                    <button class="gd-inline-shot" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Screenshot ${index + 1}">
-                                        <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
-                                    </button>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                    <aside class="gd-info-card">
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Developed by</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.developerData && game.developerData.length > 0
+                <div class="gd-desc-content collapsed" id="gdDescText">${escapeHtml(description)}</div>
+                <button class="gd-desc-toggle-btn" onclick="toggleGameDescV3()">
+                    Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+            </section>
+
+            <!-- Developer & Publisher Section -->
+            <section class="gd-card-section gd-section--developer">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">🎮</div>
+                    <h3 class="gd-card-title">Geliştirici ve Yayıncı</h3>
+                </div>
+                <div class="gd-dev-pub-grid">
+                    <div class="gd-dev-pub-card">
+                        <div class="gd-dev-pub-label">Geliştirici</div>
+                        <div class="gd-dev-pub-value">
+                            ${(game.developerData && game.developerData.length > 0
             ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
-                            </div>
+            : `<span>${escapeHtml(developer)}</span>`)}
                         </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Published by</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.publisherData && game.publisherData.length > 0
+                    </div>
+                    <div class="gd-dev-pub-card">
+                        <div class="gd-dev-pub-label">Yayıncı</div>
+                        <div class="gd-dev-pub-value">
+                            ${(game.publisherData && game.publisherData.length > 0
             ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
-                            </div>
+            : `<span>${escapeHtml(publisher)}</span>`)}
                         </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Platforms</div>
-                            <div class="gd-platforms">
-                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">RAWG stats</div>
-                            <div class="gd-rawg-stat-list">
-                                <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '—'}</strong></div>
-                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong></div>
-                                <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
-                            </div>
-                        </div>
-                    </aside>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Platforms Section -->
+            <section class="gd-card-section gd-section--platforms">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">🖥️</div>
+                    <h3 class="gd-card-title">Desteklenen Platformlar <span class="gd-platform-count">(${displayPlatforms.length} platform)</span></h3>
+                </div>
+                <div class="gd-platforms-grid">
+                    ${displayPlatforms.map(p => `
+                        <span class="gd-platform-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                <circle cx="6" cy="12" r="2"></circle>
+                                <circle cx="18" cy="12" r="2"></circle>
+                            </svg>
+                            ${escapeHtml(p)}
+                        </span>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- RAWG Stats Section -->
+            <section class="gd-card-section gd-section--stats">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">📊</div>
+                    <h3 class="gd-card-title">RAWG Özet Verileri</h3>
+                </div>
+                <div class="gd-stats-grid">
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Metacritic</div>
+                        <div class="gd-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
+                    </div>
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Kullanıcı Puanı</div>
+                        <div class="gd-stat-value">${game.rawRating ? game.rawRating.toFixed(1) : '—'}</div>
+                    </div>
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Oynanış Süresi</div>
+                        <div class="gd-stat-value">${game.playtime || '—'}</div>
+                    </div>
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Eklenme Tarihi</div>
+                        <div class="gd-stat-value">${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</div>
+                    </div>
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Aktif Kullanıcı</div>
+                        <div class="gd-stat-value">${game.added ? formatCompactNumberV3(game.added) + '+' : '—'}</div>
+                    </div>
+                    <div class="gd-stat-item">
+                        <div class="gd-stat-label">Değerlendirme</div>
+                        <div class="gd-stat-value">${game.ratingsCount ? formatCompactNumberV3(game.ratingsCount) + '+' : '—'}</div>
+                    </div>
                 </div>
             </section>
 
             ${(game.tags && game.tags.length > 0) ? `
-                <section class="gd-section gd-section--tags">
-                    <div class="gd-section-heading">Tags</div>
+                <section class="gd-card-section gd-section--tags">
+                    <div class="gd-card-header">
+                        <div class="gd-card-icon">🏷️</div>
+                        <h3 class="gd-card-title">Etiketler</h3>
+                    </div>
                     <div class="gd-tags">
                         ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
                     </div>
                 </section>
             ` : ''}
 
-            <section class="gd-section gd-section--specs">
-                <div class="gd-specs-header">
-                    <div>
-                        <div class="gd-section-heading">Technical Specifications</div>
-                        <p>Donanim bilgileri RAWG uzerinden geliyor, fiyat taramasi ITAD ile ayrik tutuluyor.</p>
-                    </div>
+            <!-- System Requirements Section -->
+            <section class="gd-card-section gd-section--requirements">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">⚙️</div>
+                    <h3 class="gd-card-title">Sistem Gereksinimleri</h3>
                 </div>
-                <div class="gd-specs-layout">
-                    <div class="gd-specs-grid">
-                        ${renderSystemRequirementCardsV3(game.systemRequirements)}
-                    </div>
-                    <aside class="gd-price-column">
-                        <div class="gd-price-card">
-                            <div class="gd-price-head">
-                                <strong>ITAD</strong>
-                            </div>
-                            <div id="itadPricesSection" class="itad-prices-section">
-                                <div class="itad-loading">
-                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
-                                    <span>Fiyatlar yukleniyor...</span>
-                                </div>
-                            </div>
+                <div class="gd-requirements-layout">
+                    ${renderSystemRequirementCardsNew(game.systemRequirements)}
+                </div>
+            </section>
+
+            <!-- Price Section -->
+            <section class="gd-card-section gd-section--price">
+                <div class="gd-card-header">
+                    <div class="gd-card-icon">💰</div>
+                    <h3 class="gd-card-title">Canlı Fiyat Akışı</h3>
+                </div>
+                <div class="gd-price-layout">
+                    <div id="itadPricesSection" class="itad-prices-section">
+                        <div class="itad-loading">
+                            <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                            <span>Fiyatlar yükleniyor...</span>
                         </div>
-                    </aside>
+                    </div>
                 </div>
             </section>
         </div>
@@ -370,13 +459,16 @@ function renderGameDetailContentV3(game) {
 }
 
 function toggleGameDescV3() {
-    const box = document.getElementById('gdDescBox');
-    if (!box) return;
-    const isExpanded = box.classList.toggle('expanded');
-    const btn = box.querySelector('.gd-desc-toggle');
-    if (btn) btn.innerHTML = isExpanded
-        ? 'Kucult <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
-        : 'Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+    const descText = document.getElementById('gdDescText');
+    if (!descText) return;
+    const isExpanded = descText.classList.toggle('expanded');
+    descText.classList.toggle('collapsed', !isExpanded);
+    const btn = document.querySelector('.gd-desc-toggle-btn');
+    if (btn) {
+        btn.innerHTML = isExpanded
+            ? 'Küçült <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
+            : 'Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+    }
 }
 
 function setStore(key, value) {
@@ -4098,7 +4190,7 @@ async function openGameDetail(gameId) {
     document.getElementById('creatorOverlay').classList.remove('active');
 
     // Show overlay immediately with basic data
-    renderGameDetailContentV2(game);
+    renderGameDetailContentV3(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -4115,12 +4207,12 @@ async function openGameDetail(gameId) {
         const detailed = await fetchGameDetails(game.rawgId || gameId);
         if (detailed) {
             game = detailed;
-            renderGameDetailContentV2(game);
+            renderGameDetailContentV3(game);
         }
     }
 
     // Fiyatları paralel olarak çek ve güncelle
-    fetchGamePrices(game.title, game.rawgId || game.id).then(result => renderITADPricesSection(result));
+    fetchGamePrices(game.title, game.rawgId || game.id).then(result => renderITADPricesSectionV3(result));
 }
 
 // ── Render Game Detail Content ──
