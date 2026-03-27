@@ -4204,15 +4204,25 @@ function renderGameDetailContent(game) {
                 </div>
                 <div class="gd-meta-block">
                     <div class="gd-meta-label">🎯 Yapımcı & Yayıncı</div>
-                    <div class="gd-creators">
-                        ${(game.developerData && game.developerData.length > 0
+                    <div class="gd-creator-groups">
+                        <div class="gd-creator-group">
+                            <span class="gd-creator-role">Yapımcı</span>
+                            <div class="gd-creators">
+                                ${(game.developerData && game.developerData.length > 0
             ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
             : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`
         )}
-                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
-            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
-            : ''
+                            </div>
+                        </div>
+                        <div class="gd-creator-group">
+                            <span class="gd-creator-role">Yayıncı</span>
+                            <div class="gd-creators">
+                                ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain gd-creator-plain--publisher">${escapeHtml(publisher)}</span>`
         )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4385,13 +4395,23 @@ function renderGameDetailContentV2(game) {
                 </div>
                 <div class="gd-meta-block">
                     <div class="gd-meta-label">Yapimci ve Yayinci</div>
-                    <div class="gd-creators">
-                        ${(game.developerData && game.developerData.length > 0
+                    <div class="gd-creator-groups">
+                        <div class="gd-creator-group">
+                            <span class="gd-creator-role">Yapimci</span>
+                            <div class="gd-creators">
+                                ${(game.developerData && game.developerData.length > 0
             ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
             : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
-                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
-            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
-            : '')}
+                            </div>
+                        </div>
+                        <div class="gd-creator-group">
+                            <span class="gd-creator-role">Yayinci</span>
+                            <div class="gd-creators">
+                                ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain gd-creator-plain--publisher">${escapeHtml(publisher)}</span>`)}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

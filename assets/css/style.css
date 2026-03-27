@@ -4164,6 +4164,24 @@ select {
     gap: 4px;
 }
 
+.gd-creator-groups {
+    display: grid;
+    gap: 12px;
+}
+
+.gd-creator-group {
+    display: grid;
+    gap: 6px;
+}
+
+.gd-creator-role {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
 .gd-dot {
     color: var(--text-muted);
     font-size: 1rem;
@@ -4174,6 +4192,11 @@ select {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--accent-light);
+}
+
+.gd-creator-plain--publisher {
+    color: var(--text-secondary);
+    font-weight: 600;
 }
 
 .gd-esrb-row {
