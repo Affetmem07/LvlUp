@@ -3326,13 +3326,11 @@ function setupGamesInfiniteScroll() {
 
 // ── Render Game Card ──
 function renderGameCard(game) {
-    const ratingClass = getRatingClass(game.rating);
-    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
     const primaryGenre = game.genres[0] || 'Oyun';
-    const releaseLabel = game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'TBA');
-    const summary = game.description
-        ? game.description
-        : `${primaryGenre} • ${game.platforms && game.platforms.length > 0 ? game.platforms.slice(0, 2).join(' • ') : 'Platform bilgisi yakında'}`;
+    const hoverTags = [
+        ...(game.platforms || []).slice(0, 2),
+        ...game.genres.slice(0, 2).filter((genre) => genre !== primaryGenre),
+    ].slice(0, 3);
 
     return `
         <div class="game-card game-card--list" onclick="openGameDetail('${game.id}')">
@@ -3340,26 +3338,12 @@ function renderGameCard(game) {
                  loading="lazy"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
             <div class="game-card-overlay game-card-overlay--hover">
-                <div class="game-card-overlay-top">
-                    <div class="game-card-kicker">${escapeHtml(primaryGenre)}</div>
-                    ${game.rating > 0 ? `
-                        <div class="game-card-rating ${ratingClass}">
-                            ${starSvg}
-                            ${game.rating}
-                        </div>
-                    ` : `
-                        <div class="game-card-rating medium">
-                            ⭐ TBA
-                        </div>
-                    `}
-                </div>
                 <div class="game-card-overlay-body">
                     <div class="game-card-title">${escapeHtml(game.title)}</div>
-                    <div class="game-card-meta">
-                        <span class="game-card-year">${escapeHtml(String(releaseLabel))}</span>
-                        ${game.platforms.length > 0 ? `<span class="game-card-platform">${escapeHtml(game.platforms[0])}${game.platforms.length > 1 ? ' +' + (game.platforms.length - 1) : ''}</span>` : ''}
+                    <div class="game-card-extras">
+                        <span class="game-card-genre">${escapeHtml(primaryGenre)}</span>
+                        ${hoverTags.map(tag => `<span class="game-card-platform">${escapeHtml(tag)}</span>`).join('')}
                     </div>
-                    <div class="game-card-summary">${escapeHtml(summary)}</div>
                 </div>
             </div>
         </div>
