@@ -3385,7 +3385,7 @@ async function openGameDetail(gameId) {
     document.getElementById('creatorOverlay').classList.remove('active');
 
     // Show overlay immediately with basic data
-    renderGameDetailContent(game);
+    renderGameDetailContentV2(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -3402,7 +3402,7 @@ async function openGameDetail(gameId) {
         const detailed = await fetchGameDetails(game.rawgId || gameId);
         if (detailed) {
             game = detailed;
-            renderGameDetailContent(game);
+            renderGameDetailContentV2(game);
         }
     }
 
@@ -3540,6 +3540,199 @@ function renderGameDetailContent(game) {
                     <span>Fiyatlar yükleniyor...</span>
                 </div>
             </div>
+        </div>
+    `;
+}
+
+function renderGameDetailContentV2(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    const description = game.description || 'Aciklama yukleniyor...';
+    const developer = game.developer || 'Yukleniyor...';
+    const publisher = game.publisher || 'Yukleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+    const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
+    const screenshots = (game.screenshots || []).slice(0, 3);
+
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="game-detail-hero-noise"></div>
+        <div class="game-detail-hero-content game-detail-hero-content--chaos">
+            <div class="gd-poster-column">
+                <div class="game-detail-cover-wrapper gd-cover-chaos" onclick="openScreenshotLightbox('${escapeHtml(game.id)}')">
+                    <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
+                         onerror="this.style.background='var(--bg-elevated)'">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">Shots ${game.screenshots.length}</div>` : ''}
+                </div>
+                ${screenshots.length > 0 ? `
+                    <div class="gd-shot-strip">
+                        ${screenshots.map((shot, index) => `
+                            <button class="gd-shot-chip" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Screenshot ${index + 1}">
+                                <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            <div class="game-detail-hero-info gd-hero-card">
+                <div class="gd-hero-topline">
+                    <span class="gd-hero-kicker">Spotlight</span>
+                    <span class="gd-hero-release">${game.releaseYear || 'TBA'}</span>
+                </div>
+                <div class="game-detail-genres">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+                <h2 class="game-detail-title">${escapeHtml(game.title)}</h2>
+                <p class="gd-hero-blurb">${escapeHtml(heroBlurb)}</p>
+                <div class="game-detail-hero-meta">
+                    <span class="game-detail-developer">${escapeHtml(developer)}</span>
+                    ${game.rating > 0 ? `
+                        <span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>
+                    ` : `
+                        <span class="game-detail-rating-large medium">Skor bekleniyor</span>
+                    `}
+                    ${game.esrbRating ? `<span class="game-detail-esrb-badge">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+                <div class="gd-hero-stat-ribbon">
+                    <div class="gd-hero-stat">
+                        <strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong>
+                        <span>Kullanici</span>
+                    </div>
+                    <div class="gd-hero-stat">
+                        <strong>${displayPlatforms.length || '—'}</strong>
+                        <span>Platform</span>
+                    </div>
+                    <div class="gd-hero-stat">
+                        <strong>${game.playtime || '—'}</strong>
+                        <span>Saat</span>
+                    </div>
+                </div>
+                <div class="gd-hero-actions">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<button class="gd-hero-action-btn" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')">Galeriyi Ac</button>` : ''}
+                    <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="gd-hero-action-btn gd-hero-action-btn--ghost">RAWG.io</a>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+        <div class="gd-chaos-layout">
+            <section class="gd-panel gd-panel--story">
+                <div class="gd-panel-head">
+                    <span>Hikaye Katmani</span>
+                    <strong>Oyunun Evreni</strong>
+                </div>
+                <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                    <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                    <div class="gd-desc-fade"></div>
+                    <div class="gd-desc-toggle">Devamini Gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                </div>
+            </section>
+
+            <section class="gd-panel gd-panel--stats">
+                <div class="gd-panel-head">
+                    <span>Hizli Okuma</span>
+                    <strong>Temel Istatistikler</strong>
+                </div>
+                <div class="gd-stats">
+                    <div class="gd-stat gd-stat--metacritic">
+                        <div class="gd-stat-icon">M</div>
+                        <div class="gd-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
+                        <div class="gd-stat-label">Metacritic</div>
+                    </div>
+                    <div class="gd-stat gd-stat--user">
+                        <div class="gd-stat-icon">U</div>
+                        <div class="gd-stat-value">${game.rawRating ? game.rawRating.toFixed(1) : '—'}</div>
+                        <div class="gd-stat-label">Kullanici</div>
+                    </div>
+                    <div class="gd-stat gd-stat--year">
+                        <div class="gd-stat-icon">Y</div>
+                        <div class="gd-stat-value">${game.releaseYear || 'TBA'}</div>
+                        <div class="gd-stat-label">Cikis</div>
+                    </div>
+                    <div class="gd-stat gd-stat--playtime">
+                        <div class="gd-stat-icon">S</div>
+                        <div class="gd-stat-value">${game.playtime || '—'}</div>
+                        <div class="gd-stat-label">Saat</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="gd-panel gd-panel--meta">
+                <div class="gd-panel-head">
+                    <span>Baglantilar</span>
+                    <strong>Platform ve Studyo</strong>
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">Platformlar</div>
+                    <div class="gd-platforms">
+                        ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">Yapimci ve Yayinci</div>
+                    <div class="gd-creators">
+                        ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
+            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : '')}
+                    </div>
+                </div>
+            </section>
+
+            ${game.tags && game.tags.length > 0 ? `
+                <section class="gd-panel gd-panel--tags">
+                    <div class="gd-panel-head">
+                        <span>Kesif Katmani</span>
+                        <strong>Etiket Bulutu</strong>
+                    </div>
+                    <div class="gd-tags">
+                        ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            ${game.systemRequirements && game.systemRequirements.length > 0 ? `
+                <section class="gd-panel gd-panel--sysreq-wrap">
+                    <div class="gd-panel-head">
+                        <span>Donanim</span>
+                        <strong>Sistem Gereksinimleri</strong>
+                    </div>
+                    <div class="game-detail-sysreq">
+                        ${game.systemRequirements.map(req => `
+                            <div class="sysreq-platform-block">
+                                ${game.systemRequirements.length > 1 ? `<div class="sysreq-platform-name">${escapeHtml(req.platform)}</div>` : ''}
+                                <div class="sysreq-columns">
+                                    ${req.minimum ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-minimum">Minimum</div><pre class="sysreq-text">${escapeHtml(req.minimum)}</pre></div>` : ''}
+                                    ${req.recommended ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-recommended">Onerilen</div><pre class="sysreq-text">${escapeHtml(req.recommended)}</pre></div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            <section class="gd-panel gd-panel--market">
+                <div class="gd-panel-head">
+                    <span>Pazar Taramasi</span>
+                    <strong>Firsat ve Fiyatlar</strong>
+                </div>
+                <div class="itad-section">
+                    <div class="gd-itad-header">
+                        <span class="gd-meta-label">Canli fiyat akisi</span>
+                        <span class="itad-powered-by">IsThereAnyDeal</span>
+                    </div>
+                    <div id="itadPricesSection" class="itad-prices-section">
+                        <div class="itad-loading">
+                            <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                            <span>Fiyatlar yukleniyor...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     `;
 }
