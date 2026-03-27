@@ -7911,7 +7911,7 @@ select {
     grid-template-columns: minmax(0, 1.22fr) minmax(300px, 0.78fr);
     grid-auto-rows: var(--gd-masonry-row);
     grid-auto-flow: row dense;
-    gap: 22px;
+    gap: 14px;
     align-items: start;
 }
 
@@ -8014,7 +8014,7 @@ select {
     }
 
     .gd-detail-layout--masonry {
-        gap: 16px;
+        gap: 10px;
     }
 
     .gd-section {
