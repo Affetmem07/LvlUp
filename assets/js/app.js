@@ -3284,7 +3284,7 @@ function renderGamesGrid() {
         return;
     }
 
-    grid.innerHTML = games.map(game => renderGameCard(game)).join('');
+    grid.innerHTML = games.map((game, index) => renderGameCard(game, index)).join('');
 
     // Add sentinel element for infinite scroll
     if (gamesNextPageUrl) {
@@ -3325,10 +3325,10 @@ function setupGamesInfiniteScroll() {
 }
 
 // ── Render Game Card ──
-function renderGameCard(game) {
+function renderGameCard(game, index = 0) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
-    const layoutClass = getGameCardLayoutClass(game);
+    const layoutClass = getGameCardLayoutClass(index);
 
     return `
         <div class="game-card game-card--list ${layoutClass}" onclick="openGameDetail('${game.id}')">
@@ -3351,21 +3351,18 @@ function renderGameCard(game) {
 }
 
 // ── Rating Class Helper ──
-function getGameCardLayoutClass(game) {
-    const sizeVariants = ['game-card--poster', 'game-card--cinema', 'game-card--wide', 'game-card--compact', 'game-card--tall'];
-    const motionVariants = ['', 'game-card--tilt-left', 'game-card--tilt-right', 'game-card--lift'];
-    const seedSource = `${game.id || ''}${game.title || ''}${game.releaseYear || ''}`;
-    let hash = 0;
+function getGameCardLayoutClass(index) {
+    const pattern = [
+        'game-card--mosaic-tall',
+        'game-card--mosaic-narrow',
+        'game-card--mosaic-tall',
+        'game-card--mosaic-hero',
+        'game-card--mosaic-narrow',
+        'game-card--mosaic-landscape',
+        'game-card--mosaic-square'
+    ];
 
-    for (let i = 0; i < seedSource.length; i++) {
-        hash = ((hash << 5) - hash) + seedSource.charCodeAt(i);
-        hash |= 0;
-    }
-
-    const sizeClass = sizeVariants[Math.abs(hash) % sizeVariants.length];
-    const motionClass = motionVariants[Math.abs(hash >> 3) % motionVariants.length];
-
-    return [sizeClass, motionClass].filter(Boolean).join(' ');
+    return pattern[index % pattern.length];
 }
 
 function getRatingClass(rating) {
