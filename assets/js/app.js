@@ -3356,14 +3356,10 @@ function renderGameCard(game) {
                 <div class="game-card-overlay-body">
                     <div class="game-card-title">${escapeHtml(game.title)}</div>
                     <div class="game-card-meta">
-                        <span class="game-card-developer">${escapeHtml(game.developer || 'RAWG Oyun Verisi')}</span>
                         <span class="game-card-year">${escapeHtml(String(releaseLabel))}</span>
-                    </div>
-                    <div class="game-card-summary">${escapeHtml(summary)}</div>
-                    <div class="game-card-extras">
-                        ${game.genres.slice(0, 2).map(g => `<span class="game-card-genre">${escapeHtml(g)}</span>`).join('')}
                         ${game.platforms.length > 0 ? `<span class="game-card-platform">${escapeHtml(game.platforms[0])}${game.platforms.length > 1 ? ' +' + (game.platforms.length - 1) : ''}</span>` : ''}
                     </div>
+                    <div class="game-card-summary">${escapeHtml(summary)}</div>
                 </div>
             </div>
         </div>
