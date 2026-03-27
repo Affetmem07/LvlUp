@@ -2570,14 +2570,16 @@ select {
 .games-grid {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
-    grid-auto-flow: dense;
+    grid-auto-flow: row;
     grid-auto-rows: 14px;
     gap: 18px;
+    align-items: start;
 }
 
 /* Game Card */
 .game-card {
     position: relative;
+    isolation: isolate;
     border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
@@ -2588,9 +2590,10 @@ select {
 }
 
 .game-card:hover {
-    transform: translateY(-6px) scale(1.02);
+    transform: translateY(-4px) scale(1.01);
     border-color: var(--accent);
     box-shadow: 0 12px 40px rgba(45, 90, 67, 0.25), 0 0 20px var(--accent-glow);
+    z-index: 2;
 }
 
 .game-card--list {
@@ -2600,7 +2603,7 @@ select {
 }
 
 .game-card--list:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px) scale(1.01);
 }
 
 .game-card--brick-top {
@@ -2629,6 +2632,7 @@ select {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center center;
     display: block;
     transition: transform var(--transition-slow);
 }
@@ -2641,6 +2645,7 @@ select {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center center;
 }
 
 .game-card-overlay {
