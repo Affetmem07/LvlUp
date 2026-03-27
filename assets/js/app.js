@@ -130,6 +130,7 @@ let currentGameFilter = 'all';
 let currentGameSearch = '';
 let currentProfileTab = 'posts';
 let selectedAvatarColor = 0;
+let hasLoadedGamesCatalog = false;
 let homeHeroGames = {
     newest: [],
     popular: [],
@@ -244,13 +245,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (scrollRafPending) return;
         scrollRafPending = true;
         requestAnimationFrame(() => {
-            scrollBtn.classList.toggle('visible', window.scrollY > 300);
+            updateScrollToTopVisibility();
             scrollRafPending = false;
         });
     }, { passive: true });
 });
 
 // ── Scroll to Top ──
+function updateScrollToTopVisibility() {
+    const scrollBtn = document.getElementById('scrollToTop');
+    if (!scrollBtn) return;
+    scrollBtn.classList.toggle('visible', currentPage !== 'home' && window.scrollY > 300);
+}
+
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -568,6 +575,7 @@ function navigate(page) {
 
     currentPage = page;
     currentCategory = null;
+    updateScrollToTopVisibility();
 
     // Update navigation active state
     document.querySelectorAll('[data-page]').forEach(el => {
@@ -630,7 +638,12 @@ function navigate(page) {
 
         if (page === 'games') {
             gamesPage.style.display = 'block';
-            if (allGames.length === 0) { loadGames(); } else { renderGamesGrid(); }
+            if (!hasLoadedGamesCatalog) {
+                resetGamesPageState();
+                loadGames();
+            } else {
+                renderGamesGrid();
+            }
             setupGamesInfiniteScroll();
         } else if (page === 'profile') {
             profilePage.style.display = 'block';
@@ -905,6 +918,39 @@ function mergeGamesIntoLibrary(games) {
             allGames[existingIndex] = { ...allGames[existingIndex], ...game };
         }
     });
+}
+
+function resetGamesPageState() {
+    currentGameFilter = 'all';
+    currentGameSearch = '';
+    allGames = [];
+    gamesNextPageUrl = null;
+
+    document.querySelectorAll('.games-filter-chip').forEach((el) => {
+        el.classList.toggle('active', el.dataset.filter === 'all');
+    });
+
+    const searchInput = document.getElementById('gamesSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    const advFieldDefaults = {
+        advGenre: '',
+        advPlatform: '',
+        advOrdering: '',
+        advGameMode: '',
+        advMinRating: '',
+        advMaxRating: '',
+        advYearFrom: '',
+        advYearTo: '',
+    };
+
+    Object.entries(advFieldDefaults).forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (field) field.value = value;
+    });
+
+    advFilters = { genre: '', platform: '', ordering: '', gameMode: '', minRating: 0, maxRating: 0, yearFrom: '', yearTo: '' };
+    updateAdvFilterTags();
 }
 
 function formatGameReleaseDate(dateStr) {
@@ -2813,6 +2859,7 @@ async function loadGames(append = false) {
         } else {
             allGames = newGames;
         }
+        hasLoadedGamesCatalog = true;
 
         renderGamesGrid();
     } catch (error) {
@@ -2872,6 +2919,7 @@ async function searchGamesFromAPI(query) {
                 return (b.rating || 0) - (a.rating || 0); // Then by rating
             })
             .slice(0, 20);
+        hasLoadedGamesCatalog = true;
         renderGamesGrid();
     } catch (error) {
         if (error.name === 'AbortError') return;
@@ -3194,6 +3242,7 @@ async function loadGamesWithAdvFilters() {
         allGames = advFilters.ordering === ''
             ? result.games.sort((a, b) => b.rating - a.rating)
             : result.games;
+        hasLoadedGamesCatalog = true;
 
         renderGamesGrid();
 
