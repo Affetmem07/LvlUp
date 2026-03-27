@@ -7224,7 +7224,7 @@ select {
 }
 
 .gd-hero-tag-row {
-    margin-top: 2px;
+    margin-top: -18px;
     align-self: flex-start;
 }
 
