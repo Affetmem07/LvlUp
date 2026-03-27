@@ -4942,6 +4942,7 @@ renderGameDetailContentV2 = function (game) {
     const formattedReleaseDate = game.released
         ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(game.released))
         : (game.releaseYear || 'Yakinda');
+    const relatedPosts = getRelatedPosts(game).slice(0, 4);
     const statsRibbon = [
         { label: 'Oynama suresi', value: game.playtime || '-' }
     ];
@@ -4988,78 +4989,166 @@ renderGameDetailContentV2 = function (game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout">
-            <section class="gd-section gd-section--about">
+        <div class="gd-detail-layout gd-detail-layout--masonry">
+            <section class="gd-section gd-masonry-card gd-masonry-card--story gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
                     <h3>Oyun aciklamasi</h3>
                 </div>
-                <div class="gd-about-grid">
-                    <div class="gd-about-main">
-                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
-                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
-                            <div class="gd-desc-fade"></div>
-                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
-                        </div>
-                    </div>
-                    <aside class="gd-info-card">
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Gelistirici</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.developerData && game.developerData.length > 0
-            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Yayinci</div>
-                            <div class="gd-info-value gd-info-value--stack">
-                                ${(game.publisherData && game.publisherData.length > 0
-            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
-            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Platformlar</div>
-                            <div class="gd-platforms">
-                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">RAWG verileri</div>
-                            <div class="gd-rawg-stat-list">
-                                <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
-                            </div>
-                        </div>
-                    </aside>
+                <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                    <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                    <div class="gd-desc-fade"></div>
+                    <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
             </section>
 
-            <section class="gd-section gd-section--specs">
-                <div class="gd-specs-header">
-                    <div>
-                        <div class="gd-section-heading">Teknik ozellikler</div>
+            <section class="gd-section gd-masonry-card gd-masonry-card--meta">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Studyo ve platform</h3>
+                </div>
+                <div class="gd-info-card gd-info-card--embedded">
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">Gelistirici</div>
+                        <div class="gd-info-value gd-info-value--stack">
+                            ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                        </div>
+                    </div>
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">Yayinci</div>
+                        <div class="gd-info-value gd-info-value--stack">
+                            ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
+                        </div>
+                    </div>
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">Platformlar</div>
+                        <div class="gd-platforms">
+                            ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="gd-info-block">
+                        <div class="gd-info-label">RAWG verileri</div>
+                        <div class="gd-rawg-stat-list">
+                            <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
+                            <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                            <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
+                        </div>
                     </div>
                 </div>
-                <div class="gd-specs-layout">
-                    <div class="gd-specs-grid">
-                        ${renderSystemRequirementCardsLatest(game.systemRequirements)}
+            </section>
+
+            ${screenshots.length > 0 ? `
+                <section class="gd-section gd-masonry-card gd-masonry-card--gallery">
+                    <div class="gd-section-title">
+                        <span></span>
+                        <h3>Gorsel galeri</h3>
                     </div>
-                    <aside class="gd-price-column">
-                        <div class="gd-price-card">
-                            <div class="gd-price-head">
-                                <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
-                            </div>
-                            <div id="itadPricesSection" class="itad-prices-section">
-                                <div class="itad-loading">
-                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
-                                    <span>Fiyatlar yukleniyor...</span>
-                                </div>
-                            </div>
+                    <div class="gd-inline-gallery gd-inline-gallery--masonry">
+                        ${screenshots.map((shot, index) => `
+                            <button class="gd-inline-shot gd-inline-shot--masonry" onclick="openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Gorsel ${index + 1}">
+                                <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} gorsel ${index + 1}">
+                            </button>
+                        `).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            ${game.tags && game.tags.length > 0 ? `
+                <section class="gd-section gd-masonry-card gd-masonry-card--tags gd-section--tags">
+                    <div class="gd-section-title">
+                        <span></span>
+                        <h3>Etiketler</h3>
+                    </div>
+                    <div class="gd-tags">
+                        ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            <section class="gd-section gd-masonry-card gd-masonry-card--specs gd-section--specs">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Teknik ozellikler</h3>
+                </div>
+                <div class="gd-specs-grid gd-specs-grid--masonry">
+                    ${renderSystemRequirementCardsLatest(game.systemRequirements)}
+                </div>
+            </section>
+
+            <section class="gd-section gd-masonry-card gd-masonry-card--price">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Fiyat takibi</h3>
+                </div>
+                <div class="gd-price-card gd-price-card--embedded">
+                    <div class="gd-price-head">
+                        <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
+                    </div>
+                    <div id="itadPricesSection" class="itad-prices-section">
+                        <div class="itad-loading">
+                            <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                            <span>Fiyatlar yukleniyor...</span>
                         </div>
-                    </aside>
+                    </div>
+                </div>
+            </section>
+
+            ${relatedPosts.length > 0 ? `
+                <section class="gd-section gd-masonry-card gd-masonry-card--posts game-detail-posts">
+                    <div class="gd-section-title">
+                        <span></span>
+                        <h3>Ilgili postlar</h3>
+                    </div>
+                    <div class="game-detail-posts-list">
+                        ${relatedPosts.map((post, index) => {
+            const author = userMap.get(post.userId) || { username: 'Bilinmeyen' };
+            const initials = (author.username || 'B').charAt(0).toUpperCase();
+            const avatarGradient = avatarGradients[index % avatarGradients.length];
+            return `
+                                <article class="game-related-post" onclick="expandPost('${post.id}')">
+                                    <div class="game-related-post-avatar" style="background:${avatarGradient}">${escapeHtml(initials)}</div>
+                                    <div class="game-related-post-info">
+                                        <div class="game-related-post-title">${escapeHtml(post.title)}</div>
+                                        <div class="game-related-post-meta">
+                                            <span>${escapeHtml(author.username)}</span>
+                                            <span>${escapeHtml(getCategoryName(post.category))}</span>
+                                        </div>
+                                    </div>
+                                    <div class="game-related-post-stats">
+                                        <span>Begeni ${post.likes.length}</span>
+                                        <span>Yorum ${post.comments.length}</span>
+                                    </div>
+                                </article>
+                            `;
+        }).join('')}
+                    </div>
+                </section>
+            ` : ''}
+            
+            <section class="gd-section gd-masonry-card gd-masonry-card--quickstats">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Hizli bakis</h3>
+                </div>
+                <div class="gd-hero-stats-card gd-hero-stats-card--masonry">
+                    ${statsRibbon.map(item => `
+                        <div class="gd-hero-stat">
+                            <span>${escapeHtml(item.label)}</span>
+                            <strong>${escapeHtml(item.value)}</strong>
+                        </div>
+                    `).join('')}
+                    <div class="gd-hero-stat">
+                        <span>Skor</span>
+                        <strong>${game.rating > 0 ? escapeHtml(String(game.rating)) : '-'}</strong>
+                    </div>
+                    <div class="gd-hero-stat">
+                        <span>Cikis</span>
+                        <strong>${escapeHtml(game.releaseYear || 'Yakinda')}</strong>
+                    </div>
                 </div>
             </section>
         </div>
