@@ -677,8 +677,12 @@ function renderFeed() {
     }
 
     const container = document.getElementById('postsContainer');
+    const feed = document.getElementById('feed');
+    const sidebar = document.getElementById('homeSidebar');
+    const mainLayout = document.getElementById('mainLayout');
 
     if (posts.length === 0) {
+        if (feed) feed.classList.remove('home-pinterest-mode');
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">🎮</div>
@@ -691,14 +695,109 @@ function renderFeed() {
 
     const isHomeFeed = (currentPage === 'home' || !currentPage) && !currentCategory;
     if (isHomeFeed && posts.length > 0) {
-        container.innerHTML = posts.map(post => renderFeaturedPost(post)).join('');
-        renderHomeSidebar(posts);
-    } else {
-        container.innerHTML = posts.map(post => renderPostCard(post)).join('');
-        const sidebar = document.getElementById('homeSidebar');
+        if (feed) feed.classList.add('home-pinterest-mode');
         if (sidebar) sidebar.style.display = 'none';
-        document.getElementById('mainLayout').classList.remove('has-sidebar');
+        if (mainLayout) mainLayout.classList.remove('has-sidebar');
+        container.innerHTML = renderPinterestHome(posts);
+    } else {
+        if (feed) feed.classList.remove('home-pinterest-mode');
+        container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+        if (sidebar) sidebar.style.display = 'none';
+        if (mainLayout) mainLayout.classList.remove('has-sidebar');
     }
+}
+
+function renderPinterestHome(posts) {
+    const spotlight = posts.slice(0, 5);
+    const tags = [...new Set(posts.flatMap(post => post.tags || []))].slice(0, 8);
+
+    return `
+        <section class="pinterest-home-shell">
+            <div class="pinterest-hero-card">
+                <div class="pinterest-hero-copy">
+                    <span class="pinterest-eyebrow">İlham al • keşfet • kaydet</span>
+                    <h2>Oyun dünyasında ilgini çeken her şeyi tek akışta keşfet.</h2>
+                    <p>
+                        Rehberler, incelemeler, duyurular ve topluluk paylaşımları; giriş yapmamış kullanıcıya da güçlü bir keşif hissi veren görsel bir akışta sunuluyor.
+                    </p>
+                    <div class="pinterest-topic-row">
+                        ${tags.map(tag => `<button class="pinterest-topic-chip" onclick="openSearchOverlay()">${escapeHtml(tag)}</button>`).join('')}
+                    </div>
+                </div>
+                <div class="pinterest-hero-stack">
+                    ${spotlight.map((post, index) => renderPinterestSpotlight(post, index)).join('')}
+                </div>
+            </div>
+
+            <div class="pinterest-masonry-grid">
+                ${posts.map((post, index) => renderPinterestPin(post, index)).join('')}
+            </div>
+        </section>`;
+}
+
+function renderPinterestSpotlight(post, index) {
+    const image = post.imageUrl
+        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
+        : `<div class="pinterest-spotlight-fallback">${escapeHtml(getCategoryName(post.category))}</div>`;
+
+    return `
+        <article class="pinterest-spotlight-card spotlight-${(index % 3) + 1}" onclick="expandPost('${post.id}')">
+            <div class="pinterest-spotlight-media">${image}</div>
+            <div class="pinterest-spotlight-overlay">
+                <span>${escapeHtml(getCategoryName(post.category))}</span>
+                <strong>${escapeHtml(post.title)}</strong>
+            </div>
+        </article>`;
+}
+
+function renderPinterestPin(post, index) {
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const liked = currentUser && post.likes.includes(currentUser.id);
+    const saved = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
+    const pinSize = ['pin-tall', 'pin-medium', 'pin-short', 'pin-medium'][index % 4];
+    const image = post.imageUrl
+        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.closest('.pinterest-pin-media').classList.add('fallback')">`
+        : `<div class="pinterest-pin-fallback"><span>${escapeHtml(getCategoryName(post.category))}</span></div>`;
+
+    return `
+        <article class="pinterest-pin ${pinSize}" id="post-${post.id}">
+            <div class="pinterest-pin-media" onclick="expandPost('${post.id}')">
+                ${image}
+                <div class="pinterest-pin-hover">
+                    <button class="pinterest-save-btn${saved ? ' saved' : ''}" onclick="bookmarkPost('${post.id}', event)">${saved ? 'Kaydedildi' : 'Kaydet'}</button>
+                    <div class="pinterest-pin-hover-actions">
+                        <button class="pinterest-round-btn" onclick="sharePost('${post.id}', event)" aria-label="Paylaş">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        </button>
+                        <button class="pinterest-round-btn" onclick="expandPost('${post.id}')" aria-label="Aç">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="pinterest-pin-body">
+                <div class="pinterest-pin-kicker">${escapeHtml(getCategoryName(post.category))}</div>
+                <h3 onclick="expandPost('${post.id}')">${escapeHtml(post.title)}</h3>
+                <p onclick="expandPost('${post.id}')">${escapeHtml(post.content)}</p>
+                <div class="pinterest-pin-footer">
+                    <div class="pinterest-pin-author" onclick="expandPost('${post.id}')">
+                        <div class="pinterest-author-avatar" style="${bg}">${initial}</div>
+                        <span>@${escapeHtml(author.username)}</span>
+                    </div>
+                    <div class="pinterest-pin-stats">
+                        <button class="pinterest-stat-btn${liked ? ' liked' : ''}" onclick="toggleLike('${post.id}', event)">
+                            <svg viewBox="0 0 24 24" fill="${liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <span>${post.likes.length}</span>
+                        </button>
+                        <button class="pinterest-stat-btn" onclick="expandPost('${post.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <span>${post.comments.length}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </article>`;
 }
 
 function getAuthorStyle(author) {
