@@ -924,6 +924,27 @@ function getDateBeforeToday({ years = 0, months = 0, days = 0 } = {}) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
+function formatDateForApi(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function getCurrentWeekDateRange() {
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+
+    const start = new Date(today);
+    start.setDate(today.getDate() + diffToMonday);
+
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    return {
+        start: formatDateForApi(start),
+        end: formatDateForApi(end),
+    };
+}
+
 function isValidHomeHeroRawgGame(game) {
     return Boolean(
         game &&
@@ -953,9 +974,9 @@ async function fetchHomeHeroGames() {
 
     try {
         const today = getTodayDate();
-        const newestStartDate = getDateBeforeToday({ years: 2 });
+        const currentWeek = getCurrentWeekDateRange();
         const popularStartDate = getDateBeforeToday({ years: 3 });
-        const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-released&dates=${newestStartDate},${today}`;
+        const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-released&dates=${currentWeek.start},${currentWeek.end}`;
         const popularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=${popularStartDate},${today}`;
 
         const [newestRes, popularRes] = await Promise.all([
