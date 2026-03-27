@@ -7870,11 +7870,271 @@ select {
     border: 1px solid rgba(8, 255, 191, 0.14);
 }
 
+.gd-detail-layout--cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.gd-story-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at top right, rgba(107, 170, 117, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(10, 22, 17, 0.98) 0%, rgba(8, 18, 14, 0.98) 100%);
+    border: 1px solid rgba(107, 170, 117, 0.16);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.gd-story-card::before,
+.gd-story-card::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.gd-story-card::before {
+    width: 220px;
+    height: 220px;
+    top: -118px;
+    right: -104px;
+    background: rgba(107, 170, 117, 0.1);
+}
+
+.gd-story-card::after {
+    width: 280px;
+    height: 280px;
+    bottom: -188px;
+    left: -154px;
+    background: rgba(26, 58, 42, 0.2);
+}
+
+.gd-story-card--wide {
+    grid-column: span 2;
+}
+
+.gd-story-media {
+    position: relative;
+    min-height: 220px;
+    padding: 22px 22px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 48%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+}
+
+.gd-story-media::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, transparent 22%, rgba(255, 255, 255, 0.04) 22%, rgba(255, 255, 255, 0.04) 55%, transparent 55%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.gd-story-chip,
+.gd-story-footer span {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.gd-story-chip {
+    position: relative;
+    z-index: 1;
+    background: rgba(15, 29, 23, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 247, 235, 0.96);
+}
+
+.gd-story-media h3 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    max-width: 14ch;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.02;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.04em;
+}
+
+.gd-story-lines {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 120px;
+}
+
+.gd-story-lines span {
+    display: block;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.gd-story-lines span:last-child {
+    width: 72%;
+}
+
+.gd-story-media--teal {
+    background-color: rgba(17, 53, 44, 0.72);
+}
+
+.gd-story-media--gold {
+    background-color: rgba(79, 62, 17, 0.74);
+}
+
+.gd-story-media--blue {
+    background-color: rgba(20, 39, 82, 0.72);
+}
+
+.gd-story-media--violet {
+    background-color: rgba(58, 31, 90, 0.72);
+}
+
+.gd-story-media--forest {
+    background-color: rgba(28, 63, 39, 0.74);
+}
+
+.gd-story-media--emerald {
+    background-color: rgba(14, 75, 55, 0.72);
+}
+
+.gd-story-body {
+    position: relative;
+    z-index: 1;
+    padding: 18px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.gd-story-footer {
+    position: relative;
+    z-index: 1;
+    padding: 0 18px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.gd-story-footer span {
+    background: rgba(18, 30, 24, 0.92);
+    border: 1px solid rgba(107, 170, 117, 0.12);
+    color: rgba(241, 245, 249, 0.74);
+    letter-spacing: 0.04em;
+    text-transform: none;
+}
+
+.gd-story-card .gd-desc-box,
+.gd-story-card .gd-info-card,
+.gd-story-card .gd-price-card,
+.gd-story-card .gd-spec-card {
+    background: rgba(8, 18, 14, 0.86) !important;
+    border: 1px solid rgba(107, 170, 117, 0.12) !important;
+    box-shadow: none;
+}
+
+.gd-story-card .gd-desc-box {
+    padding-top: 20px;
+}
+
+.gd-info-card--compact {
+    gap: 16px;
+    padding: 18px;
+}
+
+.gd-chip-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.gd-chip-cloud .gd-platform-chip {
+    min-height: 40px;
+    align-items: center;
+    display: inline-flex;
+}
+
+.gd-story-card .gd-rawg-stat-list div {
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gd-story-card .gd-rawg-stat-list div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.gd-spec-shell,
+.gd-price-card--story {
+    width: 100%;
+}
+
+.gd-spec-shell .gd-spec-stack {
+    gap: 14px;
+}
+
+.gd-spec-shell .gd-spec-platform {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(45, 90, 67, 0.26);
+    border: 1px solid rgba(107, 170, 117, 0.2);
+    color: var(--accent-light);
+}
+
+.gd-price-card--story {
+    padding: 20px;
+}
+
+.gd-price-card--story .gd-price-head {
+    margin-bottom: 16px;
+}
+
+.gd-story-card .itad-offer-card {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.gd-story-card .itad-deals-grid {
+    gap: 10px;
+}
+
+.gd-story-card .itad-deal-card {
+    background: rgba(20, 35, 28, 0.72);
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
 @media (max-width: 980px) {
     .gd-cinematic-hero,
     .gd-about-grid,
-    .gd-specs-layout {
+    .gd-specs-layout,
+    .gd-detail-layout--cards {
         grid-template-columns: 1fr;
+    }
+
+    .gd-story-card--wide {
+        grid-column: auto;
     }
 }
 
@@ -7895,5 +8155,25 @@ select {
     .gd-inline-gallery,
     .gd-spec-duo {
         grid-template-columns: 1fr;
+    }
+
+    .gd-story-card {
+        border-radius: 22px;
+    }
+
+    .gd-story-media {
+        min-height: 190px;
+        padding: 18px 18px 24px;
+    }
+
+    .gd-story-media h3 {
+        max-width: 11ch;
+        font-size: clamp(1.55rem, 9vw, 2.1rem);
+    }
+
+    .gd-story-body,
+    .gd-story-footer {
+        padding-left: 14px;
+        padding-right: 14px;
     }
 }

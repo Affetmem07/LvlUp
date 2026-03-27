@@ -4992,21 +4992,40 @@ renderGameDetailContentV2 = function (game) {
     `;
 
     document.getElementById('gameDetailInfo').innerHTML = `
-        <div class="gd-detail-layout">
-            <section class="gd-section gd-section--about">
-                <div class="gd-section-title">
-                    <span></span>
-                    <h3>Oyun aciklamasi</h3>
-                </div>
-                <div class="gd-about-grid">
-                    <div class="gd-about-main">
-                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
-                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
-                            <div class="gd-desc-fade"></div>
-                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
-                        </div>
+        <div class="gd-detail-layout gd-detail-layout--cards">
+            <section class="gd-story-card gd-story-card--wide">
+                <div class="gd-story-media gd-story-media--teal">
+                    <div class="gd-story-chip">Aciklama</div>
+                    <h3>Oyun dunyasina hizli bakis</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
                     </div>
-                    <aside class="gd-info-card">
+                </div>
+                <div class="gd-story-body">
+                    <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                        <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                        <div class="gd-desc-fade"></div>
+                        <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                    </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>${escapeHtml(game.releaseYear || 'Yakinda')}</span>
+                    <span>${escapeHtml(game.playtime || 'Sure bilgisi yok')}</span>
+                </div>
+            </section>
+
+            <section class="gd-story-card">
+                <div class="gd-story-media gd-story-media--gold">
+                    <div class="gd-story-chip">Studyo</div>
+                    <h3>Gelistirici ve yayinci</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="gd-story-body">
+                    <div class="gd-info-card gd-info-card--compact">
                         <div class="gd-info-block">
                             <div class="gd-info-label">Gelistirici</div>
                             <div class="gd-info-value gd-info-value--stack">
@@ -5023,12 +5042,43 @@ renderGameDetailContentV2 = function (game) {
             : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
                             </div>
                         </div>
-                        <div class="gd-info-block">
-                            <div class="gd-info-label">Platformlar</div>
-                            <div class="gd-platforms">
-                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
-                            </div>
-                        </div>
+                    </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>${escapeHtml(developer)}</span>
+                </div>
+            </section>
+
+            <section class="gd-story-card">
+                <div class="gd-story-media gd-story-media--blue">
+                    <div class="gd-story-chip">Platform</div>
+                    <h3>Desteklenen platformlar</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="gd-story-body">
+                    <div class="gd-chip-cloud">
+                        ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>${displayPlatforms.length} platform</span>
+                </div>
+            </section>
+
+            <section class="gd-story-card">
+                <div class="gd-story-media gd-story-media--violet">
+                    <div class="gd-story-chip">Veri</div>
+                    <h3>RAWG ozet verileri</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="gd-story-body">
+                    <div class="gd-info-card gd-info-card--compact">
                         <div class="gd-info-block">
                             <div class="gd-info-label">RAWG verileri</div>
                             <div class="gd-rawg-stat-list">
@@ -5037,33 +5087,56 @@ renderGameDetailContentV2 = function (game) {
                                 <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
                             </div>
                         </div>
-                    </aside>
+                    </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>Kaynak RAWG.io</span>
                 </div>
             </section>
 
-            <section class="gd-section gd-section--specs">
-                <div class="gd-specs-header">
-                    <div>
-                        <div class="gd-section-heading">Teknik ozellikler</div>
+            <section class="gd-story-card gd-story-card--wide">
+                <div class="gd-story-media gd-story-media--forest">
+                    <div class="gd-story-chip">Sistem</div>
+                    <h3>Sistem gereksinimleri</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
                     </div>
                 </div>
-                <div class="gd-specs-layout">
-                    <div class="gd-specs-grid">
+                <div class="gd-story-body">
+                    <div class="gd-spec-shell">
                         ${renderSystemRequirementCardsLatest(game.systemRequirements)}
                     </div>
-                    <aside class="gd-price-column">
-                        <div class="gd-price-card">
-                            <div class="gd-price-head">
-                                <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
-                            </div>
-                            <div id="itadPricesSection" class="itad-prices-section">
-                                <div class="itad-loading">
-                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
-                                    <span>Fiyatlar yukleniyor...</span>
-                                </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>Minimum ve onerilen profiller</span>
+                </div>
+            </section>
+
+            <section class="gd-story-card gd-story-card--wide">
+                <div class="gd-story-media gd-story-media--emerald">
+                    <div class="gd-story-chip">Fiyat</div>
+                    <h3>Canli fiyat akisi</h3>
+                    <div class="gd-story-lines">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="gd-story-body">
+                    <div class="gd-price-card gd-price-card--story">
+                        <div class="gd-price-head">
+                            <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
+                        </div>
+                        <div id="itadPricesSection" class="itad-prices-section">
+                            <div class="itad-loading">
+                                <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                                <span>Fiyatlar yukleniyor...</span>
                             </div>
                         </div>
-                    </aside>
+                    </div>
+                </div>
+                <div class="gd-story-footer">
+                    <span>Turkiye magazalari oncelikli</span>
                 </div>
             </section>
         </div>
