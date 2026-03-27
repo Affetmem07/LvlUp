@@ -585,6 +585,18 @@
     letter-spacing: 0.04em;
 }
 
+.gd-price-brand {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.gd-price-brand:hover {
+    color: #a0ffd7;
+}
+
 .itad-prices-section {
     min-height: 0;
 }

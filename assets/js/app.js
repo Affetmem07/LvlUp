@@ -4812,11 +4812,11 @@ const renderSystemRequirementCardsLatest = (requirements) => {
         return `
             <div class="gd-spec-duo">
                 <div class="gd-spec-card gd-spec-card--minimum">
-                    <div class="gd-spec-card-title">Minimum Tiers</div>
+                    <div class="gd-spec-card-title">Minimum</div>
                     <div class="gd-spec-empty">RAWG bu oyun icin sistem gereksinimi donmuyor.</div>
                 </div>
                 <div class="gd-spec-card gd-spec-card--recommended">
-                    <div class="gd-spec-card-title">Ultimate Spec</div>
+                    <div class="gd-spec-card-title">Recommended</div>
                     <div class="gd-spec-empty">Detay geldikce burada onerilen donanim gorunecek.</div>
                 </div>
             </div>
@@ -4830,8 +4830,8 @@ const renderSystemRequirementCardsLatest = (requirements) => {
         <div class="gd-spec-stack">
             ${platformLabel}
             <div class="gd-spec-duo">
-                ${renderRequirementCardLatest('Minimum Tiers', 'minimum', primary.minimum, primary.minimum || primary.recommended)}
-                ${renderRequirementCardLatest('Ultimate Spec', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
+                ${renderRequirementCardLatest('Minimum', 'minimum', primary.minimum, primary.minimum || primary.recommended)}
+                ${renderRequirementCardLatest('Recommended', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
             </div>
         </div>
     `;
@@ -5047,7 +5047,6 @@ renderGameDetailContentV2 = function (game) {
                 <div class="gd-specs-header">
                     <div>
                         <div class="gd-section-heading">Technical Specifications</div>
-                        <p>Donanim bilgileri RAWG uzerinden geliyor, fiyat taramasi ITAD ile ayrik tutuluyor.</p>
                     </div>
                 </div>
                 <div class="gd-specs-layout">
@@ -5058,7 +5057,7 @@ renderGameDetailContentV2 = function (game) {
                         <div class="gd-price-card">
                             <div class="gd-price-head">
                                 <span>Live price</span>
-                                <strong>ITAD</strong>
+                                <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
                             </div>
                             <div id="itadPricesSection" class="itad-prices-section">
                                 <div class="itad-loading">
