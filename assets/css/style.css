@@ -2,7 +2,6 @@
    LvlUp – Gaming News & Community | Design System
    ========================================================== */
 
-
 /* ── CSS Variables / Design Tokens ── */
 :root {
     color-scheme: dark;
@@ -2570,29 +2569,19 @@ select {
 /* Game Grid */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    grid-auto-flow: dense;
-    grid-auto-rows: 84px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
-    align-items: stretch;
 }
 
 /* Game Card */
 .game-card {
     position: relative;
-    display: block;
-    width: auto;
-    margin: 0;
-    grid-column: span 3;
-    grid-row: span 4;
-    height: 100%;
     border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
-    aspect-ratio: auto;
+    aspect-ratio: 3 / 4;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    transform-origin: center center;
     transition: all var(--transition-normal);
 }
 
@@ -2604,42 +2593,11 @@ select {
 
 .game-card--list {
     min-height: 0;
-    aspect-ratio: auto;
+    aspect-ratio: 16 / 10;
 }
 
 .game-card--list:hover {
-    transform: translateY(-4px) scale(1.01);
-}
-
-.game-card--mosaic-tall {
-    grid-column: span 3;
-    grid-row: span 6;
-}
-
-.game-card--mosaic-narrow {
-    grid-column: span 2;
-    grid-row: span 6;
-}
-
-.game-card--mosaic-hero {
-    grid-column: span 7;
-    grid-row: span 4;
-}
-
-.game-card--mosaic-landscape {
-    grid-column: span 6;
-    grid-row: span 4;
-}
-
-.game-card--mosaic-square {
-    grid-column: span 4;
-    grid-row: span 4;
-}
-
-.game-card--mosaic-hero .game-card-title,
-.game-card--mosaic-landscape .game-card-title,
-.game-card--mosaic-square .game-card-title {
-    font-size: 0.98rem;
+    transform: translateY(-4px);
 }
 
 .game-card-cover {
@@ -3909,12 +3867,7 @@ select {
 /* Game card skeleton */
 .game-card-skeleton {
     min-height: 320px;
-    aspect-ratio: auto;
-    display: block;
-    width: auto;
-    margin: 0;
-    grid-column: span 4;
-    grid-row: span 4;
+    aspect-ratio: 16 / 10;
     border-radius: var(--radius-lg);
     background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
     background-size: 200% 100%;
@@ -4544,8 +4497,7 @@ select {
     }
 
     .games-grid {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-auto-rows: 76px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }
 
@@ -4646,24 +4598,8 @@ select {
     }
 
     .games-grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        grid-auto-rows: 68px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
-    }
-
-    .game-card,
-    .game-card--mosaic-tall,
-    .game-card--mosaic-narrow,
-    .game-card--mosaic-square,
-    .game-card-skeleton {
-        grid-column: span 3;
-        grid-row: span 4;
-    }
-
-    .game-card--mosaic-hero,
-    .game-card--mosaic-landscape {
-        grid-column: span 6;
-        grid-row: span 4;
     }
 
     .game-detail-hero {
@@ -4768,27 +4704,13 @@ select {
 
     /* Games grid: 2 kolon */
     .games-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: auto;
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
 
     .game-card--list {
         min-height: 0;
-        aspect-ratio: 16 / 12;
-        transform: none;
-    }
-
-    .game-card,
-    .game-card--mosaic-tall,
-    .game-card--mosaic-narrow,
-    .game-card--mosaic-hero,
-    .game-card--mosaic-landscape,
-    .game-card--mosaic-square,
-    .game-card-skeleton {
-        grid-column: span 1;
-        grid-row: span 1;
-        height: auto;
+        aspect-ratio: 16 / 11;
     }
 
     .game-card-overlay--hover {
@@ -4934,7 +4856,7 @@ select {
 
     /* Games: tek kolon */
     .games-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 

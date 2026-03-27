@@ -2,7 +2,6 @@
    LvlUp – Gaming News & Community | Application Logic
    ========================================================== */
 
-
 // ── Data Store (localStorage-based) ──
 const STORAGE_KEYS = {
     users: 'lvlup_users',
@@ -3285,7 +3284,7 @@ function renderGamesGrid() {
         return;
     }
 
-    grid.innerHTML = games.map((game, index) => renderGameCard(game, index)).join('');
+    grid.innerHTML = games.map(game => renderGameCard(game)).join('');
 
     // Add sentinel element for infinite scroll
     if (gamesNextPageUrl) {
@@ -3326,13 +3325,12 @@ function setupGamesInfiniteScroll() {
 }
 
 // ── Render Game Card ──
-function renderGameCard(game, index = 0) {
+function renderGameCard(game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
-    const layoutClass = getGameCardLayoutClass(index);
 
     return `
-        <div class="game-card game-card--list ${layoutClass}" onclick="openGameDetail('${game.id}')">
+        <div class="game-card game-card--list" onclick="openGameDetail('${game.id}')">
             <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
                  loading="lazy"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
@@ -3352,20 +3350,6 @@ function renderGameCard(game, index = 0) {
 }
 
 // ── Rating Class Helper ──
-function getGameCardLayoutClass(index) {
-    const pattern = [
-        'game-card--mosaic-tall',
-        'game-card--mosaic-narrow',
-        'game-card--mosaic-tall',
-        'game-card--mosaic-hero',
-        'game-card--mosaic-narrow',
-        'game-card--mosaic-landscape',
-        'game-card--mosaic-square'
-    ];
-
-    return pattern[index % pattern.length];
-}
-
 function getRatingClass(rating) {
     if (rating >= 80) return 'high';
     if (rating >= 60) return 'medium';
