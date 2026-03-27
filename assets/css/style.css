@@ -2641,6 +2641,33 @@ select {
     right: 12px;
 }
 
+.game-card-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.game-card-rating.high,
+.game-card-rating.medium,
+.game-card-rating.low {
+    background: linear-gradient(180deg, rgba(39, 89, 51, 0.94), rgba(18, 48, 29, 0.98));
+    color: #bff3c7;
+    border: 1px solid rgba(103, 205, 126, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 18px rgba(77, 182, 97, 0.18);
+}
+
+.game-card-rating svg {
+    width: 12px;
+    height: 12px;
+}
+
 .game-card-overlay-body {
     display: flex;
     flex-direction: column;
