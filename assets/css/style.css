@@ -2581,8 +2581,8 @@ select {
 }
 
 .games-brick-row--bottom {
-    width: calc(75% - 4.5px);
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -4625,7 +4625,7 @@ select {
     }
 
     .games-brick-row--bottom {
-        width: calc(66.666% - 4px);
+        width: 100%;
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
