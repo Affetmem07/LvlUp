@@ -191,7 +191,7 @@ function renderITADPricesSectionV3(result) {
 
     container.innerHTML = `
         <div class="itad-offer-card">
-            <div class="itad-offer-label">Best live offer</div>
+            <div class="itad-offer-label">Best offer</div>
             <div class="itad-offer-price-wrap">
                 <div class="itad-offer-price">${featuredCurrent}</div>
                 ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
@@ -199,7 +199,7 @@ function renderITADPricesSectionV3(result) {
             </div>
             ${historyLowHtml}
             <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
-                Buy now
+                Satin al
             </a>
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
                 Tum fiyatlari gor
@@ -275,7 +275,7 @@ function renderGameDetailContentV3(game) {
             <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
-                    <h3>About The Experience</h3>
+                    <h3>Game description</h3>
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
@@ -322,7 +322,7 @@ function renderGameDetailContentV3(game) {
                             <div class="gd-info-label">RAWG stats</div>
                             <div class="gd-rawg-stat-list">
                                 <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '—'}</strong></div>
-                                <div><span>User</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong></div>
+                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong></div>
                                 <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
                             </div>
                         </div>
@@ -353,7 +353,6 @@ function renderGameDetailContentV3(game) {
                     <aside class="gd-price-column">
                         <div class="gd-price-card">
                             <div class="gd-price-head">
-                                <span>Live price</span>
                                 <strong>ITAD</strong>
                             </div>
                             <div id="itadPricesSection" class="itad-prices-section">
@@ -3426,7 +3425,7 @@ function renderITADPricesSection(result) {
 
     container.innerHTML = `
         <div class="itad-offer-card">
-            <div class="itad-offer-label">Best live offer</div>
+            <div class="itad-offer-label">Best offer</div>
             <div class="itad-offer-price-wrap">
                 <div class="itad-offer-price">${featuredCurrent}</div>
                 ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
@@ -3434,7 +3433,7 @@ function renderITADPricesSection(result) {
             </div>
             ${historyLowHtml}
             <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
-                Buy now
+                Satin al
             </a>
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
                 Tum fiyatlari gor
@@ -3510,7 +3509,7 @@ function renderGameDetailContentV2(game) {
             <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
-                    <h3>About The Experience</h3>
+                    <h3>Game description</h3>
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
@@ -3547,8 +3546,8 @@ function renderGameDetailContentV2(game) {
                             <div class="gd-info-label">RAWG stats</div>
                             <div class="gd-rawg-stat-list">
                                 <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>User</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
+                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                                <div><span>Release</span><strong>${formattedReleaseDate}</strong></div>
                             </div>
                         </div>
                     </aside>
@@ -3569,7 +3568,6 @@ function renderGameDetailContentV2(game) {
                     <aside class="gd-price-column">
                         <div class="gd-price-card">
                             <div class="gd-price-head">
-                                <span>Live price</span>
                                 <strong>ITAD</strong>
                             </div>
                             <div id="itadPricesSection" class="itad-prices-section">
@@ -4914,7 +4912,7 @@ renderITADPricesSection = function (result) {
 
     container.innerHTML = `
         <div class="itad-offer-card">
-            <div class="itad-offer-label">Best live offer</div>
+            <div class="itad-offer-label">Best offer</div>
             <div class="itad-offer-price-wrap">
                 <div class="itad-offer-price">${featuredCurrent}</div>
                 ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
@@ -4922,7 +4920,7 @@ renderITADPricesSection = function (result) {
             </div>
             ${historyLowHtml}
             <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
-                Buy now
+                Satin al
             </a>
             <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
                 Tum fiyatlari gor
@@ -4940,12 +4938,12 @@ renderGameDetailContentV2 = function (game) {
     const publisher = game.publisher || 'Yukleniyor...';
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
     const screenshots = (game.screenshots || []).slice(0, 3);
-    const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
     const splitTitle = splitGameTitleForHeroLatest(game.title);
+    const formattedReleaseDate = game.released
+        ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(game.released))
+        : (game.releaseYear || 'TBA');
     const statsRibbon = [
-        { label: 'Playtime', value: game.playtime || '-' },
-        { label: 'Active', value: game.added ? `${formatCompactNumberLatest(game.added)}+` : '-' },
-        { label: 'Reviews', value: game.ratingsCount ? `${formatCompactNumberLatest(game.ratingsCount)}+` : '-' }
+        { label: 'Oynanis', value: game.playtime || '-' }
     ];
 
     document.getElementById('gameDetailHero').innerHTML = `
@@ -4958,7 +4956,7 @@ renderGameDetailContentV2 = function (game) {
             <div class="gd-hero-copy">
                 <div class="gd-hero-meta-strip">
                     ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
-                    <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
+                    <span class="gd-meta-inline">Cikis Yili: ${game.releaseYear || 'TBA'}</span>
                     ${game.esrbRating ? `<span class="gd-meta-inline">${escapeHtml(game.esrbRating)}</span>` : ''}
                 </div>
                 <h2 class="game-detail-title gd-cinematic-title">
@@ -4974,7 +4972,7 @@ renderGameDetailContentV2 = function (game) {
                 <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
                     <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
                          onerror="this.style.background='var(--bg-elevated)'">
-                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} shots</div>` : ''}
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} gorsel</div>` : ''}
                 </div>
                 <div class="gd-hero-stats-card">
                     ${statsRibbon.map(item => `
@@ -4994,7 +4992,7 @@ renderGameDetailContentV2 = function (game) {
             <section class="gd-section gd-section--about">
                 <div class="gd-section-title">
                     <span></span>
-                    <h3>About The Experience</h3>
+                    <h3>Game description</h3>
                 </div>
                 <div class="gd-about-grid">
                     <div class="gd-about-main">
@@ -5031,8 +5029,8 @@ renderGameDetailContentV2 = function (game) {
                             <div class="gd-info-label">RAWG stats</div>
                             <div class="gd-rawg-stat-list">
                                 <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                                <div><span>User</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
-                                <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
+                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                                <div><span>Release</span><strong>${formattedReleaseDate}</strong></div>
                             </div>
                         </div>
                     </aside>
@@ -5052,7 +5050,6 @@ renderGameDetailContentV2 = function (game) {
                     <aside class="gd-price-column">
                         <div class="gd-price-card">
                             <div class="gd-price-head">
-                                <span>Live price</span>
                                 <a href="https://isthereanydeal.com/" target="_blank" rel="noopener noreferrer" class="gd-price-brand">ITAD.com</a>
                             </div>
                             <div id="itadPricesSection" class="itad-prices-section">

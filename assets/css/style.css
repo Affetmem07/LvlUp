@@ -7241,9 +7241,9 @@ select {
 }
 
 .game-detail-genre-tag {
-    background: rgba(56, 45, 78, 0.5);
-    border: 1px solid rgba(146, 113, 232, 0.15);
-    color: #b99dff;
+    background: rgba(8, 255, 191, 0.08);
+    border: 1px solid rgba(8, 255, 191, 0.18);
+    color: #9fffd4;
     border-radius: 2px;
     padding: 6px 12px;
 }
@@ -7272,17 +7272,17 @@ select {
 
 .gd-hero-stats-card {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 1px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(8, 255, 191, 0.12);
     border-radius: 14px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(8, 255, 191, 0.04);
 }
 
 .gd-hero-stats-card .gd-hero-stat {
     padding: 22px 16px;
-    background: rgba(17, 20, 26, 0.84);
+    background: rgba(13, 22, 19, 0.92);
 }
 
 .gd-hero-stats-card .gd-hero-stat span {
@@ -7312,8 +7312,8 @@ select {
 
 .gd-section {
     border-radius: 18px;
-    background: rgba(16, 18, 24, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(12, 17, 18, 0.94);
+    border: 1px solid rgba(8, 255, 191, 0.08);
     padding: 24px;
 }
 
@@ -7427,12 +7427,12 @@ select {
 .gd-spec-card {
     padding: 22px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(17, 24, 23, 0.92);
+    border: 1px solid rgba(8, 255, 191, 0.08);
 }
 
 .gd-price-card {
-    background: #050607;
+    background: linear-gradient(180deg, #07100d 0%, #050607 100%);
 }
 
 .gd-info-block {
@@ -7508,7 +7508,7 @@ select {
 }
 
 .gd-spec-card--recommended .gd-spec-card-title {
-    color: #b08eff;
+    color: #8ff3c7;
 }
 
 .gd-spec-row {
@@ -7558,9 +7558,9 @@ select {
 }
 
 .itad-wishlist-btn {
-    background: rgba(114, 92, 188, 0.22);
-    color: #bfa6ff;
-    border: 1px solid rgba(167, 141, 255, 0.18);
+    background: rgba(19, 32, 28, 0.96);
+    color: #9fffd4;
+    border: 1px solid rgba(8, 255, 191, 0.14);
 }
 
 @media (max-width: 980px) {
