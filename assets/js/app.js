@@ -2,6 +2,7 @@
    LvlUp – Gaming News & Community | Application Logic
    ========================================================== */
 
+
 // ── Data Store (localStorage-based) ──
 const STORAGE_KEYS = {
     users: 'lvlup_users',
@@ -1130,7 +1131,7 @@ function renderPinterestPin(post, index) {
 function getAuthorStyle(author) {
     const idx = author.avatarGradient !== undefined
         ? author.avatarGradient
-        : (author.id ? parseInt(author.id.replace('u','')) % AVATAR_GRADIENTS_LIST.length : 0);
+        : (author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0);
     if (author.avatarImage) {
         return { bg: `background-image:url('${author.avatarImage}');background-size:cover;background-position:center;`, initial: '' };
     }
@@ -1140,9 +1141,9 @@ function getAuthorStyle(author) {
 function renderFeaturedPost(post) {
     const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
     const { bg, initial } = getAuthorStyle(author);
-    const liked      = currentUser && post.likes.includes(currentUser.id);
+    const liked = currentUser && post.likes.includes(currentUser.id);
     const bookmarked = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
-    const likeCount  = post.likes.length > 999 ? (post.likes.length/1000).toFixed(1)+'k' : post.likes.length;
+    const likeCount = post.likes.length > 999 ? (post.likes.length / 1000).toFixed(1) + 'k' : post.likes.length;
 
     const top = post.imageUrl
         ? `<div class="fp-img-wrap" onclick="expandPost('${post.id}')">
@@ -1175,8 +1176,8 @@ function renderFeaturedPost(post) {
         </div>
         <div class="fp-actions">
             <div class="fp-actions-left">
-                <button class="fp-btn${liked?' liked':''}" onclick="toggleLike('${post.id}',event)">
-                    <svg viewBox="0 0 24 24" fill="${liked?'currentColor':'none'}" stroke="${liked?'none':'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <button class="fp-btn${liked ? ' liked' : ''}" onclick="toggleLike('${post.id}',event)">
+                    <svg viewBox="0 0 24 24" fill="${liked ? 'currentColor' : 'none'}" stroke="${liked ? 'none' : 'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     <span>${likeCount}</span>
                 </button>
                 <button class="fp-btn" onclick="expandPost('${post.id}')">
@@ -1187,8 +1188,8 @@ function renderFeaturedPost(post) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 </button>
             </div>
-            <button class="fp-btn${bookmarked?' bookmarked':''}" onclick="bookmarkPost('${post.id}',event)">
-                <svg viewBox="0 0 24 24" fill="${bookmarked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <button class="fp-btn${bookmarked ? ' bookmarked' : ''}" onclick="bookmarkPost('${post.id}',event)">
+                <svg viewBox="0 0 24 24" fill="${bookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             </button>
         </div>
     </article>`;
@@ -1200,7 +1201,7 @@ function renderMiniPostCard(post) {
 }
 
 function renderHomeSidebar(posts) {
-    const sidebar    = document.getElementById('homeSidebar');
+    const sidebar = document.getElementById('homeSidebar');
     const mainLayout = document.getElementById('mainLayout');
     if (!sidebar) return;
 
@@ -1213,8 +1214,8 @@ function renderHomeSidebar(posts) {
         tagScore[t] = (tagScore[t] || 0) + p.likes.length + 1;
         if (!tagCat[t]) tagCat[t] = getCategoryName(p.category);
     }));
-    const top5      = Object.entries(tagScore).sort((a,b) => b[1]-a[1]).slice(0,5);
-    const badges    = ['+12%', 'Hot', 'New', 'Trend', 'Rising'];
+    const top5 = Object.entries(tagScore).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const badges = ['+12%', 'Hot', 'New', 'Trend', 'Rising'];
     const trendList = document.getElementById('sidebarTrendList');
     if (trendList) {
         trendList.innerHTML = top5.length
@@ -2519,7 +2520,7 @@ function getTodayDate() {
 //        "Resident Evil 4 Remake" vs "Resident Evil 4 (2023)"    → ~0.75 (kabul edilir)
 function itadTitleScore(searched, candidate) {
     // Roma rakamlarını Arap rakamlarına çevir: "Part II" → "Part 2"
-    const ROMAN = { i:1, ii:2, iii:3, iv:4, v:5, vi:6, vii:7, viii:8, ix:9, x:10 };
+    const ROMAN = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10 };
     const norm = s => s.toLowerCase()
         .replace(/[^a-z0-9]/g, ' ')
         .replace(/\s+/g, ' ')
@@ -2535,9 +2536,9 @@ function itadTitleScore(searched, candidate) {
     // Tam eşleşme → maksimum skor (ör. "The Last of Us Part I" = "Part 1")
     if (ns === nc) return 1.0;
 
-    const ws  = ns.split(' ').filter(Boolean);
+    const ws = ns.split(' ').filter(Boolean);
     const wcA = nc.split(' ').filter(Boolean);
-    const wc  = new Set(wcA);
+    const wc = new Set(wcA);
 
     if (ws.length === 0 || wc.size === 0) return 0;
 
@@ -2575,7 +2576,7 @@ async function fetchGamePrices(gameTitle, rawgId) {
                                 const lookupData = await lookupRes.json();
                                 if (lookupData?.game?.id) {
                                     itadGameId = lookupData.game.id;
-                                    itadSlug   = lookupData.game.slug || '';
+                                    itadSlug = lookupData.game.slug || '';
                                     console.log(`ITAD: Steam ID ${steamAppId} → "${lookupData.game.title}"`);
                                 }
                             }
@@ -2621,7 +2622,7 @@ async function fetchGamePrices(gameTitle, rawgId) {
             }
 
             itadGameId = scored[0].game.id;
-            itadSlug   = scored[0].game.slug || '';
+            itadSlug = scored[0].game.slug || '';
             console.log(`ITAD title match: "${gameTitle}" → "${scored[0].game.title}" (${scored[0].score.toFixed(2)})`);
         }
 
@@ -2820,12 +2821,12 @@ async function loadGames(append = false) {
     if (gamesIsLoading && append) return;
     // Don't load default games if a search is active
     if (currentGameSearch && !append) return;
-    
+
     // Abort any previous request
     if (gamesAbortController) gamesAbortController.abort();
     gamesAbortController = new AbortController();
     const myRequestId = ++gamesRequestId;
-    
+
     gamesIsLoading = true;
 
     const loading = document.getElementById('gamesLoading');
@@ -2891,7 +2892,7 @@ async function searchGamesFromAPI(query) {
     if (gamesAbortController) gamesAbortController.abort();
     gamesAbortController = new AbortController();
     const myRequestId = ++gamesRequestId;
-    
+
     gamesIsLoading = true;
 
     const loading = document.getElementById('gamesLoading');
@@ -2909,7 +2910,7 @@ async function searchGamesFromAPI(query) {
 
         gamesNextPageUrl = result.nextUrl;
         const queryLower = query.toLowerCase();
-        
+
         // Filter, map, then smart-sort: title matches first, then by rating
         allGames = result.games
             .sort((a, b) => {
@@ -3130,7 +3131,7 @@ function applyAdvFilters(changedField) {
     const yearToEl = document.getElementById('advYearTo');
 
     let yearFrom = parseInt(yearFromEl?.value || '0', 10) || 0;
-    let yearTo   = parseInt(yearToEl?.value   || '0', 10) || 0;
+    let yearTo = parseInt(yearToEl?.value || '0', 10) || 0;
 
     // 1980-2026 aralığına sıkıştır ve inputlara yaz
     if (yearFrom) {
@@ -3156,7 +3157,7 @@ function applyAdvFilters(changedField) {
     }
 
     advFilters.yearFrom = yearFrom ? String(yearFrom) : '';
-    advFilters.yearTo   = yearTo   ? String(yearTo)   : '';
+    advFilters.yearTo = yearTo ? String(yearTo) : '';
 
     updateAdvFilterTags();
     loadGamesWithAdvFilters();
@@ -3180,10 +3181,10 @@ function updateAdvFilterTags() {
     const container = document.getElementById('advFilterActiveTags');
     if (!container) return;
     const tags = [];
-    const genreMap = { action:'Aksiyon', adventure:'Macera', 'role-playing-games-rpg':'RPG', shooter:'Nişancı', strategy:'Strateji', simulation:'Simülasyon', puzzle:'Bulmaca', sports:'Spor', racing:'Yarış', fighting:'Dövüş', indie:'Indie', platformer:'Platform' };
-    const platMap = { 4:'PC', 187:'PS5', 18:'PS4', 186:'Xbox Series X', 1:'Xbox One', 7:'Nintendo Switch', 3:'iOS', 21:'Android' };
-    const orderMap = { '-released':'En Yeni', released:'En Eski', '-rating':'Kullanıcı Puanı' };
-    const modeMap = { singleplayer:'Tek Oyunculu', multiplayer:'Çok Oyunculu', 'co-op':'Eşli (Co-op)' };
+    const genreMap = { action: 'Aksiyon', adventure: 'Macera', 'role-playing-games-rpg': 'RPG', shooter: 'Nişancı', strategy: 'Strateji', simulation: 'Simülasyon', puzzle: 'Bulmaca', sports: 'Spor', racing: 'Yarış', fighting: 'Dövüş', indie: 'Indie', platformer: 'Platform' };
+    const platMap = { 4: 'PC', 187: 'PS5', 18: 'PS4', 186: 'Xbox Series X', 1: 'Xbox One', 7: 'Nintendo Switch', 3: 'iOS', 21: 'Android' };
+    const orderMap = { '-released': 'En Yeni', released: 'En Eski', '-rating': 'Kullanıcı Puanı' };
+    const modeMap = { singleplayer: 'Tek Oyunculu', multiplayer: 'Çok Oyunculu', 'co-op': 'Eşli (Co-op)' };
     if (advFilters.genre) tags.push(genreMap[advFilters.genre] || advFilters.genre);
     if (advFilters.platform) tags.push(platMap[advFilters.platform] || advFilters.platform);
     if (advFilters.ordering) tags.push(orderMap[advFilters.ordering] || advFilters.ordering); // boş = Tümü, etiket gösterme
@@ -3216,7 +3217,7 @@ async function loadGamesWithAdvFilters() {
         const apiOrdering = advFilters.ordering || '-metacritic';
 
         let url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&ordering=${apiOrdering}&dates=1970-01-01,${getTodayDate()}`;
-        if (advFilters.genre)    url += `&genres=${advFilters.genre}`;
+        if (advFilters.genre) url += `&genres=${advFilters.genre}`;
         if (advFilters.platform) url += `&platforms=${advFilters.platform}`;
         if (advFilters.gameMode) url += `&tags=${advFilters.gameMode}`;
 
@@ -3488,13 +3489,13 @@ function renderGameDetailContent(game) {
                     <div class="gd-meta-label">🎯 Yapımcı & Yayıncı</div>
                     <div class="gd-creators">
                         ${(game.developerData && game.developerData.length > 0
-                            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
-                            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`
-                        )}
+            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`
+        )}
                         ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
-                            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
-                            : ''
-                        )}
+            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : ''
+        )}
                     </div>
                 </div>
             </div>
@@ -3801,7 +3802,7 @@ async function loadGamesWithOrdering(ordering) {
     if (gamesAbortController) gamesAbortController.abort();
     gamesAbortController = new AbortController();
     const myRequestId = ++gamesRequestId;
-    
+
     gamesIsLoading = true;
 
     const loading = document.getElementById('gamesLoading');
