@@ -2569,9 +2569,9 @@ select {
 /* Game Grid */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-auto-flow: dense;
-    grid-auto-rows: 10px;
+    grid-auto-rows: 14px;
     gap: 18px;
 }
 
@@ -2604,25 +2604,25 @@ select {
 }
 
 .game-card--brick-top {
-    grid-column: span 3;
-    grid-row: span 18;
+    grid-column: span 2;
+    grid-row: span 14;
 }
 
 .game-card--brick-bottom {
-    grid-column: span 4;
-    grid-row: span 18;
+    grid-column: span 2;
+    grid-row: span 14;
 }
 
 .game-card--brick-bottom-1 {
-    grid-column: 2 / span 3;
+    grid-column: 2 / span 2;
 }
 
 .game-card--brick-bottom-2 {
-    grid-column: 5 / span 3;
+    grid-column: 4 / span 2;
 }
 
 .game-card--brick-bottom-3 {
-    grid-column: 8 / span 3;
+    grid-column: 6 / span 2;
 }
 
 .game-card-cover {
@@ -4623,30 +4623,31 @@ select {
     }
 
     .games-grid {
-        grid-template-columns: repeat(9, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-auto-rows: 12px;
         gap: 12px;
     }
 
     .game-card--brick-top {
-        grid-column: span 3;
-        grid-row: span 18;
+        grid-column: span 2;
+        grid-row: span 14;
     }
 
     .game-card--brick-bottom {
-        grid-column: span 3;
-        grid-row: span 18;
+        grid-column: span 2;
+        grid-row: span 14;
     }
 
     .game-card--brick-bottom-1 {
-        grid-column: 2 / span 3;
+        grid-column: 2 / span 2;
     }
 
     .game-card--brick-bottom-2 {
-        grid-column: 5 / span 3;
+        grid-column: 4 / span 2;
     }
 
     .game-card--brick-bottom-3 {
-        grid-column: 8 / span 3;
+        grid-column: span 2;
     }
 
     .game-detail-hero {
