@@ -3328,15 +3328,13 @@ function setupGamesInfiniteScroll() {
 function renderGameCard(game, index = 0) {
     const ratingClass = getRatingClass(game.rating);
     const layoutPattern = [
-        'game-card--pattern-top',
-        'game-card--pattern-top',
-        'game-card--pattern-top',
-        'game-card--pattern-top',
-        'game-card--pattern-feature',
-        'game-card--pattern-feature',
-        'game-card--pattern-bottom',
-        'game-card--pattern-bottom',
-        'game-card--pattern-bottom',
+        'game-card--brick-top',
+        'game-card--brick-top',
+        'game-card--brick-top',
+        'game-card--brick-top',
+        'game-card--brick-bottom game-card--brick-bottom-1',
+        'game-card--brick-bottom game-card--brick-bottom-2',
+        'game-card--brick-bottom game-card--brick-bottom-3',
     ];
     const layoutClass = layoutPattern[index % layoutPattern.length];
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';

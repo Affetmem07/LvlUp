@@ -2595,7 +2595,7 @@ select {
 
 .game-card--list {
     min-height: 0;
-    aspect-ratio: auto;
+    aspect-ratio: 16 / 10;
     height: 100%;
 }
 
@@ -2603,19 +2603,26 @@ select {
     transform: translateY(-4px);
 }
 
-.game-card--pattern-top {
+.game-card--brick-top {
     grid-column: span 3;
     grid-row: span 18;
 }
 
-.game-card--pattern-feature {
-    grid-column: span 6;
-    grid-row: span 28;
+.game-card--brick-bottom {
+    grid-column: span 4;
+    grid-row: span 18;
 }
 
-.game-card--pattern-bottom {
-    grid-column: span 4;
-    grid-row: span 20;
+.game-card--brick-bottom-1 {
+    grid-column: 2 / span 3;
+}
+
+.game-card--brick-bottom-2 {
+    grid-column: 5 / span 3;
+}
+
+.game-card--brick-bottom-3 {
+    grid-column: 8 / span 3;
 }
 
 .game-card-cover {
@@ -4620,19 +4627,26 @@ select {
         gap: 12px;
     }
 
-    .game-card--pattern-top {
+    .game-card--brick-top {
         grid-column: span 3;
         grid-row: span 18;
     }
 
-    .game-card--pattern-feature {
-        grid-column: span 9;
-        grid-row: span 24;
-    }
-
-    .game-card--pattern-bottom {
+    .game-card--brick-bottom {
         grid-column: span 3;
         grid-row: span 18;
+    }
+
+    .game-card--brick-bottom-1 {
+        grid-column: 2 / span 3;
+    }
+
+    .game-card--brick-bottom-2 {
+        grid-column: 5 / span 3;
+    }
+
+    .game-card--brick-bottom-3 {
+        grid-column: 8 / span 3;
     }
 
     .game-detail-hero {
@@ -4743,12 +4757,17 @@ select {
     }
 
     .game-card--list,
-    .game-card--pattern-top,
-    .game-card--pattern-feature,
-    .game-card--pattern-bottom {
+    .game-card--brick-top,
+    .game-card--brick-bottom {
         grid-column: span 1;
         grid-row: auto;
         aspect-ratio: 16 / 11;
+    }
+
+    .game-card--brick-bottom-1,
+    .game-card--brick-bottom-2,
+    .game-card--brick-bottom-3 {
+        grid-column: span 1;
     }
 
     .game-card-overlay--hover {
