@@ -3336,32 +3336,34 @@ function renderGameCard(game) {
 
     return `
         <div class="game-card game-card--list" onclick="openGameDetail('${game.id}')">
-            <div class="game-card-media">
-                <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
-                     loading="lazy"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 400%22%3E%3Crect fill=%22%23111d17%22 width=%22300%22 height=%22400%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2220%22 x=%22150%22 y=%22200%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
-                ${game.rating > 0 ? `
-                    <div class="game-card-rating ${ratingClass}">
-                        ${starSvg}
-                        ${game.rating}
-                    </div>
-                ` : `
-                    <div class="game-card-rating medium">
-                        ⭐ TBA
-                    </div>
-                `}
-            </div>
-            <div class="game-card-body">
-                <div class="game-card-kicker">${escapeHtml(primaryGenre)}</div>
-                <div class="game-card-title">${escapeHtml(game.title)}</div>
-                <div class="game-card-meta">
-                    <span class="game-card-developer">${escapeHtml(game.developer || 'RAWG Oyun Verisi')}</span>
-                    <span class="game-card-year">${escapeHtml(String(releaseLabel))}</span>
+            <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
+                 loading="lazy"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
+            <div class="game-card-overlay game-card-overlay--hover">
+                <div class="game-card-overlay-top">
+                    <div class="game-card-kicker">${escapeHtml(primaryGenre)}</div>
+                    ${game.rating > 0 ? `
+                        <div class="game-card-rating ${ratingClass}">
+                            ${starSvg}
+                            ${game.rating}
+                        </div>
+                    ` : `
+                        <div class="game-card-rating medium">
+                            ⭐ TBA
+                        </div>
+                    `}
                 </div>
-                <div class="game-card-summary">${escapeHtml(summary)}</div>
-                <div class="game-card-extras">
-                    ${game.genres.slice(0, 2).map(g => `<span class="game-card-genre">${escapeHtml(g)}</span>`).join('')}
-                    ${game.platforms.length > 0 ? `<span class="game-card-platform">${escapeHtml(game.platforms[0])}${game.platforms.length > 1 ? ' +' + (game.platforms.length - 1) : ''}</span>` : ''}
+                <div class="game-card-overlay-body">
+                    <div class="game-card-title">${escapeHtml(game.title)}</div>
+                    <div class="game-card-meta">
+                        <span class="game-card-developer">${escapeHtml(game.developer || 'RAWG Oyun Verisi')}</span>
+                        <span class="game-card-year">${escapeHtml(String(releaseLabel))}</span>
+                    </div>
+                    <div class="game-card-summary">${escapeHtml(summary)}</div>
+                    <div class="game-card-extras">
+                        ${game.genres.slice(0, 2).map(g => `<span class="game-card-genre">${escapeHtml(g)}</span>`).join('')}
+                        ${game.platforms.length > 0 ? `<span class="game-card-platform">${escapeHtml(game.platforms[0])}${game.platforms.length > 1 ? ' +' + (game.platforms.length - 1) : ''}</span>` : ''}
+                    </div>
                 </div>
             </div>
         </div>
