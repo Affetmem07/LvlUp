@@ -62,10 +62,6 @@
 .game-detail-container {
     max-width: 1220px;
     background:
-        linear-gradient(rgba(228, 236, 240, 0.08) 0 0) 0 0 / 48px 24px repeat,
-        repeating-linear-gradient(to bottom, rgba(228, 236, 240, 0.16) 0 2px, transparent 2px 24px),
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.16) 0 2px, transparent 2px 48px) 0 0 / 96px 48px repeat,
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.16) 0 2px, transparent 2px 48px) 24px 24px / 96px 48px repeat,
         radial-gradient(circle at top left, rgba(41, 231, 184, 0.1), transparent 32%),
         linear-gradient(180deg, #10171c 0%, #0b1014 100%);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -80,12 +76,7 @@
 .game-detail-hero {
     height: auto;
     min-height: 700px;
-    background:
-        linear-gradient(rgba(228, 236, 240, 0.04) 0 0) 0 0 / 48px 24px repeat,
-        repeating-linear-gradient(to bottom, rgba(228, 236, 240, 0.12) 0 2px, transparent 2px 24px),
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.12) 0 2px, transparent 2px 48px) 0 0 / 96px 48px repeat,
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.12) 0 2px, transparent 2px 48px) 24px 24px / 96px 48px repeat,
-        linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
+    background: linear-gradient(140deg, #12292c 0%, #132028 42%, #0b1014 100%);
 }
 
 .game-detail-hero-bg {
@@ -289,20 +280,6 @@
     display: flex;
     flex-direction: column;
     gap: 26px;
-}
-
-.gd-detail-layout--masonry {
-    display: block;
-    column-count: 3;
-    column-gap: 22px;
-}
-
-.gd-masonry-card {
-    display: inline-block;
-    width: 100%;
-    margin: 0 0 22px;
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
 }
 
 .gd-section {
@@ -736,7 +713,6 @@
 }
 
 @media (max-width: 980px) {
-
     .gd-cinematic-hero,
     .gd-about-grid,
     .gd-specs-layout {
@@ -7579,7 +7555,6 @@ select {
 
 .gd-poster-card {
     position: relative;
-    isolation: isolate;
     border-radius: 14px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.46);
@@ -7587,8 +7562,6 @@ select {
 }
 
 .gd-poster-card .game-detail-cover {
-    position: relative;
-    z-index: 1;
     width: 100%;
     height: 560px;
     border: 0;
@@ -7608,12 +7581,7 @@ select {
 
 .gd-hero-stats-card .gd-hero-stat {
     padding: 22px 16px;
-    background:
-        linear-gradient(rgba(228, 236, 240, 0.03) 0 0) 0 0 / 48px 24px repeat,
-        repeating-linear-gradient(to bottom, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 24px),
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 48px) 0 0 / 96px 48px repeat,
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 48px) 24px 24px / 96px 48px repeat,
-        rgba(13, 22, 19, 0.92);
+    background: rgba(13, 22, 19, 0.92);
 }
 
 .gd-hero-stats-card .gd-hero-stat span {
@@ -7641,82 +7609,11 @@ select {
     gap: 26px;
 }
 
-.gd-detail-layout--masonry {
-    display: block;
-    column-count: 3;
-    column-gap: 22px;
-}
-
 .gd-section {
     border-radius: 18px;
-    background:
-        linear-gradient(rgba(228, 236, 240, 0.03) 0 0) 0 0 / 48px 24px repeat,
-        repeating-linear-gradient(to bottom, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 24px),
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 48px) 0 0 / 96px 48px repeat,
-        repeating-linear-gradient(to right, rgba(228, 236, 240, 0.08) 0 1px, transparent 1px 48px) 24px 24px / 96px 48px repeat,
-        rgba(12, 17, 18, 0.94);
+    background: rgba(12, 17, 18, 0.94);
     border: 1px solid rgba(8, 255, 191, 0.08);
     padding: 24px;
-}
-
-.gd-masonry-card .gd-section-title {
-    margin-bottom: 18px;
-}
-
-.gd-info-card--embedded,
-.gd-price-card--embedded {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-}
-
-.gd-info-card--embedded .gd-info-block:first-child {
-    padding-top: 0;
-}
-
-.gd-inline-gallery--masonry {
-    grid-template-columns: 1fr;
-}
-
-.gd-inline-shot--masonry {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 10;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.gd-inline-shot--masonry:nth-child(2) {
-    aspect-ratio: 16 / 13;
-}
-
-.gd-inline-shot--masonry:nth-child(3) {
-    aspect-ratio: 16 / 9;
-}
-
-.gd-specs-grid--masonry {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-}
-
-.gd-hero-stats-card--masonry {
-    grid-template-columns: 1fr;
-}
-
-.gd-masonry-card--story {
-    min-height: 0;
-}
-
-.gd-masonry-card--gallery .gd-inline-gallery {
-    gap: 12px;
-}
-
-.gd-masonry-card--posts .game-detail-posts-list {
-    gap: 12px;
 }
 
 .gd-section-title,
@@ -7966,11 +7863,6 @@ select {
 }
 
 @media (max-width: 980px) {
-
-    .gd-detail-layout--masonry {
-        column-count: 2;
-    }
-
     .gd-cinematic-hero,
     .gd-about-grid,
     .gd-specs-layout {
@@ -7981,10 +7873,6 @@ select {
 @media (max-width: 720px) {
     .game-detail-overlay {
         padding: 14px;
-    }
-
-    .gd-detail-layout--masonry {
-        column-count: 1;
     }
 
     .gd-cinematic-title {
