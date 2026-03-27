@@ -2562,25 +2562,26 @@ select {
 
 /* Game Grid */
 .games-grid {
-    column-count: 4;
-    column-gap: 20px;
-    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    gap: 20px;
+    align-items: stretch;
 }
 
 /* Game Card */
 .game-card {
     position: relative;
-    display: inline-block;
-    width: 100%;
-    margin: 0 0 20px;
+    display: block;
+    width: auto;
+    margin: 0;
+    grid-column: span 3;
     border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
     aspect-ratio: 3 / 4;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
     transform-origin: center center;
     transition: all var(--transition-normal);
 }
@@ -2601,19 +2602,28 @@ select {
 }
 
 .game-card--compact {
+    grid-column: span 3;
     aspect-ratio: 1 / 1;
 }
 
 .game-card--poster {
+    grid-column: span 4;
     aspect-ratio: 4 / 5.8;
 }
 
 .game-card--tall {
+    grid-column: span 4;
     aspect-ratio: 4 / 6.4;
 }
 
 .game-card--cinema {
-    aspect-ratio: 16 / 13;
+    grid-column: span 5;
+    aspect-ratio: 16 / 9.6;
+}
+
+.game-card--wide {
+    grid-column: span 6;
+    aspect-ratio: 16 / 8.4;
 }
 
 .game-card--lift {
@@ -2657,7 +2667,8 @@ select {
 }
 
 .game-card--compact .game-card-title,
-.game-card--cinema .game-card-title {
+.game-card--cinema .game-card-title,
+.game-card--wide .game-card-title {
     font-size: 0.98rem;
 }
 
@@ -3912,16 +3923,15 @@ select {
 .game-card-skeleton {
     min-height: 320px;
     aspect-ratio: 4 / 5.6;
-    display: inline-block;
-    width: 100%;
-    margin: 0 0 20px;
+    display: block;
+    width: auto;
+    margin: 0;
+    grid-column: span 4;
     border-radius: var(--radius-lg);
     background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border: 1px solid var(--border);
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
 }
 
 /* ================================================================
@@ -4546,7 +4556,7 @@ select {
     }
 
     .games-grid {
-        column-count: 3;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
     }
 }
 
@@ -4647,8 +4657,21 @@ select {
     }
 
     .games-grid {
-        column-count: 2;
-        column-gap: 12px;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .game-card,
+    .game-card--compact {
+        grid-column: span 3;
+    }
+
+    .game-card--poster,
+    .game-card--tall,
+    .game-card--cinema,
+    .game-card--wide,
+    .game-card-skeleton {
+        grid-column: span 3;
     }
 
     .game-detail-hero {
@@ -4752,7 +4775,7 @@ select {
 @media (max-width: 600px) {
     /* Games grid: 2 kolon */
     .games-grid {
-        column-count: 2;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
     }
 
@@ -4762,10 +4785,21 @@ select {
         transform: none;
     }
 
+    .game-card,
     .game-card--compact,
     .game-card--poster,
     .game-card--tall,
     .game-card--cinema,
+    .game-card--wide,
+    .game-card-skeleton {
+        grid-column: span 1;
+    }
+
+    .game-card--compact,
+    .game-card--poster,
+    .game-card--tall,
+    .game-card--cinema,
+    .game-card--wide,
     .game-card--lift,
     .game-card--tilt-left,
     .game-card--tilt-right,
@@ -4917,8 +4951,8 @@ select {
 
     /* Games: tek kolon */
     .games-grid {
-        column-count: 2;
-        column-gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
     }
 
     /* Game filter chips: scroll */

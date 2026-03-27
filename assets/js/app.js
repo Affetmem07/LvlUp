@@ -3352,7 +3352,7 @@ function renderGameCard(game) {
 
 // ── Rating Class Helper ──
 function getGameCardLayoutClass(game) {
-    const sizeVariants = ['game-card--poster', 'game-card--tall', 'game-card--cinema', 'game-card--compact'];
+    const sizeVariants = ['game-card--poster', 'game-card--cinema', 'game-card--wide', 'game-card--compact', 'game-card--tall'];
     const motionVariants = ['', 'game-card--tilt-left', 'game-card--tilt-right', 'game-card--lift'];
     const seedSource = `${game.id || ''}${game.title || ''}${game.releaseYear || ''}`;
     let hash = 0;
