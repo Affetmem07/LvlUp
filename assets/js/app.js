@@ -4148,22 +4148,6 @@ function renderGameDetailContentV5(game) {
                     </div>
                 </section>
 
-                ${screenshots.length > 0 ? `
-                    <section class="gd-v5-panel">
-                        <div class="gd-v5-panel-head">
-                            <span>Galeri</span>
-                            <strong>Ekran Goruntuleri</strong>
-                        </div>
-                        <div class="gd-v5-gallery">
-                            ${screenshots.map((shot, index) => `
-                                <button class="gd-v5-gallery-item" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Galeriyi ac ${index + 1}">
-                                    <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
-                                </button>
-                            `).join('')}
-                        </div>
-                    </section>
-                ` : ''}
-
                 ${game.systemRequirements && game.systemRequirements.length > 0 ? `
                     <section class="gd-v5-panel">
                         <div class="gd-v5-panel-head">
