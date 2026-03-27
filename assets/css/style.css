@@ -3884,6 +3884,168 @@ select {
     display: block;
 }
 
+.gd-v6-hero-shade {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(5, 17, 11, 0.9) 0%, rgba(5, 17, 11, 0.44) 42%, rgba(5, 17, 11, 0.84) 100%),
+        linear-gradient(180deg, rgba(5, 17, 11, 0.12), rgba(5, 17, 11, 0.88));
+}
+
+.gd-v6-hero-shell {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: end;
+    padding: 36px 40px;
+}
+
+.gd-v6-copy,
+.gd-v6-sidehero {
+    position: relative;
+    z-index: 2;
+}
+
+.gd-v6-topline,
+.gd-v6-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.gd-v6-badge {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(164, 198, 57, 0.14);
+    border: 1px solid rgba(164, 198, 57, 0.22);
+    color: var(--accent-light);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.gd-v6-badge--muted {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.gd-v6-title {
+    margin: 16px 0 12px;
+    font-size: clamp(2rem, 4.4vw, 4.2rem);
+    line-height: 0.98;
+    max-width: 12ch;
+}
+
+.gd-v6-summary {
+    max-width: 58ch;
+    color: rgba(241, 245, 249, 0.82);
+    font-size: 0.98rem;
+    line-height: 1.75;
+    margin-bottom: 16px;
+}
+
+.gd-v6-genres {
+    margin-bottom: 16px;
+}
+
+.gd-v6-sidehero {
+    padding: 18px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(12, 24, 17, 0.94), rgba(10, 18, 14, 0.84));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+}
+
+.gd-v6-cover {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.gd-v6-mini-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.gd-v6-mini-stat {
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gd-v6-mini-stat span {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(241, 245, 249, 0.56);
+}
+
+.gd-v6-mini-stat strong {
+    display: block;
+    margin-top: 8px;
+    color: #fff;
+    font-size: 1.15rem;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.gd-v6-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 22px;
+    align-items: start;
+}
+
+.gd-v6-main,
+.gd-v6-side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.gd-v6-side {
+    position: sticky;
+    top: 18px;
+}
+
+.gd-v6-panel {
+    background: linear-gradient(145deg, rgba(12, 24, 17, 0.96), rgba(10, 18, 14, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
+}
+
+.gd-v6-panel-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.gd-v6-panel-head span {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(241, 245, 249, 0.56);
+    font-weight: 700;
+}
+
+.gd-v6-panel-head strong {
+    color: #fff;
+    font-size: 1.02rem;
+    letter-spacing: -0.02em;
+}
+
 .game-detail-info {
     display: flex;
     flex-direction: column;
@@ -5617,6 +5779,28 @@ select {
         position: static;
     }
 
+    .gd-v6-hero-shell {
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 18px;
+        padding: 20px;
+    }
+
+    .gd-v6-cover {
+        height: 220px;
+    }
+
+    .gd-v6-mini-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .gd-v6-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .gd-v6-side {
+        position: static;
+    }
+
     .gd-info-row {
         grid-template-columns: 1fr;
     }
@@ -5845,6 +6029,23 @@ select {
 
     .gd-v5-gallery {
         grid-template-columns: 1fr;
+    }
+
+    .gd-v6-hero-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .gd-v6-sidehero {
+        display: none;
+    }
+
+    .gd-v6-title {
+        max-width: none;
+        font-size: 2rem;
+    }
+
+    .gd-v6-summary {
+        font-size: 0.94rem;
     }
 
     /* Creator overlay grid: 2 kolon */
