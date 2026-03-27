@@ -2586,22 +2586,22 @@ select {
 }
 
 .game-card--list {
-    display: grid;
-    grid-template-columns: minmax(0, 148px) minmax(0, 1fr);
-    align-items: stretch;
-    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     aspect-ratio: auto;
 }
 
 .game-card--list:hover {
-    transform: translateY(-4px);
+    transform: translateY(-4px) scale(1.01);
 }
 
 .game-card-media {
     position: relative;
-    min-height: 100%;
+    width: 100%;
     overflow: hidden;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .game-card-cover {
@@ -2617,7 +2617,10 @@ select {
 }
 
 .game-card--list .game-card-cover {
-    height: 100%;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
 }
 
 .game-card-overlay {
@@ -2646,9 +2649,8 @@ select {
 .game-card-body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px 16px 15px;
+    gap: 9px;
+    padding: 15px 16px 14px;
     background:
         radial-gradient(circle at top right, rgba(107, 170, 117, 0.14), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
@@ -2714,6 +2716,7 @@ select {
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 0;
+    font-size: 1.04rem;
 }
 
 .game-card-meta {
@@ -2725,10 +2728,10 @@ select {
 
 .game-card-summary {
     font-size: 0.84rem;
-    line-height: 1.55;
+    line-height: 1.5;
     color: var(--text-secondary);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -2760,7 +2763,7 @@ select {
 }
 
 .game-card--list .game-card-extras {
-    margin-top: 2px;
+    margin-top: 4px;
     opacity: 1;
     max-height: none;
     overflow: visible;
@@ -3910,7 +3913,7 @@ select {
 
 /* Game card skeleton */
 .game-card-skeleton {
-    min-height: 190px;
+    min-height: 320px;
     aspect-ratio: auto;
     border-radius: var(--radius-lg);
     background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
@@ -4752,13 +4755,11 @@ select {
     }
 
     .game-card--list {
-        grid-template-columns: 1fr;
         min-height: 0;
     }
 
     .game-card-media {
         min-height: 150px;
-        border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
