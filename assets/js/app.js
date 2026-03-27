@@ -4811,11 +4811,11 @@ const renderSystemRequirementCardsLatest = (requirements) => {
             <div class="gd-spec-duo">
                 <div class="gd-spec-card gd-spec-card--minimum">
                     <div class="gd-spec-card-title">Minimum</div>
-                    <div class="gd-spec-empty">RAWG bu oyun icin sistem gereksinimi donmuyor.</div>
+                    <div class="gd-spec-empty">Oyunun sistem gereksinimleri RAWG.io uzerinde olmadigindan dolayi sistem gereksinimi bulunamamistir.</div>
                 </div>
                 <div class="gd-spec-card gd-spec-card--recommended">
                     <div class="gd-spec-card-title">Onerilen</div>
-                    <div class="gd-spec-empty">Detay geldikce burada onerilen donanim gorunecek.</div>
+                    <div class="gd-spec-empty">Oyunun sistem gereksinimleri RAWG.io uzerinde olmadigindan dolayi sistem gereksinimi bulunamamistir.</div>
                 </div>
             </div>
         `;
