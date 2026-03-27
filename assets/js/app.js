@@ -3327,21 +3327,22 @@ function setupGamesInfiniteScroll() {
 // ── Render Game Card ──
 function renderGameCard(game, index = 0) {
     const ratingClass = getRatingClass(game.rating);
-    const mosaicPattern = [
-        'game-card--mosaic-wide',
-        'game-card--mosaic-compact',
-        'game-card--mosaic-tall',
-        'game-card--mosaic-feature',
-        'game-card--mosaic-compact',
-        'game-card--mosaic-wide',
-        'game-card--mosaic-tall',
-        'game-card--mosaic-compact',
+    const layoutPattern = [
+        'game-card--pattern-top',
+        'game-card--pattern-top',
+        'game-card--pattern-top',
+        'game-card--pattern-top',
+        'game-card--pattern-feature',
+        'game-card--pattern-feature',
+        'game-card--pattern-bottom',
+        'game-card--pattern-bottom',
+        'game-card--pattern-bottom',
     ];
-    const mosaicClass = mosaicPattern[index % mosaicPattern.length];
+    const layoutClass = layoutPattern[index % layoutPattern.length];
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
 
     return `
-        <div class="game-card game-card--list ${mosaicClass}" onclick="openGameDetail('${game.id}')">
+        <div class="game-card game-card--list ${layoutClass}" onclick="openGameDetail('${game.id}')">
             <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
                  loading="lazy"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">

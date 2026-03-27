@@ -2569,9 +2569,9 @@ select {
 /* Game Grid */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-auto-flow: dense;
-    grid-auto-rows: 8px;
+    grid-auto-rows: 10px;
     gap: 18px;
 }
 
@@ -2603,22 +2603,19 @@ select {
     transform: translateY(-4px);
 }
 
-.game-card--mosaic-feature {
-    grid-column: span 2;
-    grid-row: span 35;
+.game-card--pattern-top {
+    grid-column: span 3;
+    grid-row: span 18;
 }
 
-.game-card--mosaic-wide {
-    grid-column: span 2;
-    grid-row: span 26;
+.game-card--pattern-feature {
+    grid-column: span 6;
+    grid-row: span 28;
 }
 
-.game-card--mosaic-tall {
-    grid-row: span 34;
-}
-
-.game-card--mosaic-compact {
-    grid-row: span 22;
+.game-card--pattern-bottom {
+    grid-column: span 4;
+    grid-row: span 20;
 }
 
 .game-card-cover {
@@ -4619,13 +4616,23 @@ select {
     }
 
     .games-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(9, minmax(0, 1fr));
         gap: 12px;
     }
 
-    .game-card--mosaic-feature,
-    .game-card--mosaic-wide {
-        grid-column: span 2;
+    .game-card--pattern-top {
+        grid-column: span 3;
+        grid-row: span 18;
+    }
+
+    .game-card--pattern-feature {
+        grid-column: span 9;
+        grid-row: span 24;
+    }
+
+    .game-card--pattern-bottom {
+        grid-column: span 3;
+        grid-row: span 18;
     }
 
     .game-detail-hero {
@@ -4731,16 +4738,17 @@ select {
     /* Games grid: 2 kolon */
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: auto;
         gap: 10px;
     }
 
     .game-card--list,
-    .game-card--mosaic-feature,
-    .game-card--mosaic-wide,
-    .game-card--mosaic-tall,
-    .game-card--mosaic-compact {
+    .game-card--pattern-top,
+    .game-card--pattern-feature,
+    .game-card--pattern-bottom {
         grid-column: span 1;
-        grid-row: span 24;
+        grid-row: auto;
+        aspect-ratio: 16 / 11;
     }
 
     .game-card-overlay--hover {
