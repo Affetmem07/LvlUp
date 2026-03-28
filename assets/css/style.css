@@ -1695,6 +1695,10 @@ select {
     min-height: 100vh;
 }
 
+.main-layout.popular-layout {
+    padding-top: calc(var(--navbar-h) + 28px);
+}
+
 
 
 /* Trending Tags */
@@ -8905,10 +8909,11 @@ label[for="editBannerImage"] {
 
 .feed.popular-showcase-mode {
     max-width: 1380px;
+    padding-top: 8px;
 }
 
 .feed.popular-showcase-mode .feed-header {
-    margin-bottom: 18px;
+    margin-bottom: 10px;
 }
 
 .popular-showcase-shell {
@@ -8928,6 +8933,11 @@ label[for="editBannerImage"] {
         linear-gradient(180deg, rgba(10, 20, 15, 0.98), rgba(6, 11, 8, 0.98));
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     min-height: 0;
+}
+
+.popular-showcase-shell > .popular-hero-card {
+    width: min(100%, 1180px);
+    margin-inline: auto;
 }
 
 .popular-hero-bg,

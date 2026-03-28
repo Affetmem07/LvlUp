@@ -1475,6 +1475,9 @@ function navigate(page) {
         // Hide sidebar for non-home pages
         const homeSidebar = document.getElementById('homeSidebar');
         const mainLayout = document.getElementById('mainLayout');
+        if (mainLayout) {
+            mainLayout.classList.toggle('popular-layout', page === 'popular');
+        }
         if (page !== 'home' && page !== 'popular' && page !== 'reviews') {
             if (homeSidebar) homeSidebar.style.display = 'none';
             if (mainLayout) mainLayout.classList.remove('has-sidebar');
