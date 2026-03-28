@@ -734,7 +734,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Search – overlay approach
     const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', handleSearchOverlayInput);
+    searchInput.addEventListener('input', handleSearchOverlayInputV2);
 
     // Ctrl+K shortcut to open search
     document.addEventListener('keydown', (e) => {
@@ -2779,6 +2779,9 @@ function bookmarkPost(postId, event) {
 
 // ── Search Overlay System ──
 let searchSelectedIndex = -1;
+let searchOverlayGamesTimeout = null;
+let searchOverlayAbortController = null;
+let searchOverlayRequestId = 0;
 let bodyScrollLocked = false;
 let bodyScrollLockY = 0;
 
@@ -2825,10 +2828,12 @@ function openSearchOverlay() {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.add('active');
     syncViewportLock();
+    resetSearchOverlayGameSearch();
     const input = document.getElementById('searchInput');
     input.value = '';
     input.focus();
     searchSelectedIndex = -1;
+    window._searchCompletions = [];
     document.getElementById('searchAutocomplete').innerHTML = '';
     document.getElementById('searchAutocomplete').classList.remove('has-items');
     document.getElementById('searchFilteredPosts').innerHTML = '';
@@ -2838,7 +2843,9 @@ function closeSearchOverlay() {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.remove('active');
     syncViewportLock();
+    resetSearchOverlayGameSearch();
     searchSelectedIndex = -1;
+    window._searchCompletions = [];
 }
 
 function closeSearchOverlayOnBg(e) {
@@ -2991,6 +2998,238 @@ function handleSearchOverlayInput() {
     window._searchCompletions = completions;
 }
 
+function resetSearchOverlayGameSearch() {
+    if (searchOverlayGamesTimeout) {
+        clearTimeout(searchOverlayGamesTimeout);
+        searchOverlayGamesTimeout = null;
+    }
+
+    if (searchOverlayAbortController) {
+        searchOverlayAbortController.abort();
+        searchOverlayAbortController = null;
+    }
+}
+
+function cacheSearchGames(games) {
+    if (!Array.isArray(games) || games.length === 0) return;
+
+    games.forEach(game => {
+        const existingIndex = searchResultsGames.findIndex(item => item.id === game.id);
+        if (existingIndex === -1) {
+            searchResultsGames.push({ ...game });
+        } else {
+            searchResultsGames[existingIndex] = {
+                ...searchResultsGames[existingIndex],
+                ...game
+            };
+        }
+    });
+}
+
+function mergeSearchAutocompleteCompletions(localCompletions, gameCompletions) {
+    const merged = [];
+    const seenCompletions = new Set();
+
+    [...gameCompletions, ...localCompletions].forEach(completion => {
+        const key = (completion.text || '').trim().toLowerCase();
+        if (!key || seenCompletions.has(key)) return;
+        seenCompletions.add(key);
+        merged.push(completion);
+    });
+
+    return merged.slice(0, 6);
+}
+
+function renderSearchAutocomplete(query, completions) {
+    const autocompleteEl = document.getElementById('searchAutocomplete');
+    window._searchCompletions = completions;
+
+    if (completions.length === 0) {
+        autocompleteEl.innerHTML = '';
+        autocompleteEl.classList.remove('has-items');
+        return;
+    }
+
+    autocompleteEl.innerHTML = `
+        <div class="autocomplete-label">Tamamlamalar</div>
+        ${completions.map((c, i) => {
+            const iconMarkup = c.thumbnailUrl
+                ? `<img src="${escapeHtml(c.thumbnailUrl)}" alt="${escapeHtml(c.text)}" loading="lazy">`
+                : (c.icon || '?');
+
+            return `
+                <div class="autocomplete-item ${i === searchSelectedIndex ? 'selected' : ''}" 
+                     data-index="${i}" 
+                     onclick="handleAutocompleteClick(${i})"
+                     onmouseenter="searchSelectedIndex = ${i}; updateAutocompleteSelection()">
+                    <div class="autocomplete-item-icon">${iconMarkup}</div>
+                    <div class="autocomplete-item-text">
+                        <div class="autocomplete-item-title">${highlightCompletion(escapeHtml(c.text), query)}</div>
+                        <div class="autocomplete-item-meta">${escapeHtml(c.meta || '')}</div>
+                    </div>
+                    <span class="autocomplete-item-action">Enter ↵</span>
+                </div>
+            `;
+        }).join('')}
+    `;
+    autocompleteEl.classList.add('has-items');
+}
+
+function handleSearchOverlayInputV2() {
+    const searchInput = document.getElementById('searchInput');
+    const rawQuery = searchInput.value.trim();
+    const query = rawQuery.toLowerCase();
+    const filteredPostsEl = document.getElementById('searchFilteredPosts');
+    searchSelectedIndex = -1;
+    resetSearchOverlayGameSearch();
+
+    if (query.length < 1) {
+        renderSearchAutocomplete('', []);
+        filteredPostsEl.innerHTML = '';
+        return;
+    }
+
+    const localCompletions = [];
+    const seenCompletions = new Set();
+
+    allPosts.forEach(p => {
+        const titleLower = p.title.toLowerCase();
+        if (titleLower.includes(query) && !seenCompletions.has(titleLower)) {
+            seenCompletions.add(titleLower);
+            localCompletions.push({
+                text: p.title,
+                type: 'post',
+                icon: '&#128240;',
+                meta: getCategoryName(p.category),
+                postId: p.id
+            });
+        }
+
+        p.tags.forEach(tag => {
+            const tagLower = tag.toLowerCase();
+            if (tagLower.includes(query) && !seenCompletions.has(tagLower)) {
+                seenCompletions.add(tagLower);
+                localCompletions.push({
+                    text: tag,
+                    type: 'tag',
+                    icon: '#',
+                    meta: 'Etiket',
+                    postId: null
+                });
+            }
+        });
+    });
+
+    const categoryNames = {
+        fps: 'FPS', rpg: 'RPG', moba: 'MOBA',
+        'battle-royale': 'Battle Royale', indie: 'Indie',
+        strateji: 'Strateji', genel: 'Genel'
+    };
+    Object.entries(categoryNames).forEach(([key, name]) => {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes(query) && !seenCompletions.has(nameLower)) {
+            seenCompletions.add(nameLower);
+            localCompletions.push({
+                text: name,
+                type: 'category',
+                icon: '&#127918;',
+                meta: 'Kategori',
+                postId: null,
+                categoryKey: key
+            });
+        }
+    });
+
+    renderSearchAutocomplete(query, localCompletions.slice(0, 5));
+
+    const filteredPosts = allPosts.filter(p =>
+        p.title.toLowerCase().includes(query) ||
+        p.content.toLowerCase().includes(query) ||
+        p.tags.some(t => t.toLowerCase().includes(query)) ||
+        getCategoryName(p.category).toLowerCase().includes(query)
+    ).slice(0, 6);
+
+    if (filteredPosts.length > 0) {
+        filteredPostsEl.innerHTML = `
+            <div class="filtered-posts-label">&#304;&#231;erikler (${filteredPosts.length} sonu&#231;)</div>
+            ${filteredPosts.map(p => {
+            const author = userMap.get(p.userId) || { username: 'Bilinmeyen', id: 'u0' };
+            const initial = author.username.charAt(0).toUpperCase();
+            const gIdx = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
+            const snippet = getSnippet(p.content, query);
+            return `
+                    <div class="filtered-post-item" onclick="selectSearchPost('${p.id}')">
+                        <div class="filtered-post-avatar" style="background:${avatarGradients[gIdx]}">${initial}</div>
+                        <div class="filtered-post-info">
+                            <div class="filtered-post-title">${highlightCompletion(escapeHtml(p.title), query)}</div>
+                            <div class="filtered-post-snippet">${highlightCompletion(escapeHtml(snippet), query)}</div>
+                            <div class="filtered-post-meta">
+                                <span class="filtered-post-badge badge-${p.category}">${getCategoryName(p.category)}</span>
+                                <span>${escapeHtml(author.username)}</span>
+                                <span>&bull; ${getTimeAgo(p.date)}</span>
+                                <span>&hearts; ${p.likes.length}</span>
+                                <span>C ${p.comments.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }).join('')}
+        `;
+    } else if (query.length >= 2) {
+        filteredPostsEl.innerHTML = `
+                <div class="search-no-results">
+                    <div class="search-no-results-icon">&#128269;</div>
+                <h4>"${escapeHtml(query)}" i&#231;in sonu&#231; bulunamad&#305;</h4>
+                <p>Farkl&#305; anahtar kelimeler deneyebilirsiniz</p>
+            </div>
+        `;
+    } else {
+        filteredPostsEl.innerHTML = '';
+    }
+
+    if (query.length < 2) return;
+
+    searchOverlayGamesTimeout = setTimeout(async () => {
+        const myRequestId = ++searchOverlayRequestId;
+        searchOverlayAbortController = new AbortController();
+
+        try {
+            const result = await searchRawgGames(rawQuery, {
+                signal: searchOverlayAbortController.signal,
+                pageSize: 20,
+                minValid: 4,
+                maxPages: 2
+            });
+            if (myRequestId !== searchOverlayRequestId) return;
+
+            const currentQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+            if (currentQuery !== query) return;
+
+            const games = (result?.games || []).slice(0, 4);
+            cacheSearchGames(games);
+
+            const gameCompletions = games.map(game => ({
+                text: game.title,
+                type: 'game',
+                icon: '&#127918;',
+                meta: ['Oyun', game.releaseYear].filter(Boolean).join(' / '),
+                gameId: game.id,
+                gameData: game,
+                thumbnailUrl: game.coverUrl || game.backgroundUrl || ''
+            }));
+
+            renderSearchAutocomplete(query, mergeSearchAutocompleteCompletions(localCompletions, gameCompletions));
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Search overlay RAWG error:', error);
+        } finally {
+            if (myRequestId === searchOverlayRequestId) {
+                searchOverlayAbortController = null;
+            }
+        }
+    }, 250);
+}
+
 function highlightCompletion(text, query) {
     if (!query) return text;
     const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
@@ -3017,10 +3256,14 @@ function handleAutocompleteClick(index) {
     if (c.postId) {
         closeSearchOverlay();
         expandPost(c.postId);
+    } else if (c.type === 'game' && c.gameData) {
+        cacheSearchGames([c.gameData]);
+        closeSearchOverlay();
+        openGameDetail(c.gameId || c.gameData.id);
     } else if (c.type === 'tag') {
         // Fill the search input with the tag and re-search
         document.getElementById('searchInput').value = c.text.replace('#', '');
-        handleSearchOverlayInput();
+        handleSearchOverlayInputV2();
     } else if (c.type === 'category' && c.categoryKey) {
         closeSearchOverlay();
         filterCategory(c.categoryKey);
@@ -3121,7 +3364,7 @@ async function loadSearchResultsGames(query) {
 
         if (searchResultsGames.length > 0) {
             gamesContainer.style.display = 'block';
-            gamesGrid.innerHTML = renderGamesBrickLayout(searchResultsGames);
+            gamesGrid.innerHTML = renderSearchResultsGameCards(searchResultsGames);
         } else {
             gamesContainer.style.display = 'none';
             gamesGrid.innerHTML = '';
@@ -5063,6 +5306,10 @@ function renderGamesBrickLayout(games) {
     }
 
     return html;
+}
+
+function renderSearchResultsGameCards(games) {
+    return games.map(game => renderGameCard(game)).join('');
 }
 
 function renderCreatorGamesBrickLayout(games) {
