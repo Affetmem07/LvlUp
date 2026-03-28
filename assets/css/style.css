@@ -1768,15 +1768,7 @@ select {
 
 .page-title-icon-shell,
 .page-pill-title > svg {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    background: none;
-    border: 0;
-    box-shadow: none;
+    display: none;
 }
 
 .page-title-icon-svg,
@@ -6297,8 +6289,7 @@ label[for="editBannerImage"] {
 
     .page-title-icon-shell,
     .page-pill-title > svg {
-        width: 28px;
-        height: 28px;
+        display: none;
     }
 
     .page-title-icon-svg,
