@@ -527,6 +527,7 @@ let currentPage = 'home';
 let currentSort = 'newest';
 let currentCategory = null;
 let allGames = [];
+let searchResultsGames = [];
 let currentGameFilter = 'all';
 let currentGameSearch = '';
 let currentProfileTab = 'posts';
@@ -3060,6 +3061,84 @@ function handleSearchKeyNav(e) {
 }
 
 // ── Search Results Page Rendering ──
+function updateSearchResultsEmptyState() {
+    const emptyContainer = document.getElementById('searchResEmpty');
+    if (!emptyContainer) return;
+
+    const resultContainerIds = [
+        'searchResUsersContainer',
+        'searchResGamesContainer',
+        'searchResBrowserGamesContainer',
+        'searchResReviewsContainer',
+        'searchResPostsContainer'
+    ];
+
+    const hasVisibleResults = resultContainerIds.some(id => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+    });
+
+    emptyContainer.style.display = (hasVisibleResults || searchResultsGamesLoading) ? 'none' : 'block';
+}
+
+async function loadSearchResultsGames(query) {
+    const normalizedQuery = (query || '').trim();
+    const gamesContainer = document.getElementById('searchResGamesContainer');
+    const gamesGrid = document.getElementById('searchResGames');
+
+    if (!gamesContainer || !gamesGrid) return;
+
+    if (searchResultsAbortController) searchResultsAbortController.abort();
+    searchResultsGames = [];
+    searchResultsGamesLoading = false;
+
+    if (normalizedQuery.length < 2) {
+        gamesContainer.style.display = 'none';
+        gamesGrid.innerHTML = '';
+        updateSearchResultsEmptyState();
+        return;
+    }
+
+    searchResultsAbortController = new AbortController();
+    const myRequestId = ++searchResultsRequestId;
+    searchResultsGamesLoading = true;
+    gamesContainer.style.display = 'block';
+    gamesGrid.innerHTML = Array.from({ length: 8 }, () =>
+        '<div class="game-card-skeleton"></div>'
+    ).join('');
+    updateSearchResultsEmptyState();
+
+    try {
+        const result = await searchRawgGames(normalizedQuery, {
+            signal: searchResultsAbortController.signal,
+            pageSize: 40,
+            minValid: 12,
+            maxPages: 5
+        });
+        if (myRequestId !== searchResultsRequestId) return;
+
+        searchResultsGames = (result?.games || []).slice(0, 20);
+
+        if (searchResultsGames.length > 0) {
+            gamesContainer.style.display = 'block';
+            gamesGrid.innerHTML = renderGamesBrickLayout(searchResultsGames);
+        } else {
+            gamesContainer.style.display = 'none';
+            gamesGrid.innerHTML = '';
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('Search Results RAWG Error:', error);
+        gamesContainer.style.display = 'none';
+        gamesGrid.innerHTML = '';
+    } finally {
+        if (myRequestId === searchResultsRequestId) {
+            searchResultsGamesLoading = false;
+            updateSearchResultsEmptyState();
+        }
+    }
+}
+
 function renderSearchResultsPage(query) {
     document.getElementById('searchResultsKeyword').textContent = '"' + query + '"';
     query = query.toLowerCase();
@@ -3088,32 +3167,7 @@ function renderSearchResultsPage(query) {
         usersGrid.innerHTML = '';
     }
 
-    // 2. Games
-    const games = allGames.filter(g =>
-        (g.name && g.name.toLowerCase().includes(query)) ||
-        (g.tags && g.tags.some(t => t && t.toLowerCase().includes(query))) ||
-        (g.developer && g.developer.toLowerCase().includes(query))
-    );
-    const gamesContainer = document.getElementById('searchResGamesContainer');
-    const gamesGrid = document.getElementById('searchResGames');
-    if (games.length > 0) {
-        gamesContainer.style.display = 'block';
-        gamesGrid.innerHTML = games.map(g => {
-            return `
-                <div class="game-card" onclick="openGameDetail('${g.id}')">
-                    <img src="${g.coverUrl || ''}" alt="${escapeHtml(g.name)}" class="game-card-cover" onerror="this.style.display='none'">
-                    <div class="game-card-overlay">
-                        <div class="game-card-title">${escapeHtml(g.name)}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } else {
-        gamesContainer.style.display = 'none';
-        gamesGrid.innerHTML = '';
-    }
-
-    // 3. Browser Games
+    // 2. Browser Games
     let bGames = [];
     if (typeof allBrowserGames !== 'undefined') {
         bGames = allBrowserGames.filter(g => g.title.toLowerCase().includes(query));
@@ -3138,7 +3192,7 @@ function renderSearchResultsPage(query) {
         bGamesGrid.innerHTML = '';
     }
 
-    // 4. Posts and Reviews
+    // 3. Posts and Reviews
     const matchedPosts = allPosts.filter(p =>
         (p.title && p.title.toLowerCase().includes(query)) ||
         (p.content && p.content.toLowerCase().includes(query)) ||
@@ -3167,13 +3221,7 @@ function renderSearchResultsPage(query) {
         postsGrid.innerHTML = '';
     }
 
-    // Empty state check
-    const emptyContainer = document.getElementById('searchResEmpty');
-    if (users.length === 0 && games.length === 0 && bGames.length === 0 && reviews.length === 0 && otherPosts.length === 0) {
-        emptyContainer.style.display = 'block';
-    } else {
-        emptyContainer.style.display = 'none';
-    }
+    loadSearchResultsGames(query);
 }
 
 function updateAutocompleteSelection() {
@@ -3712,6 +3760,9 @@ let gamesSearchTimeout = null;
 let gamesScrollObserver = null;
 let gamesAbortController = null;
 let gamesRequestId = 0;
+let searchResultsGamesLoading = false;
+let searchResultsAbortController = null;
+let searchResultsRequestId = 0;
 
 // ── Reviews Pinterest State ──
 let reviewsScrollObserver = null;
@@ -4603,33 +4654,36 @@ async function fetchGameDetails(gameId) {
         if (!detailRes.ok) throw new Error(`API Hatası: ${detailRes.status}`);
         const detail = await detailRes.json();
 
-        // Update the game in allGames with detailed info
-        const gameIndex = allGames.findIndex(g => g.id === String(gameId));
-        if (gameIndex !== -1) {
+        // Update the game in any active game collection
+        const matchingGames = [allGames, searchResultsGames]
+            .flatMap(gameList => gameList.filter(g => g.id === String(gameId)));
+        if (matchingGames.length > 0) {
             // Clean HTML from description
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = detail.description || '';
             const cleanDescription = tempDiv.textContent || tempDiv.innerText || '';
 
-            allGames[gameIndex].description = cleanDescription;
-            allGames[gameIndex].developer = (detail.developers || []).map(d => d.name).join(', ') || 'Bilinmiyor';
-            allGames[gameIndex].publisher = (detail.publishers || []).map(p => p.name).join(', ') || 'Bilinmiyor';
-            allGames[gameIndex].developerData = (detail.developers || []).map(d => ({ name: d.name, slug: d.slug }));
-            allGames[gameIndex].publisherData = (detail.publishers || []).map(p => ({ name: p.name, slug: p.slug }));
-            allGames[gameIndex].backgroundUrl = detail.background_image_additional || detail.background_image || allGames[gameIndex].coverUrl;
-            allGames[gameIndex].website = detail.website || '';
-            allGames[gameIndex].redditUrl = detail.reddit_url || '';
+            matchingGames.forEach(game => {
+                game.description = cleanDescription;
+                game.developer = (detail.developers || []).map(d => d.name).join(', ') || 'Bilinmiyor';
+                game.publisher = (detail.publishers || []).map(p => p.name).join(', ') || 'Bilinmiyor';
+                game.developerData = (detail.developers || []).map(d => ({ name: d.name, slug: d.slug }));
+                game.publisherData = (detail.publishers || []).map(p => ({ name: p.name, slug: p.slug }));
+                game.backgroundUrl = detail.background_image_additional || detail.background_image || game.coverUrl;
+                game.website = detail.website || '';
+                game.redditUrl = detail.reddit_url || '';
 
-            if (detail.metacritic) {
-                allGames[gameIndex].metacritic = detail.metacritic;
-                allGames[gameIndex].rating = detail.metacritic;
-            }
-            if (detail.playtime) {
-                allGames[gameIndex].playtime = `${detail.playtime} saat`;
-            }
-            if (detail.esrb_rating) {
-                allGames[gameIndex].esrbRating = detail.esrb_rating.name;
-            }
+                if (detail.metacritic) {
+                    game.metacritic = detail.metacritic;
+                    game.rating = detail.metacritic;
+                }
+                if (detail.playtime) {
+                    game.playtime = `${detail.playtime} saat`;
+                }
+                if (detail.esrb_rating) {
+                    game.esrbRating = detail.esrb_rating.name;
+                }
+            });
 
             // Extract system requirements
             const requirements = [];
@@ -4644,21 +4698,26 @@ async function fetchGameDetails(gameId) {
                     }
                 });
             }
-            allGames[gameIndex].systemRequirements = requirements;
+            matchingGames.forEach(game => {
+                game.systemRequirements = requirements;
+            });
 
             // Fetch screenshots
             try {
                 const ssRes = await fetch(`${RAWG_BASE_URL}/games/${gameId}/screenshots?key=${RAWG_API_KEY}&page_size=20`);
                 if (ssRes.ok) {
                     const ssData = await ssRes.json();
-                    allGames[gameIndex].screenshots = (ssData.results || []).map(s => s.image);
+                    const screenshots = (ssData.results || []).map(s => s.image);
+                    matchingGames.forEach(game => {
+                        game.screenshots = screenshots;
+                    });
                 }
             } catch (ssErr) {
                 console.warn('Screenshots alınamadı:', ssErr);
             }
         }
 
-        return allGames[gameIndex] || null;
+        return matchingGames[0] || null;
     } catch (error) {
         console.error('Oyun detayı alınırken hata:', error);
         return null;
@@ -5059,7 +5118,8 @@ function getRatingClass(rating) {
 
 // ── Open Game Detail ──
 async function openGameDetail(gameId) {
-    let game = allGames.find(g => g.id === String(gameId));
+    let game = allGames.find(g => g.id === String(gameId)) ||
+        searchResultsGames.find(g => g.id === String(gameId));
     if (!game) return;
 
     // If creator overlay is open, close it first
