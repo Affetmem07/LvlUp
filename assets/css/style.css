@@ -5332,7 +5332,7 @@ select {
 
 .profile-info {
     min-width: 0;
-    padding-top: 88px;
+    padding-top: 54px;
     padding-bottom: 6px;
 }
 
@@ -5445,7 +5445,7 @@ select {
     gap: 12px;
     align-self: start;
     justify-self: end;
-    padding-top: 88px;
+    padding-top: 54px;
 }
 
 .profile-actions .btn,
@@ -6088,7 +6088,7 @@ select {
 
     .profile-info,
     .profile-actions {
-        padding-top: 78px;
+        padding-top: 48px;
     }
 
     .games-grid {
