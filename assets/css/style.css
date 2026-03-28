@@ -1745,32 +1745,82 @@ select {
 
 /* Pill-badge title – Feed sayfası */
 .feed-header h1 {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .page-pill-title {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    border-radius: 999px;
-    border: 1.5px solid rgba(45, 90, 67, 0.6);
-    background: rgba(15, 29, 23, 0.85);
-    color: var(--accent-light);
+    gap: 14px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
     font-family: 'Inter', sans-serif;
-    font-size: 1.02rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    margin: 0 0 16px 0;
+    font-size: clamp(2rem, 4vw, 3.35rem);
+    font-weight: 900;
+    line-height: 0.96;
+    text-transform: none;
+    letter-spacing: -0.05em;
+    box-shadow: none;
+    margin: 0 0 12px 0;
 }
 
-.page-pill-title svg {
+.page-title-icon-shell,
+.page-pill-title > svg {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    color: var(--accent-light);
-    width: 18px;
-    height: 18px;
+    background:
+        linear-gradient(145deg, rgba(39, 61, 47, 0.9), rgba(11, 20, 15, 0.95));
+    border: 1px solid rgba(122, 177, 138, 0.22);
+    box-shadow:
+        0 16px 28px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.page-title-icon-svg,
+.page-pill-title > svg {
+    color: #d8efe1;
+    width: 24px;
+    height: 24px;
+}
+
+.page-title-text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.24em;
+    flex-wrap: wrap;
+}
+
+.page-title-muted {
+    color: rgba(236, 241, 238, 0.84);
+}
+
+.page-title-accent {
+    color: transparent;
+    background: linear-gradient(135deg, #8ff7c4 0%, #4fe09e 45%, #2dbe81 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.page-title-keyword,
+#searchResultsKeyword {
+    display: inline-flex;
+    align-items: baseline;
+    margin-left: 0.14em;
+    color: rgba(236, 241, 238, 0.66);
+    font-size: 0.76em;
+    letter-spacing: -0.03em;
+}
+
+.page-title-keyword:empty,
+#searchResultsKeyword:empty {
+    display: none;
 }
 
 .feed-tabs {
@@ -6238,6 +6288,25 @@ label[for="editBannerImage"] {
     .games-page {
         margin-left: 0;
         padding: 16px;
+    }
+
+    .page-pill-title {
+        gap: 10px;
+        font-size: clamp(1.55rem, 7.5vw, 2.35rem);
+        margin-bottom: 10px;
+    }
+
+    .page-title-icon-shell,
+    .page-pill-title > svg {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+    }
+
+    .page-title-icon-svg,
+    .page-pill-title > svg {
+        width: 20px;
+        height: 20px;
     }
 
     .profile-page {

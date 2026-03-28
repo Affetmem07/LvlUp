@@ -997,6 +997,7 @@ async function fetchConfig() {
 
 // ── Initialize ──
 document.addEventListener('DOMContentLoaded', async () => {
+    initializePageTitleMarkup();
     await fetchConfig();
     if (allPosts.length === 0) seedData();
     const normalizedPosts = normalizeDemoPostImages(allPosts);
@@ -1508,11 +1509,7 @@ function navigate(page) {
             searchResultsPage.style.display = 'block';
         } else {
             feed.style.display = '';
-            document.getElementById('feedTitleText').textContent = (titles[page] || 'Ana Sayfa').toUpperCase();
-            const feedIcon = document.getElementById('feedTitleIcon');
-            if (feedIcon) {
-                feedIcon.innerHTML = icons[page] || icons['home'];
-            }
+            setFeedPageTitle(titles[page] || 'Ana Sayfa', icons[page] || icons['home']);
             renderFeed();
         }
 
@@ -1538,6 +1535,57 @@ function navigate(page) {
 
         showIncoming();
     }, { once: true });
+}
+
+function buildPageTitleMarkup(title) {
+    const normalized = String(title || '').trim();
+    if (!normalized) {
+        return '<span class="page-title-accent">LvlUp</span>';
+    }
+
+    const words = normalized.split(/\s+/).filter(Boolean);
+    if (words.length === 1) {
+        return `<span class="page-title-accent">${escapeHtml(words[0])}</span>`;
+    }
+
+    const lead = words.slice(0, -1).join(' ');
+    const accent = words[words.length - 1];
+    return `
+        <span class="page-title-muted">${escapeHtml(lead)}</span>
+        <span class="page-title-accent">${escapeHtml(accent)}</span>
+    `;
+}
+
+function setFeedPageTitle(title, iconMarkup) {
+    const titleEl = document.getElementById('feedTitleText');
+    if (titleEl) {
+        titleEl.innerHTML = buildPageTitleMarkup(title);
+    }
+
+    const feedIcon = document.getElementById('feedTitleIcon');
+    if (feedIcon) {
+        feedIcon.innerHTML = iconMarkup || '';
+    }
+}
+
+function initializePageTitleMarkup() {
+    const searchTitle = document.getElementById('searchResultsTitle');
+    if (searchTitle && !searchTitle.querySelector('.page-title-text')) {
+        const existingKeyword = document.getElementById('searchResultsKeyword')?.textContent || '';
+        searchTitle.innerHTML = `
+            <span class="page-title-icon-shell" aria-hidden="true">
+                <svg class="page-title-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </span>
+            <span class="page-title-text">
+                <span class="page-title-muted">Arama</span>
+                <span class="page-title-accent">Sonuçları</span>
+                <span id="searchResultsKeyword" class="page-title-keyword">${escapeHtml(existingKeyword)}</span>
+            </span>
+        `;
+    }
 }
 
 function filterCategory(cat) {
@@ -1568,11 +1616,10 @@ function filterCategory(cat) {
 
     const showFeed = () => {
         feed.style.display = '';
-        document.getElementById('feedTitleText').textContent = (catNames[cat] || cat).toUpperCase();
-        const feedIcon = document.getElementById('feedTitleIcon');
-        if (feedIcon) {
-            feedIcon.innerHTML = '<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>';
-        }
+        setFeedPageTitle(
+            catNames[cat] || cat,
+            '<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>'
+        );
         renderFeed();
         feed.classList.remove('page-enter');
         void feed.offsetWidth;
