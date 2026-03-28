@@ -907,31 +907,22 @@
                             <label for="editAvatarImage">Avatar Resmi Yükle</label>
                             <input type="file" id="editAvatarImage" accept="image/png, image/jpeg, image/gif"
                                 class="file-input">
+                            <div class="edit-media-preview-card edit-media-preview-card--avatar" id="editAvatarPreview">
+                                <div class="edit-media-preview-label">Avatar resmi</div>
+                                <div class="edit-media-preview-surface edit-media-preview-surface--avatar">
+                                    <div class="edit-media-preview-avatar" id="editAvatarPreviewImage"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="editBannerImage">Banner Arka Planı Yükle</label>
                             <input type="file" id="editBannerImage" accept="image/png, image/jpeg, image/gif"
                                 class="file-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Standart Avatar Rengi</label>
-                            <div class="avatar-color-picker" id="avatarColorPicker">
-                                <div class="avatar-color-option" data-gradient="0" onclick="selectAvatarColor(0)"
-                                    style="background: linear-gradient(135deg, #2D5A43, #8FBC8F)"></div>
-                                <div class="avatar-color-option" data-gradient="1" onclick="selectAvatarColor(1)"
-                                    style="background: linear-gradient(135deg, #BC6C25, #DDA15E)"></div>
-                                <div class="avatar-color-option" data-gradient="2" onclick="selectAvatarColor(2)"
-                                    style="background: linear-gradient(135deg, #606C38, #283618)"></div>
-                                <div class="avatar-color-option" data-gradient="3" onclick="selectAvatarColor(3)"
-                                    style="background: linear-gradient(135deg, #A4C639, #6BAA75)"></div>
-                                <div class="avatar-color-option" data-gradient="4" onclick="selectAvatarColor(4)"
-                                    style="background: linear-gradient(135deg, #4A3E3F, #7B6B67)"></div>
-                                <div class="avatar-color-option" data-gradient="5" onclick="selectAvatarColor(5)"
-                                    style="background: linear-gradient(135deg, #3A5A40, #588157)"></div>
-                                <div class="avatar-color-option" data-gradient="6" onclick="selectAvatarColor(6)"
-                                    style="background: linear-gradient(135deg, #344E41, #A3B18A)"></div>
-                                <div class="avatar-color-option" data-gradient="7" onclick="selectAvatarColor(7)"
-                                    style="background: linear-gradient(135deg, #354F52, #52796F)"></div>
+                            <div class="edit-media-preview-card" id="editBannerPreview">
+                                <div class="edit-media-preview-label">Banner resmi</div>
+                                <div class="edit-media-preview-surface edit-media-preview-surface--banner">
+                                    <div class="edit-media-preview-banner" id="editBannerPreviewImage"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

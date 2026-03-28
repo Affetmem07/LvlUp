@@ -532,7 +532,6 @@ let currentGameFilter = 'all';
 let currentGameSearch = '';
 let currentProfileTab = 'posts';
 let activeProfileUserId = null;
-let selectedAvatarColor = 0;
 let hasLoadedGamesCatalog = false;
 let homeHeroGames = {
     newest: [],
@@ -3897,6 +3896,9 @@ function debounce(fn, delay) {
     };
 }
 
+document.getElementById('editAvatarImage')?.addEventListener('change', handleEditProfileImageChange);
+document.getElementById('editBannerImage')?.addEventListener('change', handleEditProfileImageChange);
+
 // ================================================================
 //   PROFILE PAGE SYSTEM
 // ================================================================
@@ -4328,17 +4330,13 @@ function openEditProfile() {
     if (!currentUser) return;
     document.getElementById('editUsername').value = currentUser.username;
     document.getElementById('editBio').value = currentUser.bio || '';
-    const gradientIdx = currentUser.avatarGradient !== undefined ? currentUser.avatarGradient : (parseInt(currentUser.id.replace('u', '')) % AVATAR_GRADIENTS.length);
-    selectedAvatarColor = gradientIdx;
-    document.querySelectorAll('.avatar-color-option').forEach(el => {
-        el.classList.toggle('selected', parseInt(el.dataset.gradient) === gradientIdx);
-    });
     const favGameVal = currentUser.favGame || '';
     document.getElementById('editFavGame').value = favGameVal;
     document.getElementById('favGameSelectText').textContent = favGameVal || 'Oyun Seçilmedi';
 
     document.getElementById('editAvatarImage').value = '';
     document.getElementById('editBannerImage').value = '';
+    syncEditProfileMediaPreviews();
 
     openModal('editProfileModal');
 }
@@ -4429,11 +4427,73 @@ document.addEventListener('click', (e) => {
     }
 });
 
-function selectAvatarColor(idx) {
-    selectedAvatarColor = idx;
-    document.querySelectorAll('.avatar-color-option').forEach(el => {
-        el.classList.toggle('selected', parseInt(el.dataset.gradient) === idx);
+function convertImageFileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
     });
+}
+
+function setEditProfilePreview(targetId, imageData, placeholderText, fallbackStyle = '', fallbackText = '') {
+    const previewEl = document.getElementById(targetId);
+    if (!previewEl) return;
+
+    previewEl.dataset.placeholder = placeholderText;
+    previewEl.classList.toggle('has-image', Boolean(imageData));
+    previewEl.style.background = imageData ? '' : fallbackStyle;
+    previewEl.style.backgroundImage = imageData ? `url('${imageData}')` : 'none';
+    previewEl.style.backgroundSize = imageData ? 'cover' : '';
+    previewEl.style.backgroundPosition = imageData ? 'center' : '';
+    previewEl.textContent = imageData ? '' : fallbackText;
+}
+
+function syncEditProfileMediaPreviews() {
+    if (!currentUser) return;
+
+    const avatarGradientIdx = currentUser.avatarGradient !== undefined
+        ? currentUser.avatarGradient
+        : (parseInt(currentUser.id.replace('u', '')) % AVATAR_GRADIENTS.length);
+    const avatarFallback = AVATAR_GRADIENTS[avatarGradientIdx] || AVATAR_GRADIENTS_LIST[avatarGradientIdx];
+    const avatarInitial = currentUser.username ? currentUser.username.charAt(0).toUpperCase() : '?';
+
+    setEditProfilePreview(
+        'editAvatarPreviewImage',
+        currentUser.avatarImage || '',
+        'HenÃ¼z avatar resmi seÃ§ilmedi.',
+        avatarFallback || '',
+        avatarInitial
+    );
+    setEditProfilePreview(
+        'editBannerPreviewImage',
+        currentUser.bannerImage || '',
+        'HenÃ¼z banner resmi seÃ§ilmedi.',
+        'linear-gradient(135deg, rgba(45, 90, 67, 0.75), rgba(15, 23, 19, 0.95))'
+    );
+}
+
+async function handleEditProfileImageChange(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+
+    if (!file) {
+        syncEditProfileMediaPreviews();
+        return;
+    }
+
+    try {
+        const imageData = await convertImageFileToBase64(file);
+        if (input.id === 'editAvatarImage') {
+            setEditProfilePreview('editAvatarPreviewImage', imageData, 'HenÃ¼z avatar resmi seÃ§ilmedi.');
+        } else if (input.id === 'editBannerImage') {
+            setEditProfilePreview('editBannerPreviewImage', imageData, 'HenÃ¼z banner resmi seÃ§ilmedi.');
+        }
+    } catch (error) {
+        console.error('Edit profile preview error:', error);
+        showToast('Resim Ã¶nizlemesi oluÅŸturulamadÄ±', 'error');
+        syncEditProfileMediaPreviews();
+    }
 }
 
 async function handleEditProfile(e) {
@@ -4447,22 +4507,14 @@ async function handleEditProfile(e) {
     }
     currentUser.username = newUsername;
     currentUser.bio = newBio;
-    currentUser.avatarGradient = selectedAvatarColor;
     currentUser.favGame = document.getElementById('editFavGame').value.trim();
-
-    const convertToBase64 = (file) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
 
     const avatarFile = document.getElementById('editAvatarImage').files[0];
     const bannerFile = document.getElementById('editBannerImage').files[0];
 
     try {
-        if (avatarFile) currentUser.avatarImage = await convertToBase64(avatarFile);
-        if (bannerFile) currentUser.bannerImage = await convertToBase64(bannerFile);
+        if (avatarFile) currentUser.avatarImage = await convertImageFileToBase64(avatarFile);
+        if (bannerFile) currentUser.bannerImage = await convertImageFileToBase64(bannerFile);
     } catch (err) {
         showToast('Resim yüklenirken hata oluştu', 'error');
         return;

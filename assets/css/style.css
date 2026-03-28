@@ -2677,6 +2677,87 @@ select {
     border-color: var(--accent);
 }
 
+.edit-media-preview-card {
+    margin-top: 12px;
+    border: 1px solid rgba(45, 90, 67, 0.26);
+    border-radius: var(--radius-md);
+    background: rgba(5, 8, 7, 0.55);
+    overflow: hidden;
+}
+
+.edit-media-preview-label {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    border-bottom: 1px solid rgba(45, 90, 67, 0.2);
+}
+
+.edit-media-preview-surface {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at top, rgba(143, 188, 143, 0.14), transparent 58%),
+        linear-gradient(180deg, rgba(20, 30, 24, 0.9), rgba(6, 10, 8, 0.95));
+}
+
+.edit-media-preview-surface--avatar {
+    min-height: 138px;
+}
+
+.edit-media-preview-surface--banner {
+    min-height: 142px;
+}
+
+.edit-media-preview-avatar,
+.edit-media-preview-banner {
+    position: relative;
+    overflow: hidden;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.edit-media-preview-avatar::before,
+.edit-media-preview-banner::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+}
+
+.edit-media-preview-avatar.has-image::before,
+.edit-media-preview-banner.has-image::before {
+    display: none;
+}
+
+.edit-media-preview-avatar {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: 3px solid rgba(163, 177, 138, 0.45);
+    box-shadow: 0 18px 28px rgba(0, 0, 0, 0.28);
+}
+
+.edit-media-preview-banner {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 16 / 6;
+    border-radius: 18px;
+    border: 1px solid rgba(163, 177, 138, 0.28);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.24);
+}
+
 .form-group label {
     display: block;
     font-size: 0.85rem;
