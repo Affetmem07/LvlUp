@@ -3,618 +3,1132 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mayın Tarlası</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mayın Tarlası – LvlUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700&display=swap"
+        rel="stylesheet">
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
-
-        body {
-            font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
-            background: rgb(15, 29, 23);
-            color: #f1f5f9;
+        /* ═══════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
-            padding: 10px 14px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
+            padding: 0;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        :root {
+            --bg: #080f0b;
+            --bg-board: #0d1a10;
+            /* gap rengi — hücreden koyu */
+            --cell: #1b3022;
+            --cell-h: #233d2b;
+            --cell-open: #070e09;
+            --cell-flag: #1d2d0c;
+            --cell-boom: #5a0000;
+            --cell-dead: #2a0707;
+
+            --g-dark: #1A3A2A;
+            --g-mid: #2D5A43;
+            --g-light: #6BAA75;
+            --neon: #A4C639;
+            --neon-glow: rgba(164, 198, 57, .55);
+            --red: #8B0000;
+
+            --txt: #f1f5f9;
+            --txt-dim: #94a3b8;
+            --txt-muted: #4d6858;
+
+            --border: rgba(45, 90, 67, .38);
+            --surface: rgba(12, 22, 16, .9);
+        }
+
+        html {
             height: 100dvh;
             overflow: hidden;
         }
 
-        /* ── TOP PANEL ── */
-        .top-panel {
-            flex-shrink: 0;
-            width: 100%;
-            max-width: 960px;
-            background: rgba(15, 29, 23, 0.45);
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(45, 90, 67, 0.4);
-            margin-bottom: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        body {
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: var(--txt);
+            background: var(--bg);
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+        }
+
+        /* ═══════════════════════════════
+   HUD  (top)
+═══════════════════════════════ */
+        .hud {
+            flex-shrink: 0;
+            display: flex;
             align-items: center;
             gap: 10px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 10;
             flex-wrap: wrap;
         }
 
-        .top-left, .top-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: nowrap;
-        }
-
-        .top-title {
-            color: #6BAA75;
-            margin: 0;
-            font-size: 1.4rem;
+        .hud-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--g-light);
+            letter-spacing: .06em;
             white-space: nowrap;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 0 14px rgba(107, 170, 117, .4);
         }
 
-        .diff-group {
+        .diff-tabs {
             display: flex;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid var(--border);
+            border-radius: 7px;
             overflow: hidden;
-            border: 1px solid rgba(45, 90, 67, 0.4);
         }
 
-        .diff-btn {
-            background: transparent;
-            color: #a4c639;
-            border: none;
-            padding: 7px 14px;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
+        .diff-tab {
+            padding: 6px 13px;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--neon);
+            line-height: 1;
             white-space: nowrap;
+            transition: background .15s, color .15s;
         }
 
-        .diff-btn:hover { background: rgba(255,255,255,0.05); }
-
-        .diff-btn.active {
-            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
-            color: white;
+        .diff-tab:hover {
+            background: rgba(255, 255, 255, .07);
         }
 
-        .stats-box {
-            display: flex;
-            gap: 16px;
-            font-size: 1.1rem;
-            color: #A4C639;
-            font-weight: bold;
-            background: rgba(0,0,0,0.2);
-            padding: 7px 14px;
-            border-radius: 8px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-            white-space: nowrap;
+        .diff-tab.on {
+            background: linear-gradient(135deg, var(--g-mid), var(--g-dark));
+            color: #fff;
         }
 
-        .btn {
-            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
-            color: white;
-            border: none;
-            padding: 7px 16px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(45, 90, 67, 0.35);
-            transition: all 0.2s;
+        .hud-spacer {
+            flex: 1;
+        }
+
+        .lcd {
             display: flex;
             align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            gap: 5px;
+            padding: 5px 11px;
+            background: #020b04;
+            border: 1px solid rgba(164, 198, 57, .16);
+            border-radius: 7px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, .5);
         }
 
-        .btn:hover {
+        .lcd-icon {
+            font-size: .8rem;
+            line-height: 1;
+        }
+
+        .lcd-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon);
+            text-shadow: 0 0 8px var(--neon-glow);
+            min-width: 2.2ch;
+            text-align: right;
+            letter-spacing: .04em;
+        }
+
+        .hud-btn {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--g-mid), var(--g-dark));
+            border-radius: 8px;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(45, 90, 67, .4);
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .hud-btn:hover {
             transform: translateY(-2px);
-            background: linear-gradient(135deg, #6BAA75, #2D5A43);
+            box-shadow: 0 5px 14px rgba(45, 90, 67, .55);
         }
 
-        /* ── GRID AREA ──
-           JS calculates --sz and sets gridTemplateColumns before render,
-           so the grid always fits the container exactly — no overflow, no scroll.
-        */
-        .grid-container {
+        .hud-btn:active {
+            transform: scale(.92);
+        }
+
+        .hud-btn svg {
+            display: block;
+        }
+
+        /* ═══════════════════════════════
+   BOARD WRAP
+═══════════════════════════════ */
+        .board-wrap {
             flex: 1;
             min-height: 0;
-            width: 100%;
-            max-width: 960px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
 
+        /* ═══════════════════════════════
+   GRID & CELLS
+═══════════════════════════════ */
         .grid {
             display: grid;
-            gap: 2px;
-            background: rgba(255,255,255,0.05);
-            padding: 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
+            gap: var(--gap, 4px);
+            background: var(--bg-board);
+            /* gap rengi buradan geliyor */
+            padding: var(--gap, 4px);
+            border-radius: 10px;
         }
 
-        .cell {
-            width: var(--sz, 28px);
-            height: var(--sz, 28px);
-            background: rgba(255,255,255,0.1);
+        .c {
+            width: var(--sz);
+            height: var(--sz);
+            background: var(--cell);
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: calc(var(--sz, 28px) * 0.52);
+            font-size: calc(var(--sz) * .48);
+            font-weight: 700;
+            line-height: 1;
             cursor: pointer;
             user-select: none;
-            transition: background 0.1s;
+            -webkit-user-select: none;
+            touch-action: none;
+            position: relative;
+            transition: background .1s, transform .08s;
         }
 
-        .cell:hover  { background: rgba(255,255,255,0.2); }
-        .cell.revealed { background: rgba(15,29,23,0.8); cursor: default; }
-        .cell.mine     { background: #8B0000; }
-
-        @keyframes popIn {
-            0%   { transform: scale(0.3); opacity: 0; }
-            50%  { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1);   opacity: 1; }
+        .c:hover:not(.open):not(.boom):not(.dead) {
+            background: var(--cell-h);
         }
 
-        .cell.mine.anim {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        .c:active:not(.open) {
+            transform: scale(.86);
         }
 
-        .color-1 { color: #6BAA75; }
-        .color-2 { color: #A4C639; }
-        .color-3 { color: #DDA15E; }
-        .color-4 { color: #BC6C25; }
-        .color-5 { color: #8B0000; }
-        .color-6 { color: #ffeb3b; }
-        .color-7 { color: #ff9800; }
-        .color-8 { color: #f44336; }
-
-        /* ── GAME OVER MODAL ── */
-        .game-over {
-            position: fixed;
-            inset: 0;
-            margin: auto;
-            width: min(90vw, 340px);
-            height: fit-content;
-            background: rgba(15,29,23,0.97);
-            padding: 36px 32px;
-            border-radius: 16px;
-            border: 2px solid #8B0000;
-            text-align: center;
-            display: none;
-            box-shadow: 0 0 50px rgba(139,0,0,0.5);
-            z-index: 100;
+        .c.open {
+            background: var(--cell-open);
+            cursor: default;
         }
 
-        .game-over h2 { color: #8B0000; margin-top: 0; }
-
-        .game-won {
-            border-color: #A4C639;
-            box-shadow: 0 0 50px rgba(164,198,57,0.3);
+        .c.flag {
+            background: var(--cell-flag);
         }
 
-        .game-won h2 { color: #A4C639; }
+        .c.boom {
+            background: var(--cell-boom) !important;
+            box-shadow: 0 0 10px rgba(139, 0, 0, .7) !important;
+            cursor: default;
+        }
 
-        .show { display: block !important; }
+        .c.dead {
+            background: var(--cell-dead);
+            cursor: default;
+        }
 
-        /* ── MOBILE CONTROLS ── */
-        .mobile-controls {
+        /* long-press ring */
+        .c.pressing::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border-radius: 3px;
+            border: 2px solid var(--neon);
+            opacity: 0;
+            animation: pressRing .44s linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes pressRing {
+            0% {
+                opacity: 0;
+                transform: scale(.4);
+            }
+
+            35% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* pop */
+        @keyframes cellPop {
+            0% {
+                transform: scale(.1);
+                opacity: 0;
+            }
+
+            55% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .c.pop {
+            animation: cellPop .28s cubic-bezier(.175, .885, .32, 1.275) forwards;
+        }
+
+        /* chord */
+        @keyframes chordFlash {
+
+            0%,
+            100% {
+                background: var(--cell-open);
+            }
+
+            45% {
+                background: rgba(45, 90, 67, .5);
+            }
+        }
+
+        .c.chord {
+            animation: chordFlash .26s ease;
+        }
+
+        /* win */
+        @keyframes winPulse {
+
+            0%,
+            100% {
+                background: var(--cell-open);
+            }
+
+            40% {
+                background: rgba(45, 100, 67, .45);
+            }
+        }
+
+        .c.win {
+            animation: winPulse .5s ease var(--wd, 0ms) both;
+        }
+
+        /* number colors */
+        .n1 {
+            color: #6BAA75
+        }
+
+        .n2 {
+            color: #A4C639
+        }
+
+        .n3 {
+            color: #DDA15E
+        }
+
+        .n4 {
+            color: #BC6C25
+        }
+
+        .n5 {
+            color: #d95f5f
+        }
+
+        .n6 {
+            color: #f5c518
+        }
+
+        .n7 {
+            color: #ff7043
+        }
+
+        .n8 {
+            color: #ef5350
+        }
+
+        /* ═══════════════════════════════
+   ACTION BAR  (bottom)
+═══════════════════════════════ */
+        .action-bar {
             flex-shrink: 0;
             display: flex;
-            gap: 10px;
-            padding: 8px 0 4px;
-            width: 100%;
-            max-width: 960px;
+            gap: 8px;
+            padding: 8px 14px 10px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             justify-content: center;
+            z-index: 10;
         }
 
-        .mobile-btn {
+        .mode-btn {
             flex: 1;
             max-width: 200px;
             padding: 10px 16px;
-            font-size: 1rem;
-            font-weight: bold;
-            font-family: inherit;
-            border: 2px solid rgba(45,90,67,0.4);
-            border-radius: 12px;
-            background: rgba(0,0,0,0.3);
-            color: #a4c639;
-            cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            user-select: none;
+            gap: 7px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, .3);
+            color: var(--neon);
+            font-size: .88rem;
+            font-weight: 700;
             white-space: nowrap;
+            transition: all .18s;
         }
 
-        .mobile-btn:hover { background: rgba(255,255,255,0.08); }
-
-        .mobile-btn.active {
-            background: linear-gradient(135deg, #2D5A43, #1A3A2A);
-            color: white;
-            border-color: #6BAA75;
-            box-shadow: 0 0 14px rgba(107,170,117,0.45);
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, .07);
         }
 
-        /* ── SMALL SCREENS ── */
-        @media (max-width: 480px) {
-            body { padding: 6px 8px; }
+        .mode-btn.on {
+            background: linear-gradient(135deg, var(--g-mid), var(--g-dark));
+            border-color: var(--g-light);
+            color: #fff;
+            box-shadow: 0 0 16px rgba(107, 170, 117, .3);
+        }
 
-            .top-panel {
-                padding: 7px 10px;
-                margin-bottom: 6px;
+        /* ═══════════════════════════════
+   RESULT OVERLAY
+═══════════════════════════════ */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .r-card {
+            width: min(88vw, 310px);
+            background: linear-gradient(155deg, rgba(14, 26, 19, .98), rgba(7, 12, 9, .98));
+            border-radius: 18px;
+            padding: 30px 24px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transform: scale(.82);
+            transition: transform .28s cubic-bezier(.175, .885, .32, 1.275);
+        }
+
+        .overlay.show .r-card {
+            transform: scale(1);
+        }
+
+        .r-card.lost {
+            border: 2px solid var(--red);
+            box-shadow: 0 0 55px rgba(139, 0, 0, .4);
+        }
+
+        .r-card.won {
+            border: 2px solid var(--neon);
+            box-shadow: 0 0 55px rgba(164, 198, 57, .22);
+        }
+
+        .r-emoji {
+            font-size: 2.8rem;
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+
+        .r-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+        }
+
+        .r-card.lost .r-title {
+            color: #e05555;
+        }
+
+        .r-card.won .r-title {
+            color: var(--neon);
+            text-shadow: 0 0 10px var(--neon-glow);
+        }
+
+        .r-sub {
+            font-size: .88rem;
+            color: var(--txt-dim);
+            margin-bottom: 6px;
+        }
+
+        .r-stats {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin: 4px 0 18px;
+        }
+
+        .r-stat {
+            flex: 1;
+            padding: 8px 8px 9px;
+            background: rgba(0, 0, 0, .3);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+        }
+
+        .r-stat-l {
+            font-size: .64rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--txt-muted);
+            margin-bottom: 3px;
+        }
+
+        .r-stat-v {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--neon);
+        }
+
+        .r-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--g-mid), var(--g-dark));
+            color: #fff;
+            font-size: .92rem;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(45, 90, 67, .4);
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .r-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(45, 90, 67, .55);
+        }
+
+        .r-btn:active {
+            transform: scale(.97);
+        }
+
+        /* ═══════════════════════════════════════════════════════
+   DESKTOP  (≥ 769px)
+   Board ortalanmış kart içinde, hücreler ekrana sığacak
+═══════════════════════════════════════════════════════ */
+        @media (min-width: 769px) {
+            .board-wrap {
+                padding: 14px;
+            }
+
+            .grid {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+                border: 1px solid var(--border);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+   MOBİL  (≤ 768px) — sıfırdan tasarım
+═══════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* ── HUD: 2 SATIR ──────────────────────────────────
+     Satır 1: zorluk tab barı (tam genişlik)
+     Satır 2: mayın sayacı  +  süre  +  yeni oyun
+  ─────────────────────────────────────────────────── */
+            .hud {
+                flex-wrap: wrap;
+                /* diff-tabs kendi satırına düşsün */
+                padding: 0;
+                gap: 0;
+                align-items: stretch;
+            }
+
+            .hud-title {
+                display: none;
+            }
+
+            .hud-spacer {
+                display: none;
+            }
+
+            /* SATIR 1 */
+            .diff-tabs {
+                width: 100%;
+                border-radius: 0;
+                border: none;
+                border-bottom: 1px solid var(--border);
+                background: rgba(0, 0, 0, .18);
+            }
+
+            .diff-tab {
+                flex: 1;
+                text-align: center;
+                padding: 12px 6px;
+                font-size: .83rem;
+            }
+
+            /* SATIR 2 */
+            .lcd {
+                padding: 10px 14px;
+                border-radius: 0;
+                background: transparent;
+                border: none;
+                box-shadow: none;
                 gap: 6px;
             }
 
-            .top-title { display: none; }
-
-            .top-left, .top-right { gap: 6px; }
-
-            .diff-btn  { padding: 6px 9px;  font-size: 0.8rem; }
-            .stats-box { gap: 10px; font-size: 0.9rem; padding: 6px 10px; }
-            .btn       { padding: 6px 10px; font-size: 0.82rem; }
-
-            .mobile-controls { padding: 6px 0 2px; gap: 8px; }
-            .mobile-btn      { padding: 9px 12px;  font-size: 0.92rem; }
-            .game-over       { padding: 24px 18px; }
-        }
-
-        /* ── LANDSCAPE PHONES ── */
-        @media (max-height: 480px) and (orientation: landscape) {
-            body { padding: 4px 10px; }
-
-            .top-panel {
-                padding: 5px 12px;
-                margin-bottom: 4px;
-                border-radius: 8px;
+            .lcd-val {
+                font-size: 1.05rem;
+                min-width: 2.2ch;
             }
 
-            .top-title { display: none; }
+            .lcd-icon {
+                font-size: .85rem;
+            }
 
-            .diff-btn  { padding: 4px 10px; font-size: 0.8rem; }
-            .stats-box { font-size: 0.85rem; padding: 4px 10px; }
-            .btn       { padding: 4px 10px;  font-size: 0.82rem; }
+            .hud-btn {
+                margin-left: auto;
+                /* sağa it */
+                margin-right: 12px;
+                align-self: center;
+                width: 38px;
+                height: 38px;
+                border-radius: 9px;
+                flex-shrink: 0;
+            }
 
-            .mobile-controls { padding: 4px 0 2px; }
-            .mobile-btn      { padding: 6px 14px;  font-size: 0.88rem; }
+            /* ── BOARD ──────────────────────────────────────────
+     Kart çerçevesi yok. Grid arka planı gap rengi görevi görür.
+     Board tam kalan yüksekliği kullanır, overflow: hidden (hücreler sığar).
+  ─────────────────────────────────────────────────── */
+            .board-wrap {
+                padding: 10px;
+                overflow: hidden;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg);
+            }
+
+            .grid {
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 9px;
+            }
+
+            .c {
+                border-radius: 6px;
+            }
+
+            /* ── ACTION BAR ─────────────────────────────────────
+     İki büyük mod butonu. Minimum 52px yükseklik.
+  ─────────────────────────────────────────────────── */
+            .action-bar {
+                padding: 10px 12px 16px;
+                gap: 10px;
+            }
+
+            .mode-btn {
+                max-width: none;
+                flex: 1;
+                padding: 16px 10px;
+                font-size: 1rem;
+                border-radius: 14px;
+                border-width: 2px;
+                letter-spacing: .01em;
+            }
+        }
+
+        /* ── LANDSCAPE TELEFON ── */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .hud-title {
+                display: none;
+            }
+
+            .hud {
+                flex-wrap: nowrap;
+                padding: 5px 12px;
+                align-items: center;
+            }
+
+            .diff-tabs {
+                width: auto;
+                border: 1px solid var(--border);
+                border-radius: 7px;
+                background: rgba(0, 0, 0, .35);
+            }
+
+            .diff-tab {
+                padding: 5px 10px;
+                font-size: .74rem;
+            }
+
+            .lcd {
+                padding: 4px 9px;
+                background: #020b04;
+                border: 1px solid rgba(164, 198, 57, .16);
+                border-radius: 7px;
+                box-shadow: inset 0 2px 5px rgba(0, 0, 0, .5);
+            }
+
+            .lcd-val {
+                font-size: .85rem;
+            }
+
+            .hud-btn {
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .board-wrap {
+                padding: 5px 8px;
+            }
+
+            .action-bar {
+                padding: 5px 12px 8px;
+                gap: 8px;
+            }
+
+            .mode-btn {
+                padding: 8px 14px;
+                font-size: .84rem;
+                border-radius: 10px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="top-panel">
-        <div class="top-left">
-            <h1 class="top-title">Mayın Tarlası</h1>
-            <div class="diff-group">
-                <button class="diff-btn active" id="btn-easy"   onclick="setDifficulty('easy')">Kolay</button>
-                <button class="diff-btn"         id="btn-medium" onclick="setDifficulty('medium')">Orta</button>
-                <button class="diff-btn"         id="btn-hard"   onclick="setDifficulty('hard')">Zor</button>
-            </div>
+    <!-- HUD -->
+    <header class="hud">
+        <div class="diff-tabs">
+            <button class="diff-tab on" id="d-easy" onclick="setDiff('easy')">Kolay</button>
+            <button class="diff-tab" id="d-medium" onclick="setDiff('medium')">Orta</button>
+            <button class="diff-tab" id="d-hard" onclick="setDiff('hard')">Zor</button>
         </div>
-        <div class="top-right">
-            <div class="stats-box">
-                <div title="Kalan Mayın">💣 <span id="minesText">10</span></div>
-                <div title="Geçen Süre (saniye)">⏱️ <span id="timerText">0</span></div>
-            </div>
-            <button class="btn" onclick="initGame()" title="Yeniden Başlat">🔄 Yenile</button>
+        <div class="hud-spacer"></div>
+        <div class="lcd" title="Kalan mayın">
+            <span class="lcd-icon">💣</span>
+            <span class="lcd-val" id="hud-mines">10</span>
         </div>
-    </div>
+        <div class="lcd" title="Süre">
+            <span class="lcd-icon">⏱</span>
+            <span class="lcd-val" id="hud-time">0</span>
+        </div>
+        <button class="hud-btn" onclick="newGame()" title="Yeni oyun">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+            </svg>
+        </button>
+    </header>
 
-    <div class="grid-container">
+    <!-- BOARD -->
+    <div class="board-wrap" id="boardWrap">
         <div class="grid" id="grid"></div>
     </div>
 
-    <div class="mobile-controls">
-        <button class="mobile-btn active" id="digBtn"  onclick="setMobileMode('dig')">⛏️ Kürek</button>
-        <button class="mobile-btn"        id="flagBtn" onclick="setMobileMode('flag')">🚩 Bayrak</button>
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+        <button class="mode-btn on" id="btn-dig" onclick="setMode('dig')">⛏️ Kürek</button>
+        <button class="mode-btn" id="btn-flag" onclick="setMode('flag')">🚩 Bayrak</button>
     </div>
 
-    <div class="game-over" id="gameOverModal">
-        <h2 id="gameOverTitle">Oyun Bitti!</h2>
-        <p  id="gameOverDesc">Mayına bastın...</p>
-        <button class="btn" onclick="initGame()" style="margin: 20px auto 0; justify-content: center;">Tekrar Dene</button>
+    <!-- RESULT OVERLAY -->
+    <div class="overlay" id="overlay">
+        <div class="r-card" id="rCard">
+            <div class="r-emoji" id="rEmoji">💣</div>
+            <div class="r-title" id="rTitle">Oyun Bitti</div>
+            <div class="r-sub" id="rSub">Mayına bastın!</div>
+            <div class="r-stats">
+                <div class="r-stat">
+                    <div class="r-stat-l">Süre</div>
+                    <div class="r-stat-v" id="rTime">0s</div>
+                </div>
+                <div class="r-stat">
+                    <div class="r-stat-l">Mayın</div>
+                    <div class="r-stat-v" id="rMines">10</div>
+                </div>
+                <div class="r-stat">
+                    <div class="r-stat-l">Zorluk</div>
+                    <div class="r-stat-v" id="rDiff">Kolay</div>
+                </div>
+            </div>
+            <button class="r-btn" onclick="newGame()">Tekrar Oyna</button>
+        </div>
     </div>
 
     <script>
         /* ── AUDIO ── */
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc  = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            const t = audioCtx.currentTime;
-
-            if (type === 'click') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, t);
-                osc.frequency.exponentialRampToValueAtTime(500, t + 0.05);
-                gain.gain.setValueAtTime(0.15, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-                osc.start(t); osc.stop(t + 0.1);
-            } else if (type === 'flag') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(600, t);
-                osc.frequency.setValueAtTime(800, t + 0.05);
-                gain.gain.setValueAtTime(0.06, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-                osc.start(t); osc.stop(t + 0.1);
-            } else if (type === 'pop') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(120, t);
-                osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
-                gain.gain.setValueAtTime(0.2, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-                osc.start(t); osc.stop(t + 0.2);
-            } else if (type === 'boom') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, t);
-                osc.frequency.exponentialRampToValueAtTime(20, t + 0.5);
-                gain.gain.setValueAtTime(0.6, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-                osc.start(t); osc.stop(t + 0.5);
-            } else if (type === 'win') {
-                osc.type = 'sine';
-                [400, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) =>
-                    osc.frequency.setValueAtTime(f, t + i * 0.1));
-                gain.gain.setValueAtTime(0.3, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.6);
-                osc.start(t); osc.stop(t + 0.6);
-            } else if (type === 'lose') {
-                osc.type = 'sawtooth';
-                [300, 250, 200, 150].forEach((f, i) =>
-                    osc.frequency.setValueAtTime(f, t + i * 0.2));
-                gain.gain.setValueAtTime(0.3, t);
-                gain.gain.linearRampToValueAtTime(0, t + 1.0);
-                osc.start(t); osc.stop(t + 1.0);
-            }
+        let _ac;
+        function ac() {
+            if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+            if (_ac.state === 'suspended') _ac.resume();
+            return _ac;
+        }
+        function beep(t) {
+            try {
+                const c = ac(), now = c.currentTime;
+                const o = c.createOscillator(), g = c.createGain();
+                o.connect(g); g.connect(c.destination);
+                ({
+                    dig: () => { o.type = 'sine'; o.frequency.setValueAtTime(300, now); o.frequency.linearRampToValueAtTime(480, now + .06); g.gain.setValueAtTime(.12, now); g.gain.exponentialRampToValueAtTime(.001, now + .12); o.start(now); o.stop(now + .12); },
+                    flag: () => { o.type = 'square'; o.frequency.setValueAtTime(640, now); o.frequency.setValueAtTime(860, now + .05); g.gain.setValueAtTime(.05, now); g.gain.exponentialRampToValueAtTime(.001, now + .12); o.start(now); o.stop(now + .12); },
+                    pop: () => { o.type = 'triangle'; o.frequency.setValueAtTime(120, now); o.frequency.exponentialRampToValueAtTime(40, now + .2); g.gain.setValueAtTime(.15, now); g.gain.exponentialRampToValueAtValue(.001, now + .2); o.start(now); o.stop(now + .2); },
+                    boom: () => { o.type = 'sawtooth'; o.frequency.setValueAtTime(160, now); o.frequency.exponentialRampToValueAtTime(18, now + .6); g.gain.setValueAtTime(.5, now); g.gain.exponentialRampToValueAtTime(.001, now + .6); o.start(now); o.stop(now + .6); },
+                    win: () => { o.type = 'sine';[400, 523, 659, 784, 1047].forEach((f, i) => o.frequency.setValueAtTime(f, now + i * .09)); g.gain.setValueAtTime(.25, now); g.gain.linearRampToValueAtTime(0, now + .6); o.start(now); o.stop(now + .6); },
+                    lose: () => { o.type = 'sawtooth';[280, 230, 180, 130].forEach((f, i) => o.frequency.setValueAtTime(f, now + i * .22)); g.gain.setValueAtTime(.25, now); g.gain.linearRampToValueAtTime(0, now + 1.1); o.start(now); o.stop(now + 1.1); },
+                })[t]?.();
+            } catch (_) { }
         }
 
-        /* ── GAME STATE ── */
-        let ROWS = 9, COLS = 9, MINES = 10;
-        let board = [], revealedCount = 0, flaggedCount = 0;
-        let isGameOver = false, isFirstClick = true;
-        let timer = 0, timerInterval;
-        let mobileMode = 'dig';
+        /* ── STATE ── */
+        let ROWS = 9, COLS = 9, MINES = 10, DIFF = 'Kolay';
+        let board = [], opened = 0, flagged = 0;
+        let over = false, fresh = true, secs = 0, ticker = null, mode = 'dig';
+        let explodeTimers = [];
 
         const gridEl = document.getElementById('grid');
+        const isMob = () => window.innerWidth <= 768;
 
-        function setDifficulty(level) {
-            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + level).classList.add('active');
-            const narrow = window.innerWidth < 540;
-            if      (level === 'easy')   { ROWS = 9;  COLS = 9;  MINES = 10; }
-            else if (level === 'medium') { ROWS = 16; COLS = 16; MINES = 40; }
-            else if (level === 'hard')   { ROWS = 16; COLS = narrow ? 20 : 30; MINES = narrow ? 80 : 99; }
-            initGame();
+        /* ── DIFFICULTY ── */
+        function setDiff(lvl) {
+            document.querySelectorAll('.diff-tab').forEach(b => b.classList.remove('on'));
+            document.getElementById('d-' + lvl).classList.add('on');
+            const m = isMob();
+            //                    MOBİL (COLS×ROWS / MINES)    MASAÜSTÜ
+            if (lvl === 'easy') { ROWS = m ? 8 : 9; COLS = m ? 8 : 9; MINES = m ? 10 : 10; DIFF = 'Kolay'; }
+            else if (lvl === 'medium') { ROWS = m ? 10 : 16; COLS = m ? 9 : 16; MINES = m ? 20 : 40; DIFF = 'Orta'; }
+            else { ROWS = m ? 14 : 16; COLS = m ? 9 : 30; MINES = m ? 30 : 99; DIFF = 'Zor'; }
+            newGame();
         }
 
-        function setMobileMode(mode) {
-            mobileMode = mode;
-            document.getElementById('digBtn').classList.toggle('active',  mode === 'dig');
-            document.getElementById('flagBtn').classList.toggle('active', mode === 'flag');
+        /* ── MODE ── */
+        function setMode(m) {
+            mode = m;
+            document.getElementById('btn-dig').classList.toggle('on', m === 'dig');
+            document.getElementById('btn-flag').classList.toggle('on', m === 'flag');
         }
 
-        /* ── CELL SIZE: measured in JS, never guessed in CSS ──
-           Reads the real pixel dimensions of .grid-container after layout,
-           then computes the largest integer cell size that fits without overflow.
-        */
-        function setCellSize() {
-            const container = document.querySelector('.grid-container');
-            const gridPad   = 16;   // .grid padding: 8px × 2
-            const gap       = 2;    // gap between cells
+        /* ── CELL SIZE ── */
+        function calcSize() {
+            const wrap = document.getElementById('boardWrap');
+            const GAP = 4;
 
-            const availW = container.clientWidth  - gridPad;
-            const availH = container.clientHeight - gridPad;
-
-            const szW = Math.floor((availW - gap * (COLS - 1)) / COLS);
-            const szH = Math.floor((availH - gap * (ROWS - 1)) / ROWS);
-            const sz  = Math.min(szW, szH, 36);  // cap at 36px on desktop
-
-            gridEl.style.setProperty('--sz', sz + 'px');
-            gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${sz}px)`;
+            if (isMob()) {
+                /* ── MOBİL ──────────────────────────────────────────────
+                   Hücreler tam olarak board-wrap'a sığar, overflow olmaz.
+                   Hesaplama: kullanılabilir piksel / hücre sayısı.
+                   - sidePad: board-wrap padding (10px × 2 = 20px)
+                   - gridPad: grid'in kendi padding'i (4px × 2 = 8px)
+                ─────────────────────────────────────────────────────── */
+                const sidePad = 20, gridPad = 8;
+                const aw = wrap.clientWidth - sidePad - gridPad - GAP * (COLS - 1);
+                const ah = wrap.clientHeight - sidePad - gridPad - GAP * (ROWS - 1);
+                const sz = Math.max(20, Math.min(Math.floor(aw / COLS), Math.floor(ah / ROWS), 54));
+                gridEl.style.setProperty('--sz', sz + 'px');
+                gridEl.style.setProperty('--gap', GAP + 'px');
+                gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${sz}px)`;
+            } else {
+                /* ── MASAÜSTÜ (mevcut mantık, değiştirilmedi) ── */
+                const wPad = 28, gPad = GAP * 2;
+                const aw = wrap.clientWidth - wPad - gPad - GAP * (COLS - 1);
+                const ah = wrap.clientHeight - wPad - gPad - GAP * (ROWS - 1);
+                const sz = Math.max(18, Math.min(Math.floor(aw / COLS), Math.floor(ah / ROWS), 42));
+                gridEl.style.setProperty('--sz', sz + 'px');
+                gridEl.style.setProperty('--gap', GAP + 'px');
+                gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${sz}px)`;
+            }
         }
 
         /* ── INIT ── */
-        function initGame() {
+        function newGame() {
+            clearInterval(ticker);
+            explodeTimers.forEach(clearTimeout);
+            explodeTimers = [];
             board = Array.from({ length: ROWS }, () =>
-                Array.from({ length: COLS }, () => ({
-                    isMine: false, isRevealed: false,
-                    isFlagged: false, neighborMines: 0
-                }))
-            );
-            revealedCount = 0; flaggedCount = 0;
-            isGameOver = false; isFirstClick = true;
-            clearInterval(timerInterval);
-            timer = 0;
-
-            document.getElementById('gameOverModal').classList.remove('show', 'game-won');
-
-            // Measure container AFTER current layout pass, then render.
-            requestAnimationFrame(() => {
-                setCellSize();
-                renderBoard();
-                updateStats();
-            });
+                Array.from({ length: COLS }, () => ({ mine: false, open: false, flag: false, n: 0 })));
+            opened = flagged = secs = 0; over = false; fresh = true;
+            document.getElementById('overlay').classList.remove('show');
+            updateHUD();
+            requestAnimationFrame(() => { calcSize(); renderAll(); });
         }
 
-        // Re-fit on window resize (e.g. orientation change, browser chrome toggling)
-        let resizeTimer;
+        let _rsz;
         window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => { setCellSize(); renderBoard(); }, 150);
+            clearTimeout(_rsz);
+            _rsz = setTimeout(() => { calcSize(); }, 160);
         });
 
-        /* ── MINES & NEIGHBORS ── */
-        function placeMines(firstR, firstC) {
-            let placed = 0;
-            while (placed < MINES) {
-                const r = Math.floor(Math.random() * ROWS);
-                const c = Math.floor(Math.random() * COLS);
-                if (!board[r][c].isMine && !(Math.abs(r - firstR) <= 1 && Math.abs(c - firstC) <= 1)) {
-                    board[r][c].isMine = true;
-                    placed++;
-                }
-            }
-            for (let r = 0; r < ROWS; r++)
-                for (let c = 0; c < COLS; c++)
-                    if (!board[r][c].isMine) {
-                        let n = 0;
-                        for (let dr = -1; dr <= 1; dr++)
-                            for (let dc = -1; dc <= 1; dc++)
-                                if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS && board[r+dr][c+dc].isMine) n++;
-                        board[r][c].neighborMines = n;
+        function updateHUD() {
+            document.getElementById('hud-mines').textContent = MINES - flagged;
+            document.getElementById('hud-time').textContent = secs;
+        }
+
+        /* ── MINES ── */
+        function plantMines(fr, fc) {
+            const MAX_ATTEMPTS = 200;
+            let attempts = 0;
+            do {
+                eachCell(d => { d.mine = false; d.n = 0; });
+                let p = 0;
+                while (p < MINES) {
+                    const r = Math.floor(Math.random() * ROWS), c = Math.floor(Math.random() * COLS);
+                    if (!board[r][c].mine && !(Math.abs(r - fr) <= 1 && Math.abs(c - fc) <= 1)) {
+                        board[r][c].mine = true; p++;
                     }
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => { if (!isGameOver) { timer++; updateStats(); } }, 1000);
+                }
+                eachCell((d, r, c) => {
+                    if (d.mine) return;
+                    let n = 0; eachNeighbor(r, c, nb => { if (nb.mine) n++; }); d.n = n;
+                });
+                attempts++;
+            } while (attempts < MAX_ATTEMPTS && !isSolvable(fr, fc));
+
+            ticker = setInterval(() => { if (!over) { secs++; updateHUD(); } }, 1000);
         }
 
-        function updateStats() {
-            document.getElementById('minesText').innerText = MINES - flaggedCount;
-            document.getElementById('timerText').innerText = timer;
-        }
+        function isSolvable(fr, fc) {
+            const open = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+            const flag = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
 
-        /* ── RENDER ── */
-        function renderBoard() {
-            gridEl.innerHTML = '';
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    const cell     = document.createElement('div');
-                    const cellData = board[r][c];
-                    cell.className = 'cell';
-
-                    if (cellData.isRevealed) {
-                        cell.classList.add('revealed');
-                        if (cellData.isMine) {
-                            cell.classList.add('mine');
-                            cell.innerHTML = '💣';
-                        } else if (cellData.neighborMines > 0) {
-                            cell.innerHTML = cellData.neighborMines;
-                            cell.classList.add(`color-${cellData.neighborMines}`);
+            function revealSim(r, c) {
+                const q = [[r, c]];
+                while (q.length) {
+                    const [rr, cc] = q.shift();
+                    if (open[rr][cc] || board[rr][cc].mine) continue;
+                    open[rr][cc] = true;
+                    if (board[rr][cc].n === 0) {
+                        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                            if (!dr && !dc) continue;
+                            const nr = rr + dr, nc = cc + dc;
+                            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !open[nr][nc]) q.push([nr, nc]);
                         }
-                    } else if (cellData.isFlagged) {
-                        cell.innerHTML = '🚩';
                     }
-
-                    cell.addEventListener('click', () => {
-                        if (isGameOver) return;
-                        if (cellData.isRevealed && cellData.neighborMines > 0) { playSound('click'); chord(r, c); return; }
-                        if (cellData.isRevealed) return;
-                        if (mobileMode === 'flag') { playSound('flag'); toggleFlag(r, c); }
-                        else { if (!cellData.isFlagged) playSound('click'); reveal(r, c); }
-                    });
-
-                    cell.addEventListener('contextmenu', e => {
-                        e.preventDefault();
-                        if (!isGameOver && !cellData.isRevealed) playSound('flag');
-                        toggleFlag(r, c);
-                    });
-
-                    cell.addEventListener('mousedown', e => {
-                        if (e.button === 1) { e.preventDefault(); if (!isGameOver && cellData.isRevealed) playSound('click'); chord(r, c); }
-                    });
-
-                    gridEl.appendChild(cell);
                 }
             }
+
+            revealSim(fr, fc);
+
+            let progress = true;
+            while (progress) {
+                progress = false;
+                for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                    if (!open[r][c]) continue;
+                    const num = board[r][c].n;
+                    const hidden = [], adjFlags = [];
+                    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                        if (!dr && !dc) continue;
+                        const nr = r + dr, nc = c + dc;
+                        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+                        if (flag[nr][nc]) adjFlags.push([nr, nc]);
+                        else if (!open[nr][nc]) hidden.push([nr, nc]);
+                    }
+                    const rem = num - adjFlags.length;
+                    if (rem === hidden.length && hidden.length > 0) {
+                        hidden.forEach(([nr, nc]) => { flag[nr][nc] = true; progress = true; });
+                    }
+                    if (rem === 0 && hidden.length > 0) {
+                        hidden.forEach(([nr, nc]) => { if (!board[nr][nc].mine) { revealSim(nr, nc); progress = true; } });
+                    }
+                }
+            }
+
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                if (!board[r][c].mine && !open[r][c]) return false;
+            }
+            return true;
         }
 
-        /* ── GAME LOGIC ── */
-        function chord(r, c) {
-            if (isGameOver || !board[r][c].isRevealed || board[r][c].neighborMines === 0) return;
-            let flags = 0;
-            for (let dr = -1; dr <= 1; dr++)
-                for (let dc = -1; dc <= 1; dc++)
-                    if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS && board[r+dr][c+dc].isFlagged) flags++;
-            if (flags === board[r][c].neighborMines)
-                for (let dr = -1; dr <= 1; dr++)
-                    for (let dc = -1; dc <= 1; dc++)
-                        if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS
-                            && !board[r+dr][c+dc].isRevealed && !board[r+dr][c+dc].isFlagged)
-                            reveal(r+dr, c+dc);
+        function eachCell(fn) {
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) fn(board[r][c], r, c);
         }
+        function eachNeighbor(r, c, fn) {
+            for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                if (!dr && !dc) continue;
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) fn(board[nr][nc], nr, nc);
+            }
+        }
+        function cellEl(r, c) { return gridEl.children[r * COLS + c]; }
 
+        /* ── REVEAL (BFS) ── */
         function reveal(r, c) {
-            if (isGameOver || board[r][c].isRevealed || board[r][c].isFlagged) return;
-            if (isFirstClick) { isFirstClick = false; placeMines(r, c); }
-            board[r][c].isRevealed = true;
-            revealedCount++;
-            if (board[r][c].isMine) { gameOver(false, r, c); return; }
-            if (board[r][c].neighborMines === 0)
-                for (let dr = -1; dr <= 1; dr++)
-                    for (let dc = -1; dc <= 1; dc++)
-                        if (r+dr >= 0 && r+dr < ROWS && c+dc >= 0 && c+dc < COLS) reveal(r+dr, c+dc);
-            checkWin();
-            if (!isGameOver) renderBoard();
+            if (over || board[r][c].open || board[r][c].flag) return;
+            if (fresh) { fresh = false; plantMines(r, c); }
+            const q = [[r, c]], seen = new Set();
+            while (q.length) {
+                const [rr, cc] = q.shift(), key = rr * COLS + cc;
+                if (seen.has(key)) continue; seen.add(key);
+                const d = board[rr][cc];
+                if (d.open || d.flag) continue;
+                d.open = true; opened++;
+                if (d.mine) { explode(rr, cc); return; }
+                if (d.n === 0) eachNeighbor(rr, cc, (_, nr, nc) => q.push([nr, nc]));
+            }
+            seen.forEach(key => { const r2 = Math.floor(key / COLS), c2 = key % COLS; updateCell(r2, c2); });
+            beep('dig'); checkWin();
         }
 
         function toggleFlag(r, c) {
-            if (isGameOver || board[r][c].isRevealed) return;
-            board[r][c].isFlagged = !board[r][c].isFlagged;
-            flaggedCount += board[r][c].isFlagged ? 1 : -1;
-            updateStats();
-            renderBoard();
+            if (over || board[r][c].open) return;
+            board[r][c].flag = !board[r][c].flag;
+            flagged += board[r][c].flag ? 1 : -1;
+            beep('flag'); updateCell(r, c); updateHUD();
         }
 
-        function gameOver(won, clickedR = -1, clickedC = -1) {
-            isGameOver = true;
-            clearInterval(timerInterval);
-            const modal = document.getElementById('gameOverModal');
-            document.getElementById('gameOverTitle').innerText = won ? 'Kazandın! 🏆' : 'Oyun Bitti! 💀';
-            document.getElementById('gameOverDesc').innerText  = won ? `Tebrikler! Skorun: ${timer}s` : 'Mayına bastın...';
-
-            if (won) { playSound('win'); modal.classList.add('game-won', 'show'); return; }
-            playSound('boom');
-
-            let allMines = [];
-            for (let r = 0; r < ROWS; r++)
-                for (let c = 0; c < COLS; c++)
-                    if (board[r][c].isMine) { board[r][c].isRevealed = true; if (r !== clickedR || c !== clickedC) allMines.push({r,c}); }
-
-            if (clickedR !== -1)
-                allMines.sort((a,b) => Math.hypot(a.r-clickedR,a.c-clickedC) - Math.hypot(b.r-clickedR,b.c-clickedC));
-
-            function animateMine(r, c, delay) {
-                setTimeout(() => {
-                    const cell = gridEl.children[r * COLS + c];
-                    if (cell && !cell.classList.contains('anim')) {
-                        cell.classList.add('revealed','mine','anim');
-                        cell.innerHTML = '💣';
-                        playSound('pop');
-                    }
-                }, delay);
-            }
-
-            let delay = 0;
-            if (clickedR !== -1) { animateMine(clickedR, clickedC, 0); delay = 500; }
-            allMines.forEach(m => { animateMine(m.r, m.c, delay); delay += 80; });
-            setTimeout(() => { playSound('lose'); modal.classList.add('show'); }, delay + 600);
+        function chord(r, c) {
+            const d = board[r][c];
+            if (!d.open || !d.n || over) return;
+            let fl = 0; eachNeighbor(r, c, nb => { if (nb.flag) fl++; });
+            if (fl !== d.n) return;
+            const el = cellEl(r, c);
+            el.classList.add('chord');
+            el.addEventListener('animationend', () => el.classList.remove('chord'), { once: true });
+            eachNeighbor(r, c, (_, nr, nc) => { if (!board[nr][nc].flag && !board[nr][nc].open) reveal(nr, nc); });
         }
 
-        function checkWin() {
-            if (revealedCount === ROWS * COLS - MINES) gameOver(true);
+        function checkWin() { if (opened === ROWS * COLS - MINES) endGame(true); }
+
+        /* ── EXPLODE ── */
+        function explode(er, ec) {
+            over = true; clearInterval(ticker); beep('boom');
+            const hit = cellEl(er, ec);
+            hit.className = 'c boom pop'; hit.textContent = '💣';
+            const rest = [];
+            eachCell((d, r, c) => { if (d.mine && !(r === er && c === ec)) rest.push({ r, c, dist: Math.hypot(r - er, c - ec) }); });
+            rest.sort((a, b) => a.dist - b.dist);
+            let delay = 420;
+            rest.forEach(({ r, c }) => {
+                explodeTimers.push(setTimeout(() => { const el = cellEl(r, c); el.className = 'c dead pop'; el.textContent = '💣'; beep('pop'); }, delay));
+                delay += 70;
+            });
+            explodeTimers.push(setTimeout(() => { beep('lose'); showResult(false); }, delay + 400));
         }
 
-        initGame();
+        function endGame(won) {
+            over = true; clearInterval(ticker);
+            if (!won) return;
+            beep('win');
+            const cx = COLS / 2, cy = ROWS / 2;
+            eachCell((d, r, c) => {
+                if (!d.open) return;
+                const el = cellEl(r, c);
+                el.style.setProperty('--wd', Math.round(Math.hypot(r - cy, c - cx) * 55) + 'ms');
+                el.classList.add('win');
+            });
+            setTimeout(() => showResult(true), 600);
+        }
+
+        function showResult(won) {
+            const card = document.getElementById('rCard');
+            card.className = 'r-card ' + (won ? 'won' : 'lost');
+            document.getElementById('rEmoji').textContent = won ? '🏆' : '💣';
+            document.getElementById('rTitle').textContent = won ? 'Kazandın!' : 'Oyun Bitti';
+            document.getElementById('rSub').textContent = won ? 'Tüm mayınları buldun!' : 'Mayına bastın...';
+            document.getElementById('rTime').textContent = secs + 's';
+            document.getElementById('rMines').textContent = MINES - flagged;
+            document.getElementById('rDiff').textContent = DIFF;
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        /* ── RENDER ── */
+        function renderAll() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) gridEl.appendChild(makeCell(r, c));
+        }
+        function makeCell(r, c) {
+            const el = document.createElement('div');
+            el.className = 'c'; applyCell(el, board[r][c]); attachEvents(el, r, c); return el;
+        }
+        function updateCell(r, c) { const el = cellEl(r, c); if (el) applyCell(el, board[r][c]); }
+        function applyCell(el, d) {
+            el.className = 'c'; el.textContent = '';
+            if (d.open) { el.classList.add('open'); if (d.mine) el.textContent = '💣'; else if (d.n) { el.textContent = d.n; el.classList.add('n' + d.n); } }
+            else if (d.flag) { el.classList.add('flag'); el.textContent = '🚩'; }
+        }
+
+        /* ── EVENTS ── */
+        function attachEvents(el, r, c) {
+            /* desktop */
+            el.addEventListener('click', e => {
+                e.preventDefault();
+                if (over) return;
+                const d = board[r][c];
+                if (d.open && d.n) { chord(r, c); return; }
+                if (d.open) return;
+                if (mode === 'flag') toggleFlag(r, c); else if (!d.flag) reveal(r, c);
+            });
+            el.addEventListener('contextmenu', e => { e.preventDefault(); if (!over) toggleFlag(r, c); });
+            el.addEventListener('mousedown', e => { if (e.button === 1) { e.preventDefault(); chord(r, c); } });
+
+            /* mobile touch */
+            let timer = null, moved = false, sx, sy;
+            el.addEventListener('touchstart', e => {
+                e.preventDefault(); moved = false;
+                sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+                if (over) return;
+                const d = board[r][c]; if (d.open) return;
+                el.classList.add('pressing');
+                timer = setTimeout(() => { timer = null; el.classList.remove('pressing'); if (!moved) toggleFlag(r, c); }, 450);
+            }, { passive: false });
+            el.addEventListener('touchmove', e => {
+                if (Math.abs(e.touches[0].clientX - sx) > 8 || Math.abs(e.touches[0].clientY - sy) > 8) {
+                    moved = true; clearTimeout(timer); timer = null; el.classList.remove('pressing');
+                }
+            }, { passive: true });
+            el.addEventListener('touchend', e => {
+                e.preventDefault(); el.classList.remove('pressing');
+                if (over || moved) { clearTimeout(timer); timer = null; return; }
+                const d = board[r][c];
+                // Açık sayı hücresine tap → chord (timer'dan bağımsız)
+                if (d.open && d.n) { clearTimeout(timer); timer = null; chord(r, c); return; }
+                if (d.open) { clearTimeout(timer); timer = null; return; }
+                if (timer !== null) {
+                    clearTimeout(timer); timer = null;
+                    if (mode === 'flag') toggleFlag(r, c); else if (!d.flag) reveal(r, c);
+                }
+            }, { passive: false });
+        }
+
+        newGame();
     </script>
 </body>
 

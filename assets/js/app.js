@@ -1099,6 +1099,12 @@ function navigate(page) {
     currentCategory = null;
     updateScrollToTopVisibility();
 
+    // Disconnect reviews infinite scroll when leaving reviews
+    if (page !== 'reviews' && reviewsScrollObserver) {
+        reviewsScrollObserver.disconnect();
+        reviewsScrollObserver = null;
+    }
+
     // Update navigation active state
     document.querySelectorAll('[data-page]').forEach(el => {
         el.classList.toggle('active', el.dataset.page === page);
@@ -1292,7 +1298,7 @@ function renderFeed() {
     if (currentPage === 'popular') {
         posts = sortPostsByPopularity(posts);
     } else if (currentPage === 'reviews') {
-        posts = posts.filter(p => p.title.toLowerCase().includes('inceleme') || p.title.toLowerCase().includes('review'));
+        // show all posts, newest first — handled below
     } else if (currentPage === 'games') {
         posts = posts.filter(p => !['genel'].includes(p.category));
     }
@@ -1329,12 +1335,23 @@ function renderFeed() {
     }
 
     const isHomeFeed = (currentPage === 'home' || !currentPage) && !currentCategory;
+    const isReviewsFeed = currentPage === 'reviews';
+
     if (isHomeFeed && posts.length > 0) {
         if (feed) feed.classList.add('home-pinterest-mode');
         if (sidebar) sidebar.style.display = 'none';
         if (mainLayout) mainLayout.classList.remove('has-sidebar');
         container.innerHTML = renderPinterestHome(posts);
         ensureHomeHeroGamesLoaded();
+    } else if (isReviewsFeed) {
+        if (feed) feed.classList.add('home-pinterest-mode');
+        if (sidebar) sidebar.style.display = 'none';
+        if (mainLayout) mainLayout.classList.remove('has-sidebar');
+        // Sort by newest first
+        posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        reviewsDisplayCount = REVIEWS_PAGE_SIZE;
+        container.innerHTML = renderPinterestReviews(posts, reviewsDisplayCount);
+        setupReviewsInfiniteScroll(posts);
     } else {
         if (feed) feed.classList.remove('home-pinterest-mode');
         container.innerHTML = posts.map(post => renderPostCard(post)).join('');
@@ -1367,9 +1384,68 @@ function renderPinterestHome(posts) {
             </div>
 
             <div class="pinterest-masonry-grid">
-                ${popularPosts.map((post, index) => renderPinterestPin(post, index, bookmarkCountMap)).join('')}
+                ${popularPosts.slice(0, 8).map((post, index) => renderPinterestPin(post, index, bookmarkCountMap)).join('')}
             </div>
         </section>`;
+}
+
+function renderPinterestReviews(posts, count) {
+    const bookmarkCountMap = buildBookmarkCountMap();
+    const visible = posts.slice(0, count);
+    const hasMore = count < posts.length;
+    return `
+        <section class="pinterest-home-shell reviews-pinterest-shell">
+            <div class="pinterest-masonry-grid">
+                ${visible.map((post, index) => renderPinterestPin(post, index, bookmarkCountMap)).join('')}
+            </div>
+            ${hasMore ? '<div id="reviewsScrollSentinel" class="reviews-scroll-sentinel"></div>' : ''}
+        </section>`;
+}
+
+function setupReviewsInfiniteScroll(allReviewPosts) {
+    if (reviewsScrollObserver) {
+        reviewsScrollObserver.disconnect();
+        reviewsScrollObserver = null;
+    }
+
+    const sentinel = document.getElementById('reviewsScrollSentinel');
+    if (!sentinel) return;
+
+    reviewsScrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            reviewsScrollObserver.disconnect();
+            reviewsScrollObserver = null;
+
+            reviewsDisplayCount += REVIEWS_PAGE_SIZE;
+            const bookmarkCountMap = buildBookmarkCountMap();
+            const shell = document.querySelector('.reviews-pinterest-shell');
+            if (!shell) return;
+
+            const grid = shell.querySelector('.pinterest-masonry-grid');
+            const newPosts = allReviewPosts.slice(reviewsDisplayCount - REVIEWS_PAGE_SIZE, reviewsDisplayCount);
+            newPosts.forEach((post, i) => {
+                const div = document.createElement('div');
+                div.innerHTML = renderPinterestPin(post, reviewsDisplayCount - REVIEWS_PAGE_SIZE + i, bookmarkCountMap);
+                const article = div.firstElementChild;
+                if (article) grid.appendChild(article);
+            });
+
+            // Remove old sentinel and add new one if more remain
+            const oldSentinel = document.getElementById('reviewsScrollSentinel');
+            if (oldSentinel) oldSentinel.remove();
+
+            if (reviewsDisplayCount < allReviewPosts.length) {
+                const newSentinel = document.createElement('div');
+                newSentinel.id = 'reviewsScrollSentinel';
+                newSentinel.className = 'reviews-scroll-sentinel';
+                shell.appendChild(newSentinel);
+                setupReviewsInfiniteScroll(allReviewPosts);
+            }
+        });
+    }, { root: null, rootMargin: '400px', threshold: 0 });
+
+    reviewsScrollObserver.observe(sentinel);
 }
 
 function renderPinterestHomeHeroGames() {
@@ -1611,15 +1687,13 @@ function renderPinterestPin(post, index, bookmarkCountMap = buildBookmarkCountMa
     const liked = currentUser && post.likes.includes(currentUser.id);
     const saved = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
     const popularity = getPostPopularity(post, bookmarkCountMap);
-    const pinSize = ['pin-tall', 'pin-medium', 'pin-short', 'pin-medium'][index % 4];
-    const image = post.imageUrl
-        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.closest('.pinterest-pin-media').classList.add('fallback')">`
-        : `<div class="pinterest-pin-fallback"><span>${escapeHtml(getCategoryName(post.category))}</span></div>`;
+    const hasImage = !!post.imageUrl;
+    const pinSize = hasImage ? ['pin-tall', 'pin-medium', 'pin-short', 'pin-medium'][index % 4] : 'pin-text';
 
-    return `
-        <article class="pinterest-pin ${pinSize}" id="post-${post.id}">
+    const mediaBlock = hasImage ? `
             <div class="pinterest-pin-media" onclick="expandPost('${post.id}')">
-                ${image}
+                <img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.closest('.pinterest-pin-media').classList.add('fallback')">
+                <div class="pinterest-pin-kicker">${escapeHtml(getCategoryName(post.category))} &bull; ${escapeHtml(popularity.label)}</div>
                 <div class="pinterest-pin-hover">
                     <button class="pinterest-save-btn${saved ? ' saved' : ''}" onclick="bookmarkPost('${post.id}', event)" aria-label="${saved ? 'Kaydedildi' : 'Kaydet'}" title="${saved ? 'Kaydedildi' : 'Kaydet'}">
                         <svg viewBox="0 0 24 24" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1635,11 +1709,27 @@ function renderPinterestPin(post, index, bookmarkCountMap = buildBookmarkCountMa
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>` : '';
+
+    const textKicker = !hasImage ? `<div class="pin-text-kicker">${escapeHtml(getCategoryName(post.category))} &bull; ${escapeHtml(popularity.label)}</div>` : '';
+    const textActions = !hasImage ? `
+            <div class="pin-text-hover-actions">
+                <button class="pinterest-round-btn" onclick="sharePost('${post.id}', event)" aria-label="Paylaş">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+                <button class="pinterest-round-btn" onclick="expandPost('${post.id}')" aria-label="Aç">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                </button>
+            </div>` : '';
+
+    return `
+        <article class="pinterest-pin ${pinSize}" id="post-${post.id}">
+            ${mediaBlock}
             <div class="pinterest-pin-body">
-                <div class="pinterest-pin-kicker">${escapeHtml(getCategoryName(post.category))} â€¢ ${escapeHtml(popularity.label)}</div>
+                ${textKicker}
                 <h3 onclick="expandPost('${post.id}')">${escapeHtml(post.title)}</h3>
-                <p onclick="expandPost('${post.id}')">${escapeHtml(post.content)}</p>
+                <div class="md-body pinterest-pin-md" onclick="expandPost('${post.id}')">${renderMarkdown(post.content)}</div>
+                ${textActions}
                 <div class="pinterest-pin-footer">
                     <div class="pinterest-pin-author" onclick="expandPost('${post.id}')">
                         <div class="pinterest-author-avatar" style="${bg}">${initial}</div>
@@ -1890,7 +1980,9 @@ function expandPost(postId) {
         </div>
         <div class="post-title">${escapeHtml(post.title)}</div>
         ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" class="post-image" alt="${escapeHtml(post.title)}" onerror="this.style.display='none'">` : ''}
-        <div class="post-content">${escapeHtml(post.content)}</div>
+        ${post.gameRef ? `<div class="post-game-ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"/></svg>${escapeHtml(post.gameRef)}</div>` : ''}
+        ${post.videoUrl && !post.imageUrl ? `<video class="post-image" src="${escapeHtml(post.videoUrl)}" controls style="width:100%;border-radius:12px;"></video>` : ''}
+        <div class="post-content md-body">${renderMarkdown(post.content)}</div>
         ${post.tags.length ? `<div class="post-tags" style="padding:12px 0">${post.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
         <div class="post-actions">
             <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}', event); expandPost('${post.id}');">
@@ -1905,6 +1997,14 @@ function expandPost(postId) {
                 </svg>
                 <span>${post.comments.length} yorum</span>
             </button>
+            ${currentUser && currentUser.id === post.userId ? `
+            <button class="action-btn action-btn-delete" onclick="deletePost('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+                <span>Sil</span>
+            </button>` : ''}
         </div>
     `;
 
@@ -1952,12 +2052,31 @@ function expandPost(postId) {
 
     document.getElementById('postOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 }
 
 function closeExpandedPost(e) {
     if (e && e.target !== document.getElementById('postOverlay')) return;
     document.getElementById('postOverlay').classList.remove('active');
     document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+}
+
+function deletePost(postId) {
+    if (!currentUser) return;
+    const post = allPosts.find(p => p.id === postId);
+    if (!post || post.userId !== currentUser.id) {
+        showToast('Bu gönderiyi silme yetkin yok.', 'error');
+        return;
+    }
+    if (!confirm('Bu gönderiyi silmek istediğinden emin misin?')) return;
+    allPosts = allPosts.filter(p => p.id !== postId);
+    setStore(STORAGE_KEYS.posts, allPosts);
+    document.getElementById('postOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    refreshCurrentView();
+    showToast('Gönderi silindi.', 'success');
 }
 
 // ── Like / Unlike ──
@@ -2078,17 +2197,30 @@ function handleNewPost(e) {
     }
 
     const title = document.getElementById('postTitle').value.trim();
-    const category = document.getElementById('postCategory').value;
-    const imageUrl = document.getElementById('postImageUrl').value.trim();
+    const category = document.getElementById('postCategory').value || 'genel';
     const content = document.getElementById('postContent').value.trim();
-    const tagsRaw = document.getElementById('postTags').value.trim();
+    const gameRef = document.getElementById('npeGameRef').value.trim();
+    const gameRefImage = document.getElementById('npeGameImageRef').value.trim();
 
-    const tags = tagsRaw
-        ? tagsRaw.split(',').map(t => {
-            t = t.trim();
-            return t.startsWith('#') ? t : '#' + t;
-        })
-        : [];
+    // Determine media
+    let imageUrl = '';
+    let videoUrl = '';
+    const isUrlTab = document.getElementById('npeUrlPane').style.display !== 'none';
+    if (isUrlTab) {
+        const urlVal = (document.getElementById('postImageUrl').value || '').trim();
+        if (urlVal && /\.(mp4|webm|ogg)(\?|$)/i.test(urlVal)) {
+            videoUrl = urlVal;
+        } else {
+            imageUrl = urlVal;
+        }
+    } else if (npeMediaData) {
+        if (npeMediaData.type === 'image') imageUrl = npeMediaData.dataUrl;
+        else videoUrl = npeMediaData.dataUrl;
+    }
+    // Use game cover as image fallback
+    if (!imageUrl && !videoUrl && gameRefImage) imageUrl = gameRefImage;
+
+    const tags = npeTags.length ? npeTags : [];
 
     const newPost = {
         id: 'p' + Date.now(),
@@ -2098,6 +2230,8 @@ function handleNewPost(e) {
         category,
         tags,
         imageUrl,
+        videoUrl,
+        gameRef,
         likes: [],
         comments: [],
         date: new Date().toISOString(),
@@ -2106,10 +2240,421 @@ function handleNewPost(e) {
     allPosts.unshift(newPost);
     setStore(STORAGE_KEYS.posts, allPosts);
     closeModal('newPostModal');
-    document.getElementById('newPostForm').reset();
     refreshCurrentView();
     showToast('Gönderi yayınlandı! 🎉', 'success');
 }
+
+// ── New Post Editor Helpers ──
+
+function npeInit() {
+    if (!currentUser) return;
+    const chip = document.getElementById('npeUserChip');
+    if (chip) {
+        const { bg, initial } = getAuthorStyle(currentUser);
+        const av = currentUser.avatarImage
+            ? `<div class="npe-avatar" style="background-image:url('${escapeHtml(currentUser.avatarImage)}');background-size:cover;background-position:center;"></div>`
+            : `<div class="npe-avatar" style="${bg}">${initial}</div>`;
+        chip.innerHTML = `${av}<span>@${escapeHtml(currentUser.username)}</span>`;
+    }
+}
+
+function npeReset() {
+    // Clear tags
+    npeTags = [];
+    npeRenderTags();
+    // Clear media
+    if (npeMediaData && npeMediaData.isObjectUrl) URL.revokeObjectURL(npeMediaData.dataUrl);
+    npeMediaData = null;
+    const previewImg = document.getElementById('npePreviewImg');
+    const previewVid = document.getElementById('npePreviewVid');
+    if (previewImg) { previewImg.src = ''; previewImg.style.display = 'none'; }
+    if (previewVid) { previewVid.src = ''; previewVid.style.display = 'none'; }
+    const mediaPrev = document.getElementById('npeMediaPreview');
+    if (mediaPrev) mediaPrev.style.display = 'none';
+    const dz = document.getElementById('npeDropzone');
+    if (dz) dz.style.display = '';
+    const fileInput = document.getElementById('npeFileInput');
+    if (fileInput) fileInput.value = '';
+    // Clear game
+    npeGameSelected = null;
+    clearTimeout(npeGameSearchTimeout);
+    const gameInput = document.getElementById('npeGameInput');
+    if (gameInput) gameInput.value = '';
+    const gameBadge = document.getElementById('npeGameBadge');
+    if (gameBadge) gameBadge.style.display = 'none';
+    const gameTrigger = document.getElementById('npeGameTrigger');
+    if (gameTrigger) gameTrigger.style.display = '';
+    const gameRef = document.getElementById('npeGameRef');
+    if (gameRef) gameRef.value = '';
+    const gameImgRef = document.getElementById('npeGameImageRef');
+    if (gameImgRef) gameImgRef.value = '';
+    const gameDD = document.getElementById('npeGameDropdown');
+    if (gameDD) { gameDD.innerHTML = ''; gameDD.classList.remove('active'); }
+    // Reset category
+    document.querySelectorAll('.npe-cat-pill').forEach(p => p.classList.toggle('active', p.dataset.val === 'genel'));
+    const catHidden = document.getElementById('postCategory');
+    if (catHidden) catHidden.value = 'genel';
+    const catLabel = document.getElementById('npeCatLabel');
+    if (catLabel) catLabel.textContent = 'Genel';
+    // Reset editor
+    const ta = document.getElementById('postContent');
+    if (ta) ta.value = '';
+    npeContentInput();
+    const writePn = document.getElementById('npeWritePane');
+    const prevPn = document.getElementById('npePreviewPane');
+    if (writePn) writePn.style.display = '';
+    if (prevPn) prevPn.style.display = 'none';
+    document.querySelectorAll('.npe-etab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'write'));
+    // Reset media tabs
+    document.querySelectorAll('.npe-mtab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'upload'));
+    const uploadPn = document.getElementById('npeUploadPane');
+    const urlPn = document.getElementById('npeUrlPane');
+    if (uploadPn) uploadPn.style.display = '';
+    if (urlPn) urlPn.style.display = 'none';
+    const urlInput = document.getElementById('postImageUrl');
+    if (urlInput) urlInput.value = '';
+    // Reset title
+    const titleIn = document.getElementById('postTitle');
+    if (titleIn) titleIn.value = '';
+}
+
+function npeSetCat(el) {
+    document.querySelectorAll('.npe-cat-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const val = el.dataset.val;
+    document.getElementById('postCategory').value = val;
+    const label = document.getElementById('npeCatLabel');
+    if (label) label.textContent = el.textContent.trim();
+}
+
+// Game reference
+function npeSearchGame(q) {
+    clearTimeout(npeGameSearchTimeout);
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (!q || q.length < 2) { dd.innerHTML = ''; dd.classList.remove('active'); return; }
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">Aranıyor…</div>';
+    dd.classList.add('active');
+    npeGameSearchTimeout = setTimeout(async () => {
+        if (!RAWG_API_KEY) {
+            const local = allGames
+                .filter(g => g.title && g.title.toLowerCase().includes(q.toLowerCase()))
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.backgroundUrl || g.coverUrl || '' }));
+            npeRenderGameDD(local, q);
+            return;
+        }
+        try {
+            const res = await fetch(`${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=6&search=${encodeURIComponent(q)}&search_precise=true`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const games = (data.results || []).map(g => ({ title: g.name, imageUrl: g.background_image || '' }));
+            npeRenderGameDD(games, q);
+        } catch {
+            dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuç bulunamadı</div>';
+        }
+    }, 350);
+}
+
+function npeRenderGameDD(games, q) {
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (games.length === 0) {
+        dd.innerHTML = `<div class="npe-game-opt npe-game-empty">"${escapeHtml(q)}" için sonuç yok</div>`;
+        return;
+    }
+    dd.innerHTML = games.map(g => `
+        <div class="npe-game-opt" onclick="npeSelectGame('${escapeHtml(g.title.replace(/'/g, "&#39;"))}','${escapeHtml(g.imageUrl)}')">
+            ${g.imageUrl ? `<img src="${escapeHtml(g.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div class="npe-game-opt-noimg"></div>'}
+            <span>${escapeHtml(g.title)}</span>
+        </div>`).join('');
+    dd.classList.add('active');
+}
+
+function npeSelectGame(title, imageUrl) {
+    npeGameSelected = { title, imageUrl };
+    document.getElementById('npeGameRef').value = title;
+    document.getElementById('npeGameImageRef').value = imageUrl;
+    const inp = document.getElementById('npeGameInput');
+    if (inp) inp.value = '';
+    const dd = document.getElementById('npeGameDropdown');
+    if (dd) { dd.innerHTML = ''; dd.classList.remove('active'); }
+    const badge = document.getElementById('npeGameBadge');
+    const trigger = document.getElementById('npeGameTrigger');
+    if (badge) {
+        badge.style.display = 'flex';
+        const img = document.getElementById('npeGameBadgeImg');
+        if (img) { img.src = imageUrl; img.style.display = imageUrl ? '' : 'none'; }
+        const nm = document.getElementById('npeGameBadgeName');
+        if (nm) nm.textContent = title;
+    }
+    if (trigger) trigger.style.display = 'none';
+}
+
+function npeClearGame() {
+    npeGameSelected = null;
+    document.getElementById('npeGameRef').value = '';
+    document.getElementById('npeGameImageRef').value = '';
+    const badge = document.getElementById('npeGameBadge');
+    if (badge) badge.style.display = 'none';
+    const trigger = document.getElementById('npeGameTrigger');
+    if (trigger) trigger.style.display = '';
+}
+
+// Media
+function npeSetMediaTab(el) {
+    document.querySelectorAll('.npe-mtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const isUpload = el.dataset.tab === 'upload';
+    document.getElementById('npeUploadPane').style.display = isUpload ? '' : 'none';
+    document.getElementById('npeUrlPane').style.display = isUpload ? 'none' : '';
+}
+
+function npeDragOver(e) {
+    e.preventDefault();
+    document.getElementById('npeDropzone').classList.add('drag-over');
+}
+
+function npeDragLeave(e) {
+    document.getElementById('npeDropzone').classList.remove('drag-over');
+}
+
+function npeDrop(e) {
+    e.preventDefault();
+    document.getElementById('npeDropzone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) npeProcessFile(file);
+}
+
+function npeFileChange(e) {
+    const file = e.target.files[0];
+    if (file) npeProcessFile(file);
+}
+
+async function npeProcessFile(file) {
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) { showToast('Desteklenmeyen dosya türü', 'error'); return; }
+    const dz = document.getElementById('npeDropzone');
+    const prev = document.getElementById('npeMediaPreview');
+    const imgEl = document.getElementById('npePreviewImg');
+    const vidEl = document.getElementById('npePreviewVid');
+    const lbl = document.getElementById('npePreviewLabel');
+    if (isImage) {
+        try {
+            const dataUrl = await npeCompressImage(file);
+            npeMediaData = { type: 'image', dataUrl, fileName: file.name };
+            imgEl.src = dataUrl; imgEl.style.display = '';
+            vidEl.style.display = 'none';
+            lbl.textContent = file.name;
+        } catch { showToast('Resim yüklenemedi', 'error'); return; }
+    } else {
+        const objUrl = URL.createObjectURL(file);
+        npeMediaData = { type: 'video', dataUrl: objUrl, fileName: file.name, isObjectUrl: true };
+        vidEl.src = objUrl; vidEl.style.display = '';
+        imgEl.style.display = 'none';
+        lbl.textContent = file.name + ' (Yalnızca bu oturumda görünür)';
+    }
+    dz.style.display = 'none';
+    prev.style.display = '';
+}
+
+function npeCompressImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX = 1200;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) { const r = Math.min(MAX / w, MAX / h); w = Math.round(w * r); h = Math.round(h * r); }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                let q = 0.85, dataUrl = canvas.toDataURL('image/jpeg', q);
+                while (dataUrl.length > 450000 && q > 0.3) { q -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', q); }
+                resolve(dataUrl);
+            };
+            img.onerror = reject;
+            img.src = ev.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function npeClearMedia() {
+    if (npeMediaData && npeMediaData.isObjectUrl) URL.revokeObjectURL(npeMediaData.dataUrl);
+    npeMediaData = null;
+    const imgEl = document.getElementById('npePreviewImg');
+    const vidEl = document.getElementById('npePreviewVid');
+    if (imgEl) { imgEl.src = ''; imgEl.style.display = 'none'; }
+    if (vidEl) { vidEl.src = ''; vidEl.style.display = 'none'; }
+    const lbl = document.getElementById('npePreviewLabel');
+    if (lbl) lbl.textContent = '';
+    const prev = document.getElementById('npeMediaPreview');
+    if (prev) prev.style.display = 'none';
+    const dz = document.getElementById('npeDropzone');
+    if (dz) dz.style.display = '';
+    const fi = document.getElementById('npeFileInput');
+    if (fi) fi.value = '';
+}
+
+// Editor
+function npeSetEditorTab(el) {
+    document.querySelectorAll('.npe-etab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const isWrite = el.dataset.tab === 'write';
+    document.getElementById('npeWritePane').style.display = isWrite ? '' : 'none';
+    const prevPane = document.getElementById('npePreviewPane');
+    const toolbarEl = document.getElementById('npeMdToolbar');
+    if (isWrite) {
+        prevPane.style.display = 'none';
+        if (toolbarEl) toolbarEl.style.opacity = '1';
+    } else {
+        prevPane.style.display = '';
+        if (toolbarEl) toolbarEl.style.opacity = '0.4';
+        const ta = document.getElementById('postContent');
+        prevPane.innerHTML = ta && ta.value.trim() ? renderMarkdown(ta.value) : '<p class="npe-preview-empty">Önizlenecek içerik yok.</p>';
+    }
+}
+
+function npeInsert(type) {
+    const ta = document.getElementById('postContent');
+    if (!ta) return;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const sel = ta.value.substring(s, e);
+    let before = '', after = '', dflt = '', isBlock = false;
+    switch (type) {
+        case 'bold': before = '**'; after = '**'; dflt = 'kalın metin'; break;
+        case 'italic': before = '*'; after = '*'; dflt = 'italik metin'; break;
+        case 'strike': before = '~~'; after = '~~'; dflt = 'üstü çizgili'; break;
+        case 'h2': before = '## '; dflt = 'Başlık'; isBlock = true; break;
+        case 'h3': before = '### '; dflt = 'Alt Başlık'; isBlock = true; break;
+        case 'quote': before = '> '; dflt = 'Alıntı'; isBlock = true; break;
+        case 'code': before = '`'; after = '`'; dflt = 'kod'; break;
+        case 'link': before = '['; after = '](https://)'; dflt = 'bağlantı metni'; break;
+        case 'list': before = '- '; dflt = 'madde'; isBlock = true; break;
+    }
+    // Block elements must start on their own line
+    let prefix = '';
+    if (isBlock && s > 0 && ta.value[s - 1] !== '\n') prefix = '\n';
+    const text = sel || dflt;
+    const rep = prefix + before + text + after;
+    ta.value = ta.value.substring(0, s) + rep + ta.value.substring(e);
+    const textStart = s + prefix.length + before.length;
+    ta.setSelectionRange(textStart, textStart + text.length);
+    ta.focus();
+    npeContentInput();
+}
+
+function npeContentInput() {
+    const ta = document.getElementById('postContent');
+    const cnt = document.getElementById('npeCharCount');
+    if (ta && cnt) cnt.textContent = `${ta.value.length} / 5000`;
+}
+
+function npeContentKeydown(e) {
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b') { e.preventDefault(); npeInsert('bold'); }
+        if (e.key === 'i') { e.preventDefault(); npeInsert('italic'); }
+        if (e.key === 'k') { e.preventDefault(); npeInsert('link'); }
+    }
+    // Tab = indent
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const ta = e.target;
+        const s = ta.selectionStart;
+        ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + 2;
+    }
+}
+
+// Tags
+function npeTagKeydown(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const val = e.target.value.replace(/,/g, '').trim();
+        if (val) npeAddTag(val);
+        e.target.value = '';
+    } else if (e.key === 'Backspace' && !e.target.value && npeTags.length) {
+        npeRemoveTag(npeTags[npeTags.length - 1]);
+    }
+}
+
+function npeAddTag(raw) {
+    if (npeTags.length >= 6) { showToast('En fazla 6 etiket ekleyebilirsin', 'info'); return; }
+    const clean = '#' + raw.replace(/^#+/, '').toLowerCase().replace(/\s+/g, '');
+    if (clean.length < 2) return;
+    if (!npeTags.includes(clean)) { npeTags.push(clean); npeRenderTags(); }
+}
+
+function npeRemoveTag(tag) {
+    npeTags = npeTags.filter(t => t !== tag);
+    npeRenderTags();
+}
+
+function npeRenderTags() {
+    const list = document.getElementById('npeTagList');
+    if (!list) return;
+    list.innerHTML = npeTags.map(tag => `
+        <span class="npe-tag-pill">
+            ${escapeHtml(tag)}
+            <button type="button" onclick="npeRemoveTag('${escapeHtml(tag.replace(/'/g, '&#39;'))}')" aria-label="Kaldır">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="9" height="9"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </span>`).join('');
+    const hidden = document.getElementById('postTags');
+    if (hidden) hidden.value = npeTags.join(',');
+}
+
+// Markdown renderer
+function renderMarkdown(raw) {
+    if (!raw) return '';
+    const lines = raw.split('\n');
+    let html = '';
+    let inCode = false, codeBuf = '', inList = false;
+    for (let i = 0; i < lines.length; i++) {
+        const ln = lines[i];
+        if (ln.startsWith('```')) {
+            if (!inCode) { if (inList) { html += '</ul>'; inList = false; } inCode = true; codeBuf = ''; }
+            else { inCode = false; html += `<pre class="md-pre"><code>${escapeHtml(codeBuf)}</code></pre>`; }
+            continue;
+        }
+        if (inCode) { codeBuf += (codeBuf ? '\n' : '') + ln; continue; }
+        const h3 = ln.match(/^###\s+(.*)/); if (h3) { if (inList) { html += '</ul>'; inList = false; } html += `<h3 class="md-h3">${mdInline(h3[1])}</h3>`; continue; }
+        const h2 = ln.match(/^##\s+(.*)/); if (h2) { if (inList) { html += '</ul>'; inList = false; } html += `<h2 class="md-h2">${mdInline(h2[1])}</h2>`; continue; }
+        const h1 = ln.match(/^#\s+(.*)/); if (h1) { if (inList) { html += '</ul>'; inList = false; } html += `<h1 class="md-h1">${mdInline(h1[1])}</h1>`; continue; }
+        if (ln.startsWith('> ')) { if (inList) { html += '</ul>'; inList = false; } html += `<blockquote class="md-quote">${mdInline(ln.slice(2))}</blockquote>`; continue; }
+        if (ln.match(/^(---+|\*\*\*+)$/)) { if (inList) { html += '</ul>'; inList = false; } html += '<hr class="md-hr">'; continue; }
+        if (ln.match(/^[-*]\s+/)) { if (!inList) { html += '<ul class="md-ul">'; inList = true; } html += `<li>${mdInline(ln.replace(/^[-*]\s+/, ''))}</li>`; continue; }
+        if (ln.trim() === '') { if (inList) { html += '</ul>'; inList = false; } continue; }
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<p class="md-p">${mdInline(ln)}</p>`;
+    }
+    if (inList) html += '</ul>';
+    if (inCode) html += `<pre class="md-pre"><code>${escapeHtml(codeBuf)}</code></pre>`;
+    return html;
+}
+
+function mdInline(t) {
+    t = t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    t = t.replace(/`([^`]+)`/g, '<code class="md-ic">$1</code>');
+    t = t.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+    t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    t = t.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a class="md-a" href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    return t;
+}
+
+// Close NPE game dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#npeGameTrigger') && !e.target.closest('#npeGameDropdown')) {
+        const dd = document.getElementById('npeGameDropdown');
+        if (dd) { dd.innerHTML = ''; dd.classList.remove('active'); }
+    }
+});
 
 // ── Share / Bookmark (UI feedback) ──
 function sharePost(postId, event) {
@@ -2529,6 +3074,7 @@ function showMyPosts() {
 function openModal(id) {
     document.getElementById(id).classList.add('active');
     document.body.style.overflow = 'hidden';
+    if (id === 'newPostModal') npeInit();
 }
 
 function closeModal(id) {
@@ -2540,6 +3086,7 @@ function closeModal(id) {
         const iframe = document.getElementById('browserGameIframe');
         if (iframe) iframe.src = '';
     }
+    if (id === 'newPostModal') npeReset();
 }
 
 function closeModalOnOverlay(e, id) {
@@ -3043,6 +3590,17 @@ let gamesSearchTimeout = null;
 let gamesScrollObserver = null;
 let gamesAbortController = null;
 let gamesRequestId = 0;
+
+// ── Reviews Pinterest State ──
+let reviewsScrollObserver = null;
+let reviewsDisplayCount = 20;
+const REVIEWS_PAGE_SIZE = 20;
+
+// ── New Post Editor (NPE) State ──
+let npeTags = [];
+let npeMediaData = null;
+let npeGameSelected = null;
+let npeGameSearchTimeout = null;
 
 // Helper: get today's date in YYYY-MM-DD format for API filtering
 function getTodayDate() {

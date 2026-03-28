@@ -604,43 +604,224 @@
 
     <!-- ==================== NEW POST MODAL ==================== -->
     <div class="modal-overlay" id="newPostModal" onclick="closeModalOnOverlay(event, 'newPostModal')">
-        <div class="modal modal-lg">
+        <div class="modal modal-editor" id="npeModal">
             <button class="modal-close" onclick="closeModal('newPostModal')">&times;</button>
-            <div class="modal-header">
-                <h2>Yeni Gönderi Oluştur</h2>
-                <p>Oyun dünyasından bir haberi paylaş</p>
+
+            <div class="npe-header">
+                <div class="npe-user-chip" id="npeUserChip"></div>
             </div>
-            <form id="newPostForm" onsubmit="handleNewPost(event)">
-                <div class="form-group">
-                    <label for="postTitle">Başlık</label>
-                    <input type="text" id="postTitle" placeholder="Haber başlığını yazın..." required>
+
+            <form id="newPostForm" onsubmit="handleNewPost(event)" autocomplete="off">
+
+                <!-- 1. Kategori -->
+                <div class="npe-row npe-cat-row">
+                    <div class="npe-cat-bar">
+                        <button type="button" class="npe-cat-pill active" data-val="genel"
+                            onclick="npeSetCat(this)">Genel</button>
+                        <button type="button" class="npe-cat-pill" data-val="fps" onclick="npeSetCat(this)">FPS</button>
+                        <button type="button" class="npe-cat-pill" data-val="rpg" onclick="npeSetCat(this)">RPG</button>
+                        <button type="button" class="npe-cat-pill" data-val="moba"
+                            onclick="npeSetCat(this)">MOBA</button>
+                        <button type="button" class="npe-cat-pill" data-val="battle-royale"
+                            onclick="npeSetCat(this)">Battle Royale</button>
+                        <button type="button" class="npe-cat-pill" data-val="indie"
+                            onclick="npeSetCat(this)">Indie</button>
+                        <button type="button" class="npe-cat-pill" data-val="strateji"
+                            onclick="npeSetCat(this)">Strateji</button>
+                    </div>
+                    <input type="hidden" id="postCategory" value="genel">
                 </div>
-                <div class="form-group">
-                    <label for="postCategory">Kategori</label>
-                    <select id="postCategory" required>
-                        <option value="">Kategori Seçin</option>
-                        <option value="fps">FPS</option>
-                        <option value="rpg">RPG</option>
-                        <option value="moba">MOBA</option>
-                        <option value="battle-royale">Battle Royale</option>
-                        <option value="indie">Indie</option>
-                        <option value="strateji">Strateji</option>
-                        <option value="genel">Genel</option>
-                    </select>
+
+                <!-- 2. Başlık -->
+                <div class="npe-row">
+                    <input type="text" id="postTitle" class="npe-title-input" placeholder="Başlık ekle…" required
+                        maxlength="160">
                 </div>
-                <div class="form-group">
-                    <label for="postImageUrl">Görsel URL (opsiyonel)</label>
-                    <input type="url" id="postImageUrl" placeholder="https://ornek.com/gorsel.jpg">
+
+                <!-- 3. Oyun referansı -->
+                <div class="npe-row npe-game-row">
+                    <div class="npe-game-trigger" id="npeGameTrigger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"
+                            height="15">
+                            <line x1="6" x2="10" y1="11" y2="11" />
+                            <line x1="8" x2="8" y1="9" y2="13" />
+                            <line x1="15" x2="15.01" y1="12" y2="12" />
+                            <line x1="18" x2="18.01" y1="10" y2="10" />
+                            <path
+                                d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z" />
+                        </svg>
+                        <input type="text" id="npeGameInput" placeholder="Oyuna atıfta bulun…" autocomplete="off"
+                            oninput="npeSearchGame(this.value)">
+                        <div class="npe-game-dropdown" id="npeGameDropdown"></div>
+                    </div>
+                    <div class="npe-game-badge" id="npeGameBadge" style="display:none">
+                        <img id="npeGameBadgeImg" src="" alt="" onerror="this.style.display='none'">
+                        <span id="npeGameBadgeName"></span>
+                        <button type="button" class="npe-badge-remove" onclick="npeClearGame()" aria-label="Kaldır">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11"
+                                height="11">
+                                <path d="M18 6 6 18M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <input type="hidden" id="npeGameRef" value="">
+                    <input type="hidden" id="npeGameImageRef" value="">
                 </div>
-                <div class="form-group">
-                    <label for="postContent">İçerik</label>
-                    <textarea id="postContent" rows="6" placeholder="Haber içeriğini yazın..." required></textarea>
+
+                <!-- 4. Medya -->
+                <div class="npe-row npe-media-row">
+                    <div class="npe-media-tabs">
+                        <button type="button" class="npe-mtab active" data-tab="upload" onclick="npeSetMediaTab(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                height="13">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Yükle
+                        </button>
+                        <button type="button" class="npe-mtab" data-tab="url" onclick="npeSetMediaTab(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                height="13">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                            URL
+                        </button>
+                    </div>
+                    <div id="npeUploadPane">
+                        <div class="npe-dropzone" id="npeDropzone"
+                            onclick="document.getElementById('npeFileInput').click()" ondragover="npeDragOver(event)"
+                            ondragleave="npeDragLeave(event)" ondrop="npeDrop(event)">
+                            <input type="file" id="npeFileInput" accept="image/*,video/mp4,video/webm"
+                                style="display:none" onchange="npeFileChange(event)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="38"
+                                height="38" class="npe-dz-icon">
+                                <rect x="3" y="3" width="18" height="18" rx="3" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                            <span class="npe-dz-text">Fotoğraf veya video seç</span>
+                            <span class="npe-dz-sub">PNG · JPG · GIF · MP4 · WEBM &nbsp;•&nbsp; Sürükle &amp;
+                                Bırak</span>
+                        </div>
+                        <div class="npe-media-preview" id="npeMediaPreview" style="display:none">
+                            <button type="button" class="npe-media-remove" onclick="npeClearMedia()"
+                                aria-label="Kaldır">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13"
+                                    height="13">
+                                    <path d="M18 6 6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                            <img id="npePreviewImg" src="" alt="" style="display:none">
+                            <video id="npePreviewVid" controls style="display:none"></video>
+                            <span id="npePreviewLabel"></span>
+                        </div>
+                    </div>
+                    <div id="npeUrlPane" style="display:none">
+                        <input type="url" id="postImageUrl" class="npe-url-input"
+                            placeholder="https://resim-veya-video-linki.com/…">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="postTags">Etiketler (virgülle ayırın)</label>
-                    <input type="text" id="postTags" placeholder="#GTA6, #PlayStation, #Oyun">
+
+                <!-- 5. İçerik (Markdown) -->
+                <div class="npe-row npe-editor-row">
+                    <div class="npe-editor-header">
+                        <div class="npe-editor-tabs">
+                            <button type="button" class="npe-etab active" data-tab="write"
+                                onclick="npeSetEditorTab(this)">Yaz</button>
+                            <button type="button" class="npe-etab" data-tab="preview"
+                                onclick="npeSetEditorTab(this)">Önizle</button>
+                        </div>
+                        <div class="npe-md-toolbar" id="npeMdToolbar">
+                            <button type="button" title="Kalın" onclick="npeInsert('bold')"><strong>B</strong></button>
+                            <button type="button" title="İtalik" onclick="npeInsert('italic')"><em>I</em></button>
+                            <button type="button" title="Üstü Çizgili" onclick="npeInsert('strike')"><s>S</s></button>
+                            <span class="npe-tb-sep"></span>
+                            <button type="button" title="Başlık 2" onclick="npeInsert('h2')"
+                                class="npe-tb-text">H2</button>
+                            <button type="button" title="Başlık 3" onclick="npeInsert('h3')"
+                                class="npe-tb-text">H3</button>
+                            <span class="npe-tb-sep"></span>
+                            <button type="button" title="Alıntı" onclick="npeInsert('quote')">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                                    <path
+                                        d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" />
+                                </svg>
+                            </button>
+                            <button type="button" title="Kod" onclick="npeInsert('code')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                    height="13">
+                                    <polyline points="16 18 22 12 16 6" />
+                                    <polyline points="8 6 2 12 8 18" />
+                                </svg>
+                            </button>
+                            <button type="button" title="Bağlantı" onclick="npeInsert('link')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                    height="13">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                </svg>
+                            </button>
+                            <button type="button" title="Liste" onclick="npeInsert('list')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                    height="13">
+                                    <line x1="8" y1="6" x2="21" y2="6" />
+                                    <line x1="8" y1="12" x2="21" y2="12" />
+                                    <line x1="8" y1="18" x2="21" y2="18" />
+                                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                                </svg>
+                            </button>
+                            <div class="npe-tb-spacer"></div>
+                            <span class="npe-char-count" id="npeCharCount">0 / 5000</span>
+                        </div>
+                    </div>
+                    <div id="npeWritePane">
+                        <textarea id="postContent" class="npe-textarea"
+                            placeholder="**Markdown** desteklenir. *italik*, ## başlık, > alıntı, \`kod\`, [metin](url)…"
+                            required maxlength="5000" oninput="npeContentInput()"
+                            onkeydown="npeContentKeydown(event)"></textarea>
+                    </div>
+                    <div id="npePreviewPane" class="npe-preview-body md-body" style="display:none"></div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Paylaş</button>
+
+                <!-- 6. Etiketler -->
+                <div class="npe-row npe-tags-row">
+                    <div class="npe-tags-field" id="npeTagsField"
+                        onclick="document.getElementById('npeTagInput').focus()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                            height="13" class="npe-tags-icon">
+                            <path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l7.3-7.3a1 1 0 0 0 0-1.41L12 2z" />
+                            <circle cx="7" cy="7" r="1" />
+                        </svg>
+                        <div class="npe-tag-list" id="npeTagList"></div>
+                        <input type="text" id="npeTagInput" class="npe-tag-input"
+                            placeholder="Etiket ekle, Enter ile onayla…" maxlength="30"
+                            onkeydown="npeTagKeydown(event)">
+                    </div>
+                    <input type="hidden" id="postTags" value="">
+                </div>
+
+                <!-- 7. Footer -->
+                <div class="npe-footer">
+                    <div class="npe-footer-left">
+                        <span class="npe-cat-label" id="npeCatLabel">Genel</span>
+                    </div>
+                    <div class="npe-footer-right">
+                        <button type="button" class="btn btn-ghost" onclick="closeModal('newPostModal')">İptal</button>
+                        <button type="submit" class="btn btn-primary npe-submit-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"
+                                height="15">
+                                <line x1="22" y1="2" x2="11" y2="13" />
+                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
+                            Paylaş
+                        </button>
+                    </div>
+                </div>
+
             </form>
         </div>
     </div>
