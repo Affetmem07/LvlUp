@@ -1532,6 +1532,10 @@ select {
     gap: 12px;
 }
 
+.mobile-user-quick-links {
+    display: none;
+}
+
 .nav-actions {
     display: flex;
     align-items: center;
@@ -5742,9 +5746,39 @@ select {
 
     .navbar-right {
         flex: 0;
+        gap: 8px;
     }
 
     /* User menu: + gizle, avatar gizle (profil alt navda) */
+    .user-menu {
+        gap: 8px;
+    }
+
+    .mobile-user-quick-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .mobile-user-quick-link {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-secondary);
+        flex-shrink: 0;
+    }
+
+    .mobile-user-quick-link svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .mobile-user-quick-link.active {
+        color: var(--accent-light);
+        background: rgba(107, 170, 117, 0.14);
+        box-shadow: inset 0 0 0 1px rgba(107, 170, 117, 0.2);
+    }
+
     #btnNewPost {
         display: none;
     }
