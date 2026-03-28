@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
     users: 'lvlup_users',
     posts: 'lvlup_posts',
     currentUser: 'lvlup_currentUser',
+    gamePopularity: 'lvlup_game_popularity',
 };
 
 function getStore(key) {
@@ -475,6 +476,7 @@ function normalizeDemoPostImages(posts) {
 let currentUser = getStore(STORAGE_KEYS.currentUser);
 let allPosts = getStore(STORAGE_KEYS.posts) || [];
 let allUsers = getStore(STORAGE_KEYS.users) || [];
+let gamePopularityStore = getStore(STORAGE_KEYS.gamePopularity) || {};
 
 // O(1) user lookup map — rebuild whenever allUsers changes
 let userMap = new Map(allUsers.map(u => [u.id, u]));
@@ -495,6 +497,7 @@ let currentGameSearch = '';
 let currentProfileTab = 'posts';
 let selectedAvatarColor = 0;
 let hasLoadedGamesCatalog = false;
+let currentSearchQuery = '';
 let homeHeroGames = {
     newest: [],
     popular: [],
@@ -514,6 +517,217 @@ const AVATAR_GRADIENTS = [
     'linear-gradient(135deg, #354F52, #52796F)', // Pine
 ];
 
+const POST_POPULARITY_WEIGHTS = Object.freeze({
+    like: 3,
+    comment: 6,
+    save: 8,
+});
+
+const GAME_POPULARITY_WEIGHTS = Object.freeze({
+    view: 35,
+    addedLog: 10,
+    rating: 0.2,
+    ratingsLog: 4,
+});
+
+function createGamePopularityKey(source, id) {
+    return `${source}:${String(id)}`;
+}
+
+function getPopularityTier(score, type = 'post') {
+    const tiers = type === 'game'
+        ? [
+            { min: 140, label: 'Zirvede', tone: 'top' },
+            { min: 70, label: 'Trend', tone: 'hot' },
+            { min: 30, label: 'Yukseliyor', tone: 'warm' },
+            { min: 0, label: 'Kesfediliyor', tone: 'fresh' },
+        ]
+        : [
+            { min: 60, label: 'Zirvede', tone: 'top' },
+            { min: 28, label: 'Trend', tone: 'hot' },
+            { min: 12, label: 'Yukseliyor', tone: 'warm' },
+            { min: 0, label: 'Taze', tone: 'fresh' },
+        ];
+
+    return tiers.find((tier) => score >= tier.min) || tiers[tiers.length - 1];
+}
+
+function getPostSaveCount(postId) {
+    return allUsers.reduce((total, user) => total + ((user.bookmarks || []).includes(postId) ? 1 : 0), 0);
+}
+
+function getPostPopularityMeta(post) {
+    const likes = Array.isArray(post.likes) ? post.likes.length : 0;
+    const comments = Array.isArray(post.comments) ? post.comments.length : 0;
+    const saves = getPostSaveCount(post.id);
+    const score =
+        (likes * POST_POPULARITY_WEIGHTS.like) +
+        (comments * POST_POPULARITY_WEIGHTS.comment) +
+        (saves * POST_POPULARITY_WEIGHTS.save);
+    const tier = getPopularityTier(score, 'post');
+
+    return {
+        likes,
+        comments,
+        saves,
+        score,
+        label: tier.label,
+        tone: tier.tone,
+    };
+}
+
+function comparePostsByPopularity(a, b) {
+    const aMeta = getPostPopularityMeta(a);
+    const bMeta = getPostPopularityMeta(b);
+
+    if (bMeta.score !== aMeta.score) return bMeta.score - aMeta.score;
+    if (bMeta.saves !== aMeta.saves) return bMeta.saves - aMeta.saves;
+    if (bMeta.comments !== aMeta.comments) return bMeta.comments - aMeta.comments;
+    if (bMeta.likes !== aMeta.likes) return bMeta.likes - aMeta.likes;
+    return new Date(b.date) - new Date(a.date);
+}
+
+function getTopPopularPosts(posts, limit = 3) {
+    return [...posts].sort(comparePostsByPopularity).slice(0, limit);
+}
+
+function getGamePopularityKey(game, fallbackSource = 'rawg') {
+    if (!game) return createGamePopularityKey(fallbackSource, 'unknown');
+    if (game.popularityKey) return game.popularityKey;
+    return createGamePopularityKey(game.gameSource || fallbackSource, game.id);
+}
+
+function getGamePopularitySeedScore(game) {
+    if (!game || game.gameSource === 'browser') return 0;
+
+    const addedScore = Math.log10((game.added || 0) + 1) * GAME_POPULARITY_WEIGHTS.addedLog;
+    const ratingScore = Math.max(0, Number(game.rating) || 0) * GAME_POPULARITY_WEIGHTS.rating;
+    const ratingsScore = Math.log10((game.ratingsCount || 0) + 1) * GAME_POPULARITY_WEIGHTS.ratingsLog;
+
+    return Math.round(addedScore + ratingScore + ratingsScore);
+}
+
+function getGamePopularityMeta(game) {
+    const key = getGamePopularityKey(game);
+    const entry = gamePopularityStore[key] || {};
+    const views = entry.views || 0;
+    const seedScore = getGamePopularitySeedScore(game);
+    const score = (views * GAME_POPULARITY_WEIGHTS.view) + seedScore;
+    const tier = getPopularityTier(score, 'game');
+
+    return {
+        views,
+        score,
+        seedScore,
+        label: tier.label,
+        tone: tier.tone,
+        lastViewedAt: entry.lastViewedAt || '',
+    };
+}
+
+function mapBrowserGameToFeaturedGame(game) {
+    return {
+        ...game,
+        gameSource: 'browser',
+        popularityKey: game.popularityKey || createGamePopularityKey('browser', game.id),
+        coverUrl: game.coverUrl || game.imageUrl || '',
+        backgroundUrl: game.backgroundUrl || game.imageUrl || '',
+        genres: game.genres || [game.category || 'Tarayici'],
+        platforms: game.platforms || ['Tarayici'],
+        rating: game.rating || 0,
+        added: game.added || 0,
+        ratingsCount: game.ratingsCount || 0,
+    };
+}
+
+function mapStoredPopularityGame(entry) {
+    if (!entry || !entry.gameId) return null;
+
+    return {
+        id: String(entry.gameId),
+        gameSource: entry.source || 'rawg',
+        popularityKey: createGamePopularityKey(entry.source || 'rawg', entry.gameId),
+        title: entry.title || 'Bilinmeyen Oyun',
+        backgroundUrl: entry.imageUrl || '',
+        coverUrl: entry.imageUrl || '',
+        genres: entry.genres || (entry.category ? [entry.category] : []),
+        platforms: entry.platforms || ((entry.source || 'rawg') === 'browser' ? ['Tarayici'] : []),
+        category: entry.category || 'Oyun',
+        rating: entry.rating || 0,
+        added: entry.added || 0,
+        ratingsCount: entry.ratingsCount || 0,
+    };
+}
+
+function getFeaturedGamesForHome(limit = 5) {
+    const candidateMap = new Map();
+    const pushCandidate = (game) => {
+        if (!game || !game.id) return;
+
+        const normalized = game.gameSource === 'browser'
+            ? mapBrowserGameToFeaturedGame(game)
+            : {
+                ...game,
+                gameSource: game.gameSource || 'rawg',
+                popularityKey: game.popularityKey || createGamePopularityKey('rawg', game.id),
+                coverUrl: game.coverUrl || game.backgroundUrl || '',
+                backgroundUrl: game.backgroundUrl || game.coverUrl || '',
+            };
+
+        const meta = getGamePopularityMeta(normalized);
+        if (normalized.gameSource === 'browser' && meta.views === 0) return;
+
+        const existing = candidateMap.get(normalized.popularityKey) || {};
+        candidateMap.set(normalized.popularityKey, { ...existing, ...normalized });
+    };
+
+    (homeHeroGames.popular || []).forEach(pushCandidate);
+    (homeHeroGames.newest || []).forEach(pushCandidate);
+    Object.values(gamePopularityStore).map(mapStoredPopularityGame).forEach(pushCandidate);
+    allGames.filter((game) => getGamePopularityMeta(game).views > 0).forEach(pushCandidate);
+
+    if (typeof allBrowserGames !== 'undefined') {
+        allBrowserGames.forEach(pushCandidate);
+    }
+
+    return Array.from(candidateMap.values())
+        .map((game) => ({ game, meta: getGamePopularityMeta(game) }))
+        .sort((a, b) => {
+            if (b.meta.score !== a.meta.score) return b.meta.score - a.meta.score;
+            if (b.meta.views !== a.meta.views) return b.meta.views - a.meta.views;
+            return (b.game.added || 0) - (a.game.added || 0);
+        })
+        .slice(0, limit);
+}
+
+function registerGameVisit(game) {
+    if (!game || !game.id) return;
+
+    const key = getGamePopularityKey(game);
+    const existing = gamePopularityStore[key] || {};
+    gamePopularityStore = {
+        ...gamePopularityStore,
+        [key]: {
+            ...existing,
+            gameId: String(game.id),
+            source: game.gameSource || 'rawg',
+            title: game.title || existing.title || 'Bilinmeyen Oyun',
+            imageUrl: game.backgroundUrl || game.coverUrl || game.imageUrl || existing.imageUrl || '',
+            category: game.category || (game.genres && game.genres[0]) || existing.category || 'Oyun',
+            genres: game.genres || existing.genres || [],
+            platforms: game.platforms || existing.platforms || [],
+            rating: game.rating || existing.rating || 0,
+            added: game.added || existing.added || 0,
+            ratingsCount: game.ratingsCount || existing.ratingsCount || 0,
+            views: (existing.views || 0) + 1,
+            lastViewedAt: new Date().toISOString(),
+        }
+    };
+
+    setStore(STORAGE_KEYS.gamePopularity, gamePopularityStore);
+    refreshCurrentView();
+}
+
 let RAWG_API_KEY = '';
 let ITAD_API_KEY = '';
 
@@ -531,6 +745,30 @@ async function fetchConfig() {
         console.error('Konfigürasyon yüklenirken hata oluştu:', err);
         showToast('Sistem ayarları yüklenemedi. Bazı özellikler çalışmayabilir.', 'error');
     }
+}
+
+function handleStorageSync(event) {
+    if (!event.key || !Object.values(STORAGE_KEYS).includes(event.key)) return;
+
+    if (event.key === STORAGE_KEYS.posts) {
+        allPosts = getStore(STORAGE_KEYS.posts) || [];
+    }
+
+    if (event.key === STORAGE_KEYS.users) {
+        allUsers = getStore(STORAGE_KEYS.users) || [];
+        rebuildUserMap();
+    }
+
+    if (event.key === STORAGE_KEYS.currentUser) {
+        currentUser = getStore(STORAGE_KEYS.currentUser);
+        updateAuthUI();
+    }
+
+    if (event.key === STORAGE_KEYS.gamePopularity) {
+        gamePopularityStore = getStore(STORAGE_KEYS.gamePopularity) || {};
+    }
+
+    refreshCurrentView();
 }
 
 // ── Initialize ──
@@ -572,6 +810,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listen for hash changes (browser back/forward buttons)
     window.addEventListener('hashchange', handleRoute);
+    window.addEventListener('storage', handleStorageSync);
 
     // Search – overlay approach
     const searchInput = document.getElementById('searchInput');
@@ -1119,9 +1358,21 @@ function sortFeed(sort) {
 function refreshCurrentView() {
     const profilePage = document.getElementById('profilePage');
     const isProfileVisible = profilePage && profilePage.style.display !== 'none' && profilePage.offsetParent !== null;
+    const gamesPage = document.getElementById('gamesPage');
+    const isGamesVisible = gamesPage && gamesPage.style.display !== 'none' && gamesPage.offsetParent !== null;
+    const browserGamesPage = document.getElementById('browserGamesPage');
+    const isBrowserGamesVisible = browserGamesPage && browserGamesPage.style.display !== 'none' && browserGamesPage.offsetParent !== null;
+    const searchResultsPage = document.getElementById('searchResultsPage');
+    const isSearchVisible = searchResultsPage && searchResultsPage.style.display !== 'none' && searchResultsPage.offsetParent !== null;
 
     if (isProfileVisible) {
         renderProfilePage();
+    } else if (isGamesVisible) {
+        renderGamesGrid();
+    } else if (isBrowserGamesVisible) {
+        renderBrowserGamesGrid();
+    } else if (isSearchVisible && currentSearchQuery) {
+        renderSearchResultsPage(currentSearchQuery);
     } else {
         renderFeed();
     }
@@ -1132,7 +1383,7 @@ function renderFeed() {
 
     // Filter by page
     if (currentPage === 'popular') {
-        posts.sort((a, b) => b.likes.length - a.likes.length);
+        posts.sort(comparePostsByPopularity);
     } else if (currentPage === 'reviews') {
         posts = posts.filter(p => p.title.toLowerCase().includes('inceleme') || p.title.toLowerCase().includes('review'));
     } else if (currentPage === 'games') {
@@ -1148,7 +1399,7 @@ function renderFeed() {
     if (currentSort === 'newest') {
         posts.sort((a, b) => new Date(b.date) - new Date(a.date));
     } else if (currentSort === 'hot') {
-        posts.sort((a, b) => b.likes.length - a.likes.length);
+        posts.sort(comparePostsByPopularity);
     } else if (currentSort === 'discussed') {
         posts.sort((a, b) => b.comments.length - a.comments.length);
     }
@@ -1206,10 +1457,77 @@ function renderPinterestHome(posts) {
                 </div>
             </div>
 
+            ${renderHomePopularPostsSection(posts)}
+
             <div class="pinterest-masonry-grid">
                 ${posts.map((post, index) => renderPinterestPin(post, index)).join('')}
             </div>
         </section>`;
+}
+
+function renderHomePopularPostsSection(posts) {
+    const popularPosts = getTopPopularPosts(posts, 3);
+    if (popularPosts.length === 0) return '';
+
+    return `
+        <section class="home-popular-posts">
+            <div class="home-section-header">
+                <div class="home-section-heading">
+                    <span>Canli popularite</span>
+                    <h3>En populer postlar</h3>
+                    <p>Begeni, yorum ve kaydetme verilerine gore ana sayfada anlik olarak guncellenir.</p>
+                </div>
+            </div>
+            <div class="home-popular-post-grid">
+                ${popularPosts.map((post, index) => renderHomePopularPostCard(post, index)).join('')}
+            </div>
+        </section>
+    `;
+}
+
+function renderHomePopularPostCard(post, index) {
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const popularity = getPostPopularityMeta(post);
+    const cover = post.imageUrl
+        ? `
+            <div class="home-popular-post-media">
+                <img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy"
+                     onerror="this.parentElement.classList.add('is-fallback'); this.style.display='none'">
+                <span>${escapeHtml(getCategoryName(post.category))}</span>
+            </div>
+        `
+        : `
+            <div class="home-popular-post-media is-fallback">
+                <span>${escapeHtml(getCategoryName(post.category))}</span>
+            </div>
+        `;
+
+    return `
+        <article class="home-popular-post-card" onclick="expandPost('${post.id}')">
+            ${cover}
+            <div class="home-popular-post-body">
+                <div class="home-popular-post-top">
+                    <span class="home-rank-badge">#${index + 1}</span>
+                    <span class="popularity-pill tone-${popularity.tone}">${escapeHtml(popularity.label)}</span>
+                </div>
+                <h4>${escapeHtml(post.title)}</h4>
+                <p>${escapeHtml(post.content)}</p>
+                <div class="home-popular-post-stats">
+                    <span>${popularity.likes} begeni</span>
+                    <span>${popularity.comments} yorum</span>
+                    <span>${popularity.saves} kaydetme</span>
+                </div>
+                <div class="home-popular-post-footer">
+                    <div class="home-popular-post-author">
+                        <div class="home-mini-avatar" style="${bg}">${initial}</div>
+                        <span>@${escapeHtml(author.username)}</span>
+                    </div>
+                    <span>${getTimeAgo(post.date)}</span>
+                </div>
+            </div>
+        </article>
+    `;
 }
 
 function renderPinterestHomeHeroGames() {
@@ -1218,23 +1536,20 @@ function renderPinterestHomeHeroGames() {
 }
 
 function getHomeHeroCardSequence() {
-    const newest = homeHeroGames.newest || [];
-    const popular = homeHeroGames.popular || [];
+    const featuredGames = getFeaturedGamesForHome(5).map(({ game, meta }) => ({
+        kind: meta.views > 0 ? 'community' : 'catalog',
+        game,
+        meta,
+    }));
 
-    if (!newest.length && !popular.length) {
-        return Array.from({ length: 5 }, (_, index) => ({ kind: 'placeholder', id: `hero-placeholder-${index}` }));
+    while (featuredGames.length < 5) {
+        featuredGames.push({ kind: 'placeholder', id: `hero-placeholder-${featuredGames.length}` });
     }
 
-    return [
-        newest[0] || popular[0] || null,
-        popular[0] || newest[0] || null,
-        popular[1] || newest[1] || popular[0] || null,
-        newest[1] || newest[0] || popular[1] || null,
-        popular[2] || popular[1] || newest[1] || null,
-    ].map((game, index) => game ? { kind: index === 0 || index === 3 ? 'newest' : 'popular', game } : { kind: 'placeholder', id: `hero-fallback-${index}` });
+    return featuredGames;
 }
 
-function renderPinterestSpotlightGame(item, index) {
+function renderPinterestSpotlightGameLegacy(item, index) {
     if (!item || item.kind === 'placeholder' || !item.game) {
         return `
             <article class="pinterest-spotlight-card spotlight-${index + 1} is-placeholder">
@@ -1282,6 +1597,54 @@ function mergeGamesIntoLibrary(games) {
             allGames[existingIndex] = { ...allGames[existingIndex], ...game };
         }
     });
+}
+
+function renderPinterestSpotlightGame(item, index) {
+    if (!item || item.kind === 'placeholder' || !item.game) {
+        return `
+            <article class="pinterest-spotlight-card spotlight-${index + 1} is-placeholder">
+                <div class="pinterest-spotlight-media no-image">
+                    <div class="pinterest-spotlight-fallback">RAWG</div>
+                </div>
+                <div class="pinterest-spotlight-overlay">
+                    <span>${homeHeroGames.error ? 'Baglanti' : 'Yukleniyor'}</span>
+                    <strong>${homeHeroGames.error ? 'Oyunlar su an alinamadi' : 'Oyunlar hazirlaniyor...'}</strong>
+                </div>
+            </article>`;
+    }
+
+    const { game, kind, meta } = item;
+    const image = game.backgroundUrl || game.coverUrl;
+    const kicker = game.gameSource === 'browser'
+        ? 'Hazir Oyun'
+        : (kind === 'community' ? 'Canli Populer' : 'One Cikan');
+    const subLabel = game.genres && game.genres.length > 0
+        ? game.genres[0]
+        : (game.platforms && game.platforms.length > 0 ? game.platforms[0] : 'Oyun');
+    const metaText = game.gameSource === 'browser'
+        ? `${meta.views} acilis • ${meta.label}`
+        : (meta.views > 0
+            ? `${meta.views} ziyaret • ${meta.label}`
+            : `${Math.max(0, game.added || 0).toLocaleString('tr-TR')} takip • ${meta.label}`);
+    const openAction = game.gameSource === 'browser'
+        ? `openBrowserGame('${game.id}')`
+        : `openGameDetail('${game.id}')`;
+    const imageMarkup = image
+        ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
+        : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`;
+
+    return `
+        <article class="pinterest-spotlight-card spotlight-${index + 1}" onclick="${openAction}">
+            <div class="pinterest-spotlight-media">${imageMarkup}</div>
+            <div class="pinterest-spotlight-overlay">
+                <div class="pinterest-spotlight-overlay-top">
+                    <span>${escapeHtml(kicker)}</span>
+                    <strong class="pinterest-spotlight-rank">#${index + 1}</strong>
+                </div>
+                <strong>${escapeHtml(game.title)}</strong>
+                <small>${escapeHtml(subLabel)} • ${escapeHtml(String(metaText))}</small>
+            </div>
+        </article>`;
 }
 
 function resetGamesPageState() {
@@ -2225,6 +2588,7 @@ function handleSearchKeyNav(e) {
 
 // ── Search Results Page Rendering ──
 function renderSearchResultsPage(query) {
+    currentSearchQuery = query;
     document.getElementById('searchResultsKeyword').textContent = '"' + query + '"';
     query = query.toLowerCase();
 
@@ -3130,6 +3494,8 @@ function mapRawgGame(rawgGame) {
     return {
         id: String(rawgGame.id),
         rawgId: rawgGame.id,
+        gameSource: 'rawg',
+        popularityKey: createGamePopularityKey('rawg', rawgGame.id),
         title: rawgGame.name || 'Bilinmeyen',
         developer: '', // Will be fetched on detail view
         publisher: '', // Will be fetched on detail view
@@ -3738,6 +4104,11 @@ function filterBrowserGames() {
 }
 
 function renderBrowserGameCard(game) {
+    const popularity = getGamePopularityMeta(mapBrowserGameToFeaturedGame(game));
+    const popularityText = popularity.views > 0
+        ? `${popularity.label} • ${popularity.views} acilis`
+        : 'Kesfedilmeyi bekliyor';
+
     return `
         <div class="browser-game-card" onclick="openBrowserGame('${game.id}')">
             <div class="bgc-art">
@@ -3752,6 +4123,7 @@ function renderBrowserGameCard(game) {
             <div class="bgc-footer">
                 <div class="bgc-title">${escapeHtml(game.title)}</div>
                 <div class="bgc-desc">${escapeHtml(game.description)}</div>
+                <div class="bgc-meta">${escapeHtml(popularityText)}</div>
             </div>
         </div>
     `;
@@ -3760,6 +4132,8 @@ function renderBrowserGameCard(game) {
 function openBrowserGame(id) {
     const game = allBrowserGames.find(g => g.id === id);
     if (!game) return;
+
+    registerGameVisit(mapBrowserGameToFeaturedGame(game));
 
     document.getElementById('browserGameOverlayTitle').textContent = game.title;
 
@@ -3779,7 +4153,15 @@ function openBrowserGame(id) {
 function renderBrowserGamesGrid() {
     const grid = document.getElementById('browserGamesGrid');
     if (!grid) return;
-    grid.innerHTML = allBrowserGames.map(game => renderBrowserGameCard(game)).join('');
+    const rankedGames = [...allBrowserGames].sort((a, b) => {
+        const aMeta = getGamePopularityMeta(mapBrowserGameToFeaturedGame(a));
+        const bMeta = getGamePopularityMeta(mapBrowserGameToFeaturedGame(b));
+
+        if (bMeta.score !== aMeta.score) return bMeta.score - aMeta.score;
+        return a.title.localeCompare(b.title, 'tr');
+    });
+
+    grid.innerHTML = rankedGames.map(game => renderBrowserGameCard(game)).join('');
 }
 
 // ── Advanced Game Filters ──
@@ -4113,6 +4495,8 @@ function getRatingClass(rating) {
 async function openGameDetail(gameId) {
     let game = allGames.find(g => g.id === String(gameId));
     if (!game) return;
+
+    registerGameVisit(game);
 
     // If creator overlay is open, close it first
     document.getElementById('creatorOverlay').classList.remove('active');
