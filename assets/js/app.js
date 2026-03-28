@@ -786,38 +786,39 @@ function formatPopularHeroUserScore(game) {
     return game && game.rawRating ? game.rawRating.toFixed(1) : '-';
 }
 
-function renderPopularHeroFeatureCard(slide) {
-    if (!slide || !slide.game) {
-        return `
-            <article class="popular-hero-feature-card is-placeholder">
-                <div class="popular-hero-feature-media no-image">
-                    <div class="pinterest-spotlight-fallback">RAWG</div>
-                </div>
-                <div class="popular-hero-feature-copy">
-                    <span>Hazırlanıyor</span>
-                    <strong>Oyun verisi gelir gelmez burada görünecek.</strong>
-                </div>
-            </article>`;
+function formatPopularHeroReleaseDate(game) {
+    if (!game?.released) return game?.releaseYear ? String(game.releaseYear) : 'Yakında';
+    try {
+        return new Intl.DateTimeFormat('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        }).format(new Date(game.released));
+    } catch {
+        return game.released;
+    }
+}
+
+function openPopularHeroGame(gameId, event) {
+    if (event) event.stopPropagation();
+    const targetId = String(gameId || '');
+    if (!targetId) return;
+
+    const heroGames = [
+        ...(homeHeroGames.newest || []),
+        ...(homeHeroGames.popular || []),
+        ...(homeHeroGames.weeklyPopular || []),
+    ];
+    const heroGame = heroGames.find((game) => String(game.id) === targetId);
+    if (heroGame) {
+        mergeGamesIntoLibrary([heroGame]);
     }
 
-    const game = slide.game;
-    const image = game.backgroundUrl || game.coverUrl || '';
-    const subLabel = game.genres?.[0] || game.platforms?.[0] || 'Oyun';
-    const releaseLabel = game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'Yakında');
+    openGameDetail(targetId);
+}
 
-    return `
-        <article class="popular-hero-feature-card" onclick="openGameDetail('${game.id}')">
-            <div class="popular-hero-feature-media${image ? '' : ' no-image'}">
-                ${image
-            ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
-            : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`}
-            </div>
-            <div class="popular-hero-feature-copy">
-                <span>${escapeHtml(slide.kicker)} • ${slide.position}/${slide.total}</span>
-                <strong>${escapeHtml(game.title)}</strong>
-                <small>${escapeHtml(subLabel)} • ${escapeHtml(String(releaseLabel))}</small>
-            </div>
-        </article>`;
+function renderPopularHeroFeatureCard(slide) {
+    return '';
 }
 
 function updatePopularHeroCarouselUI() {
@@ -1905,6 +1906,7 @@ function renderPopularHero(topTags = []) {
             ? getPopularHeroGhost({ title: game.title, tags: game.genres || [] })
             : slide.kicker;
         const releaseYear = game?.releaseYear || 'Yakında';
+        const releaseDate = formatPopularHeroReleaseDate(game);
         const criticScore = game?.rating > 0 ? game.rating : '-';
         const userScore = formatPopularHeroUserScore(game);
         const chips = slide.chips && slide.chips.length > 0
@@ -1927,11 +1929,10 @@ function renderPopularHero(topTags = []) {
                             <div class="popular-hero-copy">
                                 <span class="popular-hero-kicker">${escapeHtml(slide.kicker)} • ${slide.position}/${slide.total}</span>
                                 <h2>${escapeHtml(game?.title || slide.title)}</h2>
-                                <p>${escapeHtml(subline || slide.description)}</p>
                                 <div class="popular-hero-stat-grid">
                                     <div class="popular-hero-stat">
                                         <small>Çıkış Yılı</small>
-                                        <strong>${escapeHtml(String(releaseYear))}</strong>
+                                        <strong>${escapeHtml(String(releaseDate))}</strong>
                                     </div>
                                     <div class="popular-hero-stat">
                                         <small>Metacritic</small>
@@ -1944,7 +1945,7 @@ function renderPopularHero(topTags = []) {
                                 </div>
                                 <div class="popular-hero-actions">
                                     ${game
-                ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openGameDetail('${game.id}')">Oyuna git</button>`
+                ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openPopularHeroGame('${game.id}', event)">Oyuna git</button>`
                 : `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="navigate('games')">Oyunları aç</button>`}
                                     <button type="button" class="popular-hero-btn" onclick="navigate('games')">Tüm oyunlar</button>
                                 </div>

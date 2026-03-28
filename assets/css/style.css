@@ -9490,14 +9490,14 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
     min-height: 468px;
 }
 
 .popular-hero-copy {
-    justify-content: center;
-    max-width: 560px;
+    justify-content: flex-end;
+    max-width: 620px;
 }
 
 .popular-hero-copy h2 {
@@ -9535,10 +9535,19 @@ label[for="editBannerImage"] {
     font-size: 1rem;
 }
 
+.popular-hero-stat:first-child small {
+    font-size: 0;
+}
+
+.popular-hero-stat:first-child small::after {
+    content: 'Cikis Tarihi';
+    font-size: 0.7rem;
+}
+
 .popular-hero-game-deck {
     position: relative;
     z-index: 1;
-    display: flex;
+    display: none;
 }
 
 .popular-hero-feature-card {
@@ -9639,13 +9648,16 @@ label[for="editBannerImage"] {
     background: #d4f47d;
 }
 
+.popular-hero-actions .popular-hero-btn:not(.popular-hero-btn--primary) {
+    display: none;
+}
+
 @media (max-width: 1200px) {
     .popular-columns {
         column-count: 3;
     }
 
     .popular-hero-grid {
-        grid-template-columns: 1fr;
         min-height: 680px;
     }
 
