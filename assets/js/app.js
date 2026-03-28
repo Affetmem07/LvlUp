@@ -3418,7 +3418,7 @@ async function loadSearchResultsGames(query) {
 
         if (searchResultsGames.length > 0) {
             gamesContainer.style.display = 'block';
-            gamesGrid.innerHTML = renderSearchResultsGameCards(searchResultsGames);
+            gamesGrid.innerHTML = renderGamesBrickLayout(searchResultsGames);
         } else {
             gamesContainer.style.display = 'none';
             gamesGrid.innerHTML = '';
@@ -5356,26 +5356,6 @@ function renderGamesBrickLayout(games) {
 
         if (bottomRow.length) {
             html += `<div class="games-brick-row games-brick-row--bottom">${bottomRow.map(game => renderGameCard(game)).join('')}</div>`;
-        }
-    }
-
-    return html;
-}
-
-function renderSearchResultsGameCards(games) {
-    let html = '';
-
-    for (let i = 0; i < games.length; i += 5) {
-        const chunk = games.slice(i, i + 5);
-        const topRow = chunk.slice(0, 3);
-        const bottomRow = chunk.slice(3, 5);
-
-        if (topRow.length) {
-            html += `<div class="games-brick-row search-results-games-row">${topRow.map(game => renderGameCard(game)).join('')}</div>`;
-        }
-
-        if (bottomRow.length) {
-            html += `<div class="games-brick-row games-brick-row--bottom search-results-games-row search-results-games-row--bottom">${bottomRow.map(game => renderGameCard(game)).join('')}</div>`;
         }
     }
 
