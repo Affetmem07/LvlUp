@@ -4061,52 +4061,32 @@ function renderGamesBrickLayout(games) {
 function renderCreatorGamesMasonry(games) {
     return `
         <div class="creator-masonry-grid">
-            ${games.map((game, index) => renderCreatorGameCard(game, index)).join('')}
+            ${games.map(game => renderCreatorGameCard(game)).join('')}
         </div>
     `;
 }
 
-function renderCreatorGameCard(game, index) {
+function renderCreatorGameCard(game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
-    const imageUrl = game.backgroundUrl || game.coverUrl || '';
-    const variants = ['tall', 'medium', 'short', 'medium', 'tall', 'short'];
-    const variant = variants[index % variants.length];
-    const releaseLabel = game.released
-        ? formatGameReleaseDate(game.released)
-        : (game.releaseYear > 0 ? String(game.releaseYear) : 'TBA');
-    const infoTags = [
-        game.genres && game.genres.length > 0 ? game.genres[0] : null,
-        game.platforms && game.platforms.length > 0 ? game.platforms[0] : null,
-        game.platforms && game.platforms.length > 1 ? game.platforms[1] : null,
-    ].filter(Boolean).slice(0, 3);
-    const fallbackLabel = infoTags[0] || 'LvlUp';
 
     return `
-        <article class="creator-game-card creator-game-card--${variant}" onclick="openGameDetail('${game.id}')">
-            <div class="creator-game-card-media">
-                ${imageUrl
-            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(game.title)}" loading="lazy"
-                        onerror="this.style.display='none'; this.parentElement.classList.add('creator-game-card-media--fallback')">`
-            : ''}
-                <div class="creator-game-card-fallback">${escapeHtml(fallbackLabel)}</div>
-                <div class="creator-game-card-top">
-                    ${game.rating > 0
-            ? `<div class="game-card-rating game-card-rating--corner ${ratingClass} creator-game-card-rating">
-                            ${starSvg}
-                            ${game.rating}
-                        </div>`
-            : '<span></span>'}
-                    <span class="creator-game-card-release">${escapeHtml(releaseLabel)}</span>
+        <div class="game-card game-card--list creator-game-card" onclick="openGameDetail('${game.id}')">
+            <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
+                 loading="lazy"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
+            <div class="game-card-overlay game-card-overlay--hover">
+                ${game.rating > 0 ? `
+                    <div class="game-card-rating game-card-rating--corner ${ratingClass}">
+                        ${starSvg}
+                        ${game.rating}
+                    </div>
+                ` : ''}
+                <div class="game-card-overlay-body">
+                    <div class="game-card-title">${escapeHtml(game.title)}</div>
                 </div>
             </div>
-            <div class="creator-game-card-body">
-                <h3 class="creator-game-card-title">${escapeHtml(game.title)}</h3>
-                <div class="creator-game-card-tags">
-                    ${infoTags.map(tag => `<span class="creator-game-card-tag">${escapeHtml(tag)}</span>`).join('')}
-                </div>
-            </div>
-        </article>
+        </div>
     `;
 }
 
@@ -4122,7 +4102,7 @@ function renderCreatorHeader(name, label, gameCount = null) {
         </div>
         <div class="creator-header-meta">
             <span class="creator-header-badge">${countText}</span>
-            <span class="creator-header-caption">Masonry gorunum</span>
+            <span class="creator-header-caption">Yatay kart gorunumu</span>
         </div>
     `;
 }

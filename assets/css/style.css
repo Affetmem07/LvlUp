@@ -4518,160 +4518,18 @@ select {
 }
 
 .creator-masonry-grid {
-    column-count: 4;
-    column-gap: 18px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
 }
 
 .creator-game-card {
-    break-inside: avoid;
-    display: block;
-    width: 100%;
-    margin: 0 0 18px;
-    background: linear-gradient(180deg, rgba(15, 29, 23, 0.9), rgba(7, 14, 10, 0.96));
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 24px;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.24);
-    transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    margin: 0;
+    aspect-ratio: 16 / 10;
 }
 
 .creator-game-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(107, 170, 117, 0.32);
-    box-shadow: 0 20px 38px rgba(0, 0, 0, 0.32), 0 0 20px rgba(107, 170, 117, 0.12);
-}
-
-.creator-game-card-media {
-    position: relative;
-    overflow: hidden;
-    background:
-        radial-gradient(circle at 20% 20%, rgba(107, 170, 117, 0.28), transparent 36%),
-        linear-gradient(180deg, rgba(20, 35, 28, 0.92), rgba(8, 12, 10, 0.98));
-}
-
-.creator-game-card--tall .creator-game-card-media {
-    aspect-ratio: 4 / 5.25;
-}
-
-.creator-game-card--medium .creator-game-card-media {
-    aspect-ratio: 4 / 4.35;
-}
-
-.creator-game-card--short .creator-game-card-media {
-    aspect-ratio: 4 / 3.35;
-}
-
-.creator-game-card-media img,
-.creator-game-card-fallback {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.creator-game-card-media img {
-    position: relative;
-    z-index: 1;
-    object-fit: cover;
-    transition: transform var(--transition-slow), filter var(--transition-normal);
-}
-
-.creator-game-card:hover .creator-game-card-media img {
-    transform: scale(1.05);
-    filter: saturate(1.04);
-}
-
-.creator-game-card-fallback {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: rgba(217, 255, 225, 0.92);
-    font-size: clamp(1rem, 2vw, 1.35rem);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.creator-game-card-media::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: linear-gradient(180deg, rgba(4, 8, 6, 0.08) 0%, rgba(4, 8, 6, 0.12) 38%, rgba(4, 8, 6, 0.7) 100%);
-    pointer-events: none;
-}
-
-.creator-game-card-top {
-    position: absolute;
-    inset: 14px 14px auto 14px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    z-index: 3;
-}
-
-.creator-game-card-rating.game-card-rating--corner {
-    position: static;
-}
-
-.creator-game-card-release {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    padding: 0 12px;
-    border-radius: 999px;
-    background: rgba(5, 12, 9, 0.62);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(241, 245, 249, 0.84);
-    font-size: 0.76rem;
-    font-weight: 700;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.creator-game-card-body {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px 16px 18px;
-}
-
-.creator-game-card-title {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 1.02rem;
-    line-height: 1.28;
-    font-weight: 750;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.creator-game-card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.creator-game-card-tag {
-    display: inline-flex;
-    align-items: center;
-    min-height: 28px;
-    padding: 0 10px;
-    border-radius: 999px;
-    background: rgba(107, 170, 117, 0.1);
-    border: 1px solid rgba(107, 170, 117, 0.18);
-    color: rgba(217, 255, 225, 0.92);
-    font-size: 0.74rem;
-    font-weight: 600;
+    transform: translateY(-3px) scale(1.01);
 }
 
 .creator-loading,
@@ -6158,8 +6016,8 @@ select {
 
     /* Creator masonry: 3 kolon */
     .creator-masonry-grid {
-        column-count: 3;
-        column-gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
     }
 
     /* Browser games: 3 kolon */
@@ -6252,8 +6110,8 @@ select {
 
     /* Creator masonry: 2 kolon */
     .creator-masonry-grid {
-        column-count: 2;
-        column-gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
     /* Game detail: cover gizle, hero küçült */
@@ -6338,8 +6196,8 @@ select {
     }
 
     .creator-masonry-grid {
-        column-count: 1;
-        column-gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 
     /* Profile istatistikleri: 2 kolon (zaten var ama güvence) */
@@ -6407,6 +6265,11 @@ select {
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
+    }
+
+    .creator-masonry-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     /* Game filter chips: scroll */
@@ -6531,8 +6394,8 @@ select {
     }
 
     .creator-masonry-grid {
-        column-count: 1;
-        column-gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .browser-games-grid {
