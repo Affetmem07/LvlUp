@@ -741,7 +741,7 @@ function getPopularHeroDecks(topTags = []) {
         {
             id: 'weekly',
             kind: 'weekly',
-            kicker: 'RAWG bu hafta',
+            kicker: 'Haftanın öne çıkanları',
             title: 'RAWG tarafında bu haftanın en popüler 3 oyunu',
             description: 'Haftalık görünürlük ve eklenme yoğunluğuna göre öne çıkan oyunlar.',
             games: weeklyPopularGames,

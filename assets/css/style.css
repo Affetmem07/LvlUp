@@ -9635,32 +9635,36 @@ label[for="editBannerImage"] {
 
 .popular-hero-dots {
     position: absolute;
-    inset: auto 0 18px 0;
+    inset: auto 0 12px 0;
     z-index: 3;
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     padding: 0 24px;
     pointer-events: none;
 }
 
 .popular-hero-dot {
-    width: 8px;
-    height: 8px;
-    padding: 0;
+    width: 14px;
+    height: 14px;
+    padding: 6px;
     border: 0;
+    box-sizing: content-box;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.24);
-    transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    background: rgba(255, 255, 255, 0.3);
+    transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
     pointer-events: auto;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .popular-hero-dot:hover {
     transform: scale(1.08);
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .popular-hero-dot.is-active {
-    width: 24px;
+    width: 30px;
     background: #d4f47d;
 }
 
