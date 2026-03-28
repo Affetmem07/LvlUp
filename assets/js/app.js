@@ -3712,6 +3712,65 @@ function renderProfilePostCollection(container, posts, options) {
             ${posts.map(post => renderPostCard(post)).join('')}
         </div>
     `;
+
+    hydrateProfilePostMasonry(container.querySelector('.profile-posts-grid'));
+}
+
+let profilePostMasonryFrame = null;
+
+function syncProfilePostMasonry() {
+    const grid = document.querySelector('#profileTabContent .profile-posts-grid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.post-card');
+    if (!cards.length) return;
+
+    if (window.innerWidth <= 600) {
+        cards.forEach(card => {
+            card.style.gridRowEnd = '';
+        });
+        return;
+    }
+
+    const styles = window.getComputedStyle(grid);
+    const rowUnit = parseFloat(styles.getPropertyValue('--profile-masonry-row')) || parseFloat(styles.gridAutoRows) || 8;
+    const rowGap = parseFloat(styles.rowGap || styles.gap) || 14;
+
+    cards.forEach(card => {
+        card.style.gridRowEnd = '';
+        const span = Math.ceil((card.getBoundingClientRect().height + rowGap) / (rowUnit + rowGap));
+        card.style.gridRowEnd = `span ${Math.max(span, 1)}`;
+    });
+}
+
+function queueProfilePostMasonrySync() {
+    if (profilePostMasonryFrame) {
+        cancelAnimationFrame(profilePostMasonryFrame);
+    }
+
+    profilePostMasonryFrame = requestAnimationFrame(() => {
+        profilePostMasonryFrame = null;
+        syncProfilePostMasonry();
+    });
+}
+
+function hydrateProfilePostMasonry(grid) {
+    if (!grid) return;
+
+    queueProfilePostMasonrySync();
+    requestAnimationFrame(() => queueProfilePostMasonrySync());
+    setTimeout(() => queueProfilePostMasonrySync(), 120);
+
+    grid.querySelectorAll('img').forEach(img => {
+        if (img.dataset.profileMasonryBound === '1') return;
+        img.dataset.profileMasonryBound = '1';
+
+        const refresh = () => queueProfilePostMasonrySync();
+        if (!img.complete) {
+            img.addEventListener('load', refresh, { once: true });
+            img.addEventListener('error', refresh, { once: true });
+        }
+    });
 }
 
 function renderProfilePage() {
@@ -6481,6 +6540,7 @@ function queueGameDetailMasonrySync() {
 }
 
 window.addEventListener('resize', queueGameDetailMasonrySync);
+window.addEventListener('resize', queueProfilePostMasonrySync);
 
 renderITADPricesSection = function (result) {
     const container = document.getElementById('itadPricesSection');
