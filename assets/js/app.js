@@ -2278,6 +2278,8 @@ function npeReset() {
     // Clear game
     npeGameSelected = null;
     clearTimeout(npeGameSearchTimeout);
+    if (npeGameAbortController) npeGameAbortController.abort();
+    npeGameRequestId++;
     const gameInput = document.getElementById('npeGameInput');
     if (gameInput) gameInput.value = '';
     const gameBadge = document.getElementById('npeGameBadge');
@@ -2328,7 +2330,7 @@ function npeSetCat(el) {
 }
 
 // Game reference
-function npeSearchGame(q) {
+function npeSearchGameLegacy(q) {
     clearTimeout(npeGameSearchTimeout);
     const dd = document.getElementById('npeGameDropdown');
     if (!dd) return;
@@ -2339,9 +2341,15 @@ function npeSearchGame(q) {
         if (!RAWG_API_KEY) {
             const local = allGames
                 .filter(g => g.title && g.title.toLowerCase().includes(q.toLowerCase()))
+                .map(g => ({
+                    title: g.title,
+                    imageUrl: g.backgroundUrl || g.coverUrl || '',
+                    rating: g.rating || 0
+                }));
+            const localMatches = sortGamesBySearchQuery(local, q)
                 .slice(0, 6)
-                .map(g => ({ title: g.title, imageUrl: g.backgroundUrl || g.coverUrl || '' }));
-            npeRenderGameDD(local, q);
+                .map(g => ({ title: g.title, imageUrl: g.imageUrl }));
+            npeRenderGameDD(localMatches, q);
             return;
         }
         try {
@@ -2355,6 +2363,72 @@ function npeSearchGame(q) {
         }
     }, 350);
 }
+
+npeSearchGame = function (q) {
+    clearTimeout(npeGameSearchTimeout);
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (!q || q.length < 2) {
+        if (npeGameAbortController) npeGameAbortController.abort();
+        npeGameRequestId++;
+        dd.innerHTML = '';
+        dd.classList.remove('active');
+        return;
+    }
+
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">AranÄ±yorâ€¦</div>';
+    dd.classList.add('active');
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">Araniyor...</div>';
+
+    npeGameSearchTimeout = setTimeout(async () => {
+        if (!RAWG_API_KEY) {
+            const localMatches = sortGamesBySearchQuery(
+                allGames
+                    .filter(g => g.title && g.title.toLowerCase().includes(q.toLowerCase()))
+                    .map(g => ({
+                        title: g.title,
+                        imageUrl: g.backgroundUrl || g.coverUrl || '',
+                        rating: g.rating || 0
+                    })),
+                q
+            )
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.imageUrl }));
+
+            npeRenderGameDD(localMatches, q);
+            return;
+        }
+
+        try {
+            if (npeGameAbortController) npeGameAbortController.abort();
+            npeGameAbortController = new AbortController();
+            const myRequestId = ++npeGameRequestId;
+
+            const result = await searchRawgGames(q, {
+                signal: npeGameAbortController.signal
+            });
+            if (myRequestId !== npeGameRequestId) return;
+
+            const games = result.games
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.backgroundUrl || g.coverUrl || '' }));
+
+            npeRenderGameDD(games, q);
+            if (dd.innerHTML.includes('Sonu')) {
+                dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>';
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            setTimeout(() => {
+                if (dd.innerHTML.includes('Sonu')) {
+                    dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>';
+                }
+            }, 0);
+            return void (dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>');
+            dd.innerHTML = '<div class="npe-game-opt npe-game-empty">SonuÃ§ bulunamadÄ±</div>';
+        }
+    }, 350);
+};
 
 function npeRenderGameDD(games, q) {
     const dd = document.getElementById('npeGameDropdown');
@@ -3601,6 +3675,8 @@ let npeTags = [];
 let npeMediaData = null;
 let npeGameSelected = null;
 let npeGameSearchTimeout = null;
+let npeGameAbortController = null;
+let npeGameRequestId = 0;
 
 // Helper: get today's date in YYYY-MM-DD format for API filtering
 function getTodayDate() {
@@ -3906,6 +3982,57 @@ async function fetchAndFilterGames(initialUrl, requestTrackerId, minValid = 12, 
 
     return {
         games: validGames,
+        nextUrl: currentUrl
+    };
+}
+
+function sortGamesBySearchQuery(games, query) {
+    const queryLower = (query || '').trim().toLowerCase();
+
+    return [...games].sort((a, b) => {
+        const aMatch = a.title.toLowerCase().includes(queryLower) ? 1 : 0;
+        const bMatch = b.title.toLowerCase().includes(queryLower) ? 1 : 0;
+
+        if (bMatch !== aMatch) return bMatch - aMatch;
+        return (b.rating || 0) - (a.rating || 0);
+    });
+}
+
+async function searchRawgGames(query, options = {}) {
+    const {
+        signal = null,
+        pageSize = 40,
+        minValid = 12,
+        maxPages = 5
+    } = options;
+
+    const normalizedQuery = (query || '').trim();
+    if (!RAWG_API_KEY || normalizedQuery.length < 2) {
+        return { games: [], nextUrl: null };
+    }
+
+    let currentUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=${pageSize}&search=${encodeURIComponent(normalizedQuery)}&dates=1970-01-01,${getTodayDate()}`;
+    let fetchCount = 0;
+    let validGames = [];
+
+    while (currentUrl && fetchCount < maxPages && validGames.length < minValid) {
+        fetchCount++;
+
+        const response = await fetch(currentUrl, signal ? { signal } : undefined);
+        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
+
+        const data = await response.json();
+        currentUrl = data.next;
+
+        const mappedChunk = (data.results || [])
+            .filter(isValidGameForDisplay)
+            .map(mapRawgGame);
+
+        validGames.push(...mappedChunk);
+    }
+
+    return {
+        games: sortGamesBySearchQuery(validGames, normalizedQuery),
         nextUrl: currentUrl
     };
 }
@@ -4343,22 +4470,17 @@ async function searchGamesFromAPI(query) {
     loading.style.display = 'block';
 
     try {
-        const url = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=40&search=${encodeURIComponent(query)}&dates=1970-01-01,${getTodayDate()}`;
-        const result = await fetchAndFilterGames(url, myRequestId);
+        const result = await searchRawgGames(query, {
+            signal: gamesAbortController.signal,
+            pageSize: 40,
+            minValid: 12,
+            maxPages: 5
+        });
+        if (myRequestId !== gamesRequestId) return;
         if (!result) return;
 
         gamesNextPageUrl = result.nextUrl;
-        const queryLower = query.toLowerCase();
-
-        // Filter, map, then smart-sort: title matches first, then by rating
-        allGames = result.games
-            .sort((a, b) => {
-                const aMatch = a.title.toLowerCase().includes(queryLower) ? 1 : 0;
-                const bMatch = b.title.toLowerCase().includes(queryLower) ? 1 : 0;
-                if (bMatch !== aMatch) return bMatch - aMatch; // Title matches first
-                return (b.rating || 0) - (a.rating || 0); // Then by rating
-            })
-            .slice(0, 20);
+        allGames = result.games.slice(0, 20);
         hasLoadedGamesCatalog = true;
         renderGamesGrid();
     } catch (error) {
