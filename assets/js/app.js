@@ -536,9 +536,15 @@ let hasLoadedGamesCatalog = false;
 let homeHeroGames = {
     newest: [],
     popular: [],
+    weeklyPopular: [],
     loading: false,
     loaded: false,
     error: false,
+};
+let popularHeroCarousel = {
+    index: 0,
+    timer: null,
+    delay: 5600,
 };
 
 const AVATAR_GRADIENTS = [
@@ -676,6 +682,137 @@ function getPopularHeroGhost(post) {
         .slice(0, 2)
         .join(' ')
         .toLocaleUpperCase('tr-TR');
+}
+
+function buildPopularHeroDeckItems(games = [], kind = 'popular', deckId = 'deck') {
+    const items = (games || []).slice(0, 3).map((game) => ({ kind, game }));
+    while (items.length < 3) {
+        items.push({ kind: 'placeholder', id: `${deckId}-placeholder-${items.length}` });
+    }
+    return items;
+}
+
+function getPopularHeroDeckChips(games = [], fallbackTags = []) {
+    const chips = [];
+
+    games.forEach((game) => {
+        if (game?.genres?.[0]) chips.push(game.genres[0]);
+        else if (game?.platforms?.[0]) chips.push(game.platforms[0]);
+    });
+
+    const uniqueChips = [...new Set(chips.filter(Boolean))].slice(0, 4);
+    if (uniqueChips.length > 0) return uniqueChips;
+    return fallbackTags.slice(0, 4);
+}
+
+function getPopularHeroDecks(topTags = []) {
+    const newestGames = (homeHeroGames.newest || []).slice(0, 3);
+    const newestIds = new Set(newestGames.map((game) => String(game.id)));
+    const popularGames = getHomePopularGames(3, newestIds);
+    const weeklyExcludedIds = new Set([
+        ...newestGames.map((game) => String(game.id)),
+        ...popularGames.map((game) => String(game.id)),
+    ]);
+    const weeklyPopularGames = takeUniqueGames(homeHeroGames.weeklyPopular || [], 3, weeklyExcludedIds);
+    const fallbackTags = topTags.map((entry) => entry.tag || entry).filter(Boolean);
+
+    return [
+        {
+            id: 'popular',
+            kind: 'popular',
+            kicker: 'En popüler oyunlar',
+            title: 'Ana sayfadaki popülerlik akışında öne çıkan 3 oyun',
+            description: 'Ziyaret ve takip verisine göre en çok dikkat çeken oyunları burada döndürüyoruz.',
+            games: popularGames,
+            items: buildPopularHeroDeckItems(popularGames, 'popular', 'popular'),
+            chips: getPopularHeroDeckChips(popularGames, fallbackTags),
+        },
+        {
+            id: 'newest',
+            kind: 'newest',
+            kicker: 'En yeni oyunlar',
+            title: 'RAWG akışındaki en yeni 3 oyun',
+            description: 'Bu hafta çıkan ve ana sayfadaki yeni oyun akışına düşen yapımlar.',
+            games: newestGames,
+            items: buildPopularHeroDeckItems(newestGames, 'newest', 'newest'),
+            chips: getPopularHeroDeckChips(newestGames, fallbackTags),
+        },
+        {
+            id: 'weekly',
+            kind: 'weekly',
+            kicker: 'RAWG bu hafta',
+            title: 'RAWG tarafında bu haftanın en popüler 3 oyunu',
+            description: 'Haftalık görünürlük ve eklenme yoğunluğuna göre öne çıkan oyunlar.',
+            games: weeklyPopularGames,
+            items: buildPopularHeroDeckItems(weeklyPopularGames, 'weekly', 'weekly'),
+            chips: getPopularHeroDeckChips(weeklyPopularGames, fallbackTags),
+        },
+    ];
+}
+
+function updatePopularHeroCarouselUI() {
+    const slides = document.querySelectorAll('.popular-hero-slide');
+    const dots = document.querySelectorAll('.popular-hero-dot');
+    if (!slides.length) return;
+
+    const total = slides.length;
+    popularHeroCarousel.index = ((popularHeroCarousel.index % total) + total) % total;
+
+    slides.forEach((slide, index) => {
+        const isActive = index === popularHeroCarousel.index;
+        slide.classList.toggle('is-active', isActive);
+        slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    });
+
+    dots.forEach((dot, index) => {
+        const isActive = index === popularHeroCarousel.index;
+        dot.classList.toggle('is-active', isActive);
+        dot.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
+function stopPopularHeroAutoplay() {
+    if (popularHeroCarousel.timer) {
+        clearInterval(popularHeroCarousel.timer);
+        popularHeroCarousel.timer = null;
+    }
+}
+
+function startPopularHeroAutoplay() {
+    stopPopularHeroAutoplay();
+
+    const slides = document.querySelectorAll('.popular-hero-slide');
+    if (currentPage !== 'popular' || slides.length <= 1) return;
+
+    popularHeroCarousel.timer = setInterval(() => {
+        setPopularHeroSlide(popularHeroCarousel.index + 1, { restart: false });
+    }, popularHeroCarousel.delay);
+}
+
+function setPopularHeroSlide(index, { restart = true } = {}) {
+    const slides = document.querySelectorAll('.popular-hero-slide');
+    if (!slides.length) return;
+
+    popularHeroCarousel.index = index;
+    updatePopularHeroCarouselUI();
+
+    if (restart) {
+        startPopularHeroAutoplay();
+    }
+}
+
+function setupPopularHeroCarousel() {
+    const root = document.getElementById('popularHeroCarousel');
+    if (!root) {
+        stopPopularHeroAutoplay();
+        return;
+    }
+
+    popularHeroCarousel.index = Math.max(0, Math.min(popularHeroCarousel.index, root.children.length - 1));
+    updatePopularHeroCarouselUI();
+    root.addEventListener('mouseenter', stopPopularHeroAutoplay);
+    root.addEventListener('mouseleave', startPopularHeroAutoplay);
+    startPopularHeroAutoplay();
 }
 
 function getGamePopularityEntry(gameId) {
@@ -1170,6 +1307,10 @@ function navigate(page) {
     currentCategory = null;
     updateScrollToTopVisibility();
 
+    if (page !== 'popular') {
+        stopPopularHeroAutoplay();
+    }
+
     // Disconnect reviews infinite scroll when leaving reviews
     if (page !== 'reviews' && reviewsScrollObserver) {
         reviewsScrollObserver.disconnect();
@@ -1464,6 +1605,10 @@ function renderFeed() {
         }
     }
 
+    if (!isPopularFeed) {
+        stopPopularHeroAutoplay();
+    }
+
     if (isPopularFeed) {
         const popularPosts = sortPostsByPopularity(posts);
 
@@ -1479,6 +1624,8 @@ function renderFeed() {
         }
 
         container.innerHTML = renderPopularShowcase(popularPosts);
+        ensureHomeHeroGamesLoaded();
+        setupPopularHeroCarousel();
         if (sidebar) sidebar.style.display = 'none';
         if (mainLayout) mainLayout.classList.remove('has-sidebar');
         return;
@@ -1562,7 +1709,7 @@ function renderPopularShowcase(posts) {
 
     return `
         <section class="popular-showcase-shell">
-            ${renderPopularHero(posts, bookmarkCountMap, topTags)}
+            ${renderPopularHero(topTags)}
             <section class="popular-story-section">
                 <div class="popular-section-heading">
                     <div>
@@ -1588,7 +1735,7 @@ function renderPopularShowcase(posts) {
         </section>`;
 }
 
-function renderPopularHero(posts, bookmarkCountMap, topTags) {
+function renderPopularHeroLegacy(posts, bookmarkCountMap, topTags) {
     const featured = posts[0];
     const author = userMap.get(featured.userId) || { username: 'Bilinmeyen', id: '' };
     const { bg, initial } = getAuthorStyle(author);
@@ -1669,6 +1816,79 @@ function renderPopularHero(posts, bookmarkCountMap, topTags) {
                         </button>
                     </div>
                 </aside>
+            </div>
+        </section>`;
+}
+
+function renderPopularHero(topTags = []) {
+    const decks = getPopularHeroDecks(topTags);
+    const totalDecks = decks.length;
+    const safeIndex = Math.max(0, Math.min(popularHeroCarousel.index, totalDecks - 1));
+    popularHeroCarousel.index = safeIndex;
+
+    return `
+        <section class="popular-hero-card">
+            <div class="popular-hero-carousel" id="popularHeroCarousel">
+                ${decks.map((deck, deckIndex) => {
+        const primaryGame = deck.games[0] || null;
+        const heroGhost = primaryGame
+            ? getPopularHeroGhost({ title: primaryGame.title, tags: primaryGame.genres || [] })
+            : deck.kicker;
+        const releaseMeta = primaryGame?.released
+            ? formatGameReleaseDate(primaryGame.released)
+            : (primaryGame?.releaseYear || 'Yakında');
+        const followMeta = primaryGame
+            ? `${formatCompactTrNumber(primaryGame.added || 0)} takip`
+            : (homeHeroGames.error ? 'Bağlantı yok' : 'Veri hazırlanıyor');
+        const chips = deck.chips && deck.chips.length > 0
+            ? deck.chips
+            : topTags.slice(0, 4).map((entry) => entry.tag || entry).filter(Boolean);
+
+        return `
+                    <section class="popular-hero-slide${deckIndex === safeIndex ? ' is-active' : ''}" aria-hidden="${deckIndex === safeIndex ? 'false' : 'true'}">
+                        <div class="popular-hero-bg">
+                            ${primaryGame?.backgroundUrl || primaryGame?.coverUrl
+                ? `<img src="${escapeHtml(primaryGame.backgroundUrl || primaryGame.coverUrl)}" alt="${escapeHtml(primaryGame.title || deck.title)}" loading="${deckIndex === safeIndex ? 'eager' : 'lazy'}">`
+                : ''}
+                        </div>
+                        <div class="popular-hero-scrim"></div>
+                        <div class="popular-hero-ghost">${escapeHtml(heroGhost)}</div>
+                        <div class="popular-hero-grid">
+                            <div class="popular-hero-copy">
+                                <span class="popular-hero-kicker">${escapeHtml(deck.kicker)}</span>
+                                <h2>${escapeHtml(deck.title)}</h2>
+                                <p>${escapeHtml(deck.description)}</p>
+                                <div class="popular-hero-meta">
+                                    <span>${deck.games.filter(Boolean).length} oyun</span>
+                                    <span>${escapeHtml(releaseMeta)}</span>
+                                    <span>${escapeHtml(followMeta)}</span>
+                                </div>
+                                <div class="popular-hero-actions">
+                                    ${primaryGame
+                ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openGameDetail('${primaryGame.id}')">İlk oyunu aç</button>`
+                : `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="navigate('games')">Oyunları aç</button>`}
+                                    <button type="button" class="popular-hero-btn" onclick="navigate('games')">Tüm oyunlar</button>
+                                </div>
+                                <div class="popular-hero-tags">
+                                    ${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="popular-hero-game-deck">
+                                ${deck.items.map((item, index) => renderPinterestSpotlightGame(item, index)).join('')}
+                            </div>
+                        </div>
+                    </section>`;
+    }).join('')}
+            </div>
+            <div class="popular-hero-dots" aria-label="Popüler oyun slaytları">
+                ${decks.map((deck, deckIndex) => `
+                    <button
+                        type="button"
+                        class="popular-hero-dot${deckIndex === safeIndex ? ' is-active' : ''}"
+                        onclick="setPopularHeroSlide(${deckIndex})"
+                        aria-label="${escapeHtml(deck.kicker)}"
+                        aria-pressed="${deckIndex === safeIndex ? 'true' : 'false'}"></button>
+                `).join('')}
             </div>
         </section>`;
 }
@@ -1931,12 +2151,17 @@ function renderPinterestSpotlightGame(item, index) {
 
     const { game, kind } = item;
     const image = game.backgroundUrl || game.coverUrl;
+    const spotlightKickerMap = {
+        newest: 'En Yeni',
+        popular: 'En Popüler',
+        weekly: 'Bu Hafta',
+    };
     const kicker = kind === 'newest' ? 'En Yeni' : 'Popüler';
     const subLabel = game.genres && game.genres.length > 0
         ? game.genres[0]
         : (game.platforms && game.platforms.length > 0 ? game.platforms[0] : 'Oyun');
     const gamePopularity = getGamePopularityEntry(game.id);
-    const meta = kind === 'newest'
+    let meta = kind === 'newest'
         ? (game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'TBA'))
         : ((gamePopularity && gamePopularity.visitCount > 0)
             ? `${gamePopularity.visitCount.toLocaleString('tr-TR')} kez acildi`
@@ -1944,12 +2169,17 @@ function renderPinterestSpotlightGame(item, index) {
     const imageMarkup = image
         ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
         : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`;
+    const spotlightMeta = kind === 'newest'
+        ? (game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'TBA'))
+        : ((gamePopularity && gamePopularity.visitCount > 0)
+            ? `${gamePopularity.visitCount.toLocaleString('tr-TR')} kez açıldı`
+            : `${Math.max(0, game.added || 0).toLocaleString('tr-TR')} takip`);
 
     return `
         <article class="pinterest-spotlight-card spotlight-${index + 1}" onclick="openGameDetail('${game.id}')">
             <div class="pinterest-spotlight-media">${imageMarkup}</div>
             <div class="pinterest-spotlight-overlay">
-                <span>${escapeHtml(kicker)}</span>
+                <span>${escapeHtml(spotlightKickerMap[kind] || 'Öne Çıkan')}</span>
                 <strong>${escapeHtml(game.title)}</strong>
                 <small>${escapeHtml(subLabel)} • ${escapeHtml(String(meta))}</small>
             </div>
@@ -2057,9 +2287,34 @@ function dedupeMappedGames(games) {
     });
 }
 
+function takeUniqueGames(candidates, limit = 3, excludedIds = new Set()) {
+    const picked = [];
+    const localSeen = new Set();
+
+    (candidates || []).forEach((game) => {
+        if (!game || !game.id || picked.length >= limit) return;
+        const id = String(game.id);
+        if (excludedIds.has(id) || localSeen.has(id)) return;
+        localSeen.add(id);
+        picked.push(game);
+    });
+
+    if (picked.length >= limit) return picked.slice(0, limit);
+
+    (candidates || []).forEach((game) => {
+        if (!game || !game.id || picked.length >= limit) return;
+        const id = String(game.id);
+        if (localSeen.has(id)) return;
+        localSeen.add(id);
+        picked.push(game);
+    });
+
+    return picked.slice(0, limit);
+}
+
 async function fetchHomeHeroGames() {
     if (!RAWG_API_KEY) {
-        homeHeroGames = { newest: [], popular: [], loading: false, loaded: true, error: true };
+        homeHeroGames = { newest: [], popular: [], weeklyPopular: [], loading: false, loaded: true, error: true };
         return;
     }
 
@@ -2072,54 +2327,66 @@ async function fetchHomeHeroGames() {
         const popularStartDate = getDateBeforeToday({ years: 3 });
         const newestUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-released&dates=${currentWeek.start},${currentWeek.end}`;
         const popularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=${popularStartDate},${today}`;
+        const weeklyPopularUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=20&ordering=-added&dates=${currentWeek.start},${currentWeek.end}`;
 
-        const [newestRes, popularRes] = await Promise.all([
+        const [newestRes, popularRes, weeklyPopularRes] = await Promise.all([
             fetch(newestUrl),
             fetch(popularUrl),
+            fetch(weeklyPopularUrl),
         ]);
 
-        if (!newestRes.ok || !popularRes.ok) {
-            throw new Error(`RAWG home hero fetch failed: ${newestRes.status}/${popularRes.status}`);
+        if (!newestRes.ok || !popularRes.ok || !weeklyPopularRes.ok) {
+            throw new Error(`RAWG home hero fetch failed: ${newestRes.status}/${popularRes.status}/${weeklyPopularRes.status}`);
         }
 
-        const [newestData, popularData] = await Promise.all([
+        const [newestData, popularData, weeklyPopularData] = await Promise.all([
             newestRes.json(),
             popularRes.json(),
+            weeklyPopularRes.json(),
         ]);
 
-        const newestGames = dedupeMappedGames((newestData.results || [])
+        const newestCandidates = dedupeMappedGames((newestData.results || [])
             .filter(isValidHomeHeroRawgGame)
             .map(mapRawgGame)
-            .sort((a, b) => new Date(b.released || 0) - new Date(a.released || 0)))
-            .slice(0, 2);
+            .sort((a, b) => new Date(b.released || 0) - new Date(a.released || 0)));
+        const newestGames = newestCandidates.slice(0, 3);
 
-        const newestIds = new Set(newestGames.map((game) => game.id));
-        const popularGames = dedupeMappedGames((popularData.results || [])
+        const newestIds = new Set(newestGames.map((game) => String(game.id)));
+        const popularCandidates = dedupeMappedGames((popularData.results || [])
             .filter(isValidHomeHeroRawgGame)
             .map(mapRawgGame)
-            .filter((game) => !newestIds.has(game.id))
-            .sort((a, b) => (b.added || 0) - (a.added || 0)))
-            .slice(0, 3);
+            .sort((a, b) => (b.added || 0) - (a.added || 0)));
+        const popularGames = takeUniqueGames(popularCandidates, 3, newestIds);
+        const weeklyExcludedIds = new Set([
+            ...newestGames.map((game) => String(game.id)),
+            ...popularGames.map((game) => String(game.id)),
+        ]);
+        const weeklyPopularCandidates = dedupeMappedGames((weeklyPopularData.results || [])
+            .filter(isValidHomeHeroRawgGame)
+            .map(mapRawgGame)
+            .sort((a, b) => (b.added || 0) - (a.added || 0)));
+        const weeklyPopularGames = takeUniqueGames(weeklyPopularCandidates, 3, weeklyExcludedIds);
 
-        mergeGamesIntoLibrary([...newestGames, ...popularGames]);
+        mergeGamesIntoLibrary([...newestGames, ...popularGames, ...weeklyPopularGames]);
         homeHeroGames = {
             newest: newestGames,
             popular: popularGames,
+            weeklyPopular: weeklyPopularGames,
             loading: false,
             loaded: true,
             error: false,
         };
     } catch (error) {
         console.error('Ana sayfa RAWG oyunları alınamadı:', error);
-        homeHeroGames = { newest: [], popular: [], loading: false, loaded: true, error: true };
+        homeHeroGames = { newest: [], popular: [], weeklyPopular: [], loading: false, loaded: true, error: true };
     }
 }
 
 function ensureHomeHeroGamesLoaded() {
-    if (currentPage !== 'home' || homeHeroGames.loading || homeHeroGames.loaded) return;
+    if (!['home', 'popular'].includes(currentPage) || homeHeroGames.loading || homeHeroGames.loaded) return;
 
     fetchHomeHeroGames().then(() => {
-        if (currentPage === 'home') {
+        if (currentPage === 'home' || currentPage === 'popular') {
             renderFeed();
         }
     });

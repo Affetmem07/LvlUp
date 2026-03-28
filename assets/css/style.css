@@ -9465,6 +9465,96 @@ label[for="editBannerImage"] {
     color: #d4f47d;
 }
 
+.popular-hero-card {
+    min-height: 500px;
+}
+
+.popular-hero-carousel {
+    position: relative;
+    min-height: 468px;
+}
+
+.popular-hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px) scale(1.01);
+    transition: opacity 900ms ease, transform 900ms ease;
+}
+
+.popular-hero-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.popular-hero-grid {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    align-items: center;
+    min-height: 468px;
+}
+
+.popular-hero-copy {
+    justify-content: center;
+    max-width: 560px;
+}
+
+.popular-hero-copy h2 {
+    max-width: 13ch;
+}
+
+.popular-hero-copy p {
+    max-width: 50ch;
+}
+
+.popular-hero-game-deck {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 136px;
+    gap: 12px;
+}
+
+.popular-hero-game-deck .pinterest-spotlight-card {
+    min-height: 136px;
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.popular-hero-game-deck .pinterest-spotlight-card:hover {
+    transform: translateY(-3px);
+}
+
+.popular-hero-dots {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px 18px;
+}
+
+.popular-hero-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.24);
+    transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.popular-hero-dot:hover {
+    transform: scale(1.08);
+}
+
+.popular-hero-dot.is-active {
+    width: 24px;
+    background: #d4f47d;
+}
+
 @media (max-width: 1200px) {
     .popular-columns {
         column-count: 3;
@@ -9472,6 +9562,15 @@ label[for="editBannerImage"] {
 
     .popular-hero-grid {
         grid-template-columns: 1fr;
+        min-height: 680px;
+    }
+
+    .popular-hero-carousel {
+        min-height: 680px;
+    }
+
+    .popular-hero-copy {
+        max-width: 100%;
     }
 
     .pinterest-masonry-grid {
@@ -9494,10 +9593,15 @@ label[for="editBannerImage"] {
 
     .popular-hero-grid {
         padding: 22px;
+        min-height: 650px;
     }
 
     .popular-hero-card {
         border-radius: 28px;
+    }
+
+    .popular-hero-carousel {
+        min-height: 650px;
     }
 
     .feed.home-pinterest-mode {
@@ -9527,6 +9631,14 @@ label[for="editBannerImage"] {
         border-radius: 24px;
     }
 
+    .popular-hero-carousel {
+        min-height: 700px;
+    }
+
+    .popular-hero-slide {
+        transform: translateY(8px) scale(1.01);
+    }
+
     .popular-hero-grid {
         min-height: 0;
         padding: 18px;
@@ -9550,6 +9662,18 @@ label[for="editBannerImage"] {
     .popular-hero-actions {
         width: 100%;
         flex-direction: column;
+    }
+
+    .popular-hero-game-deck {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+
+    .popular-hero-game-deck .pinterest-spotlight-card,
+    .popular-hero-game-deck .pinterest-spotlight-card.spotlight-1,
+    .popular-hero-game-deck .pinterest-spotlight-card.spotlight-4 {
+        grid-row: span 1;
+        min-height: 170px;
     }
 
     .popular-hero-btn {
