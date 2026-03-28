@@ -5216,66 +5216,35 @@ select {
 
 .profile-banner {
     position: relative;
-    height: 300px;
-    background-color: #040907;
-    background-image:
-        radial-gradient(circle at 18% 24%, rgba(48, 95, 67, 0.42), transparent 38%),
-        radial-gradient(circle at 82% 18%, rgba(255, 243, 190, 0.12), transparent 20%),
-        linear-gradient(180deg, #101815 0%, #09110d 48%, #020705 100%);
+    height: 340px;
+    background-color: #13261c;
+    background-image: none;
     overflow: hidden;
     border-radius: 30px 30px 0 0;
     border: 1px solid rgba(116, 160, 125, 0.18);
     border-bottom: 0;
-    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.38), inset 0 -18px 60px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 32px 96px rgba(0, 0, 0, 0.42);
     width: 100%;
     background-size: cover !important;
     background-position: center !important;
     isolation: isolate;
+    z-index: 1;
 }
 
 .profile-banner::before {
-    content: "";
-    position: absolute;
-    top: -24%;
-    right: 12%;
-    width: 380px;
-    height: 380px;
-    background: linear-gradient(180deg, rgba(255, 248, 215, 0.95) 0%, rgba(255, 248, 215, 0.25) 38%, rgba(255, 248, 215, 0) 88%);
-    clip-path: polygon(26% 0%, 74% 0%, 100% 100%, 0% 100%);
-    filter: blur(4px);
-    transform: rotate(17deg);
-    opacity: 0.88;
-    mix-blend-mode: screen;
-    z-index: 0;
+    content: none;
 }
 
 .profile-banner::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgba(3, 7, 5, 0.1) 0%, rgba(3, 7, 5, 0.24) 30%, rgba(2, 6, 4, 0.88) 100%);
-    z-index: 3;
+    content: none;
 }
 
-.profile-banner--custom::before {
-    opacity: 0.55;
+.profile-banner--custom {
+    background-color: #050709;
 }
 
 .profile-banner-pattern {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background-image:
-        radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 72% 26%, rgba(219, 236, 197, 0.45) 0 1.2px, transparent 1.8px),
-        radial-gradient(circle at 34% 82%, rgba(53, 110, 77, 0.36) 0 120px, transparent 240px),
-        radial-gradient(circle at 82% 84%, rgba(19, 49, 32, 0.92) 0 160px, transparent 320px),
-        repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 18px);
-    background-size: 210px 210px, 260px 260px, auto, auto, auto;
-    opacity: 0.8;
-    mix-blend-mode: screen;
-    animation: bannerFloat 14s ease-in-out infinite alternate;
+    display: none;
 }
 
 @keyframes bannerFloat {
@@ -5291,15 +5260,7 @@ select {
 }
 
 .profile-banner-glow {
-    position: absolute;
-    left: -10%;
-    right: -10%;
-    bottom: -32px;
-    height: 150px;
-    background: radial-gradient(circle at 50% 0%, rgba(56, 113, 78, 0.48) 0%, rgba(18, 49, 31, 0.28) 42%, transparent 76%);
-    filter: blur(34px);
-    opacity: 0.95;
-    z-index: 2;
+    display: none;
 }
 
 .profile-content {
@@ -5335,7 +5296,7 @@ select {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: start;
     gap: 24px;
-    margin: -72px 0 30px;
+    margin: -88px 0 30px;
 }
 
 .profile-avatar-column {
@@ -5345,7 +5306,7 @@ select {
 .profile-avatar-lg {
     width: 138px;
     height: 138px;
-    border-radius: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5371,7 +5332,7 @@ select {
 
 .profile-info {
     min-width: 0;
-    padding-top: 74px;
+    padding-top: 88px;
     padding-bottom: 6px;
 }
 
@@ -5484,7 +5445,7 @@ select {
     gap: 12px;
     align-self: start;
     justify-self: end;
-    padding-top: 74px;
+    padding-top: 88px;
 }
 
 .profile-actions .btn,
@@ -6122,12 +6083,12 @@ select {
     }
 
     .profile-header-section {
-        margin: -64px 0 28px;
+        margin: -78px 0 28px;
     }
 
     .profile-info,
     .profile-actions {
-        padding-top: 66px;
+        padding-top: 78px;
     }
 
     .games-grid {
@@ -6227,7 +6188,7 @@ select {
     }
 
     .profile-banner {
-        height: 220px;
+        height: 250px;
         border-radius: 26px 26px 0 0;
     }
 
@@ -6249,7 +6210,7 @@ select {
         height: 110px;
         font-size: 2.2rem;
         margin-top: 0;
-        border-radius: 26px;
+        border-radius: 50%;
         border-width: 4px;
     }
 
@@ -6539,7 +6500,7 @@ select {
     }
 
     .profile-banner {
-        height: 190px;
+        height: 210px;
     }
 
     .profile-content {
@@ -6552,7 +6513,7 @@ select {
     }
 
     .profile-header-section {
-        margin: -44px 0 20px;
+        margin: -54px 0 20px;
     }
 
     .profile-micro-stats {
@@ -6676,7 +6637,7 @@ select {
     }
 
     .profile-banner {
-        height: 170px;
+        height: 180px;
         border-radius: 22px 22px 0 0;
     }
 
@@ -6690,14 +6651,14 @@ select {
     }
 
     .profile-header-section {
-        margin: -38px 0 18px;
+        margin: -46px 0 18px;
     }
 
     .profile-avatar-lg {
         width: 88px;
         height: 88px;
         font-size: 2rem;
-        border-radius: 22px;
+        border-radius: 50%;
     }
 
     .profile-avatar-column {
