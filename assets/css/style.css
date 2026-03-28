@@ -1751,25 +1751,25 @@ select {
 .page-pill-title {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     padding: 0;
     border: 0;
     background: none;
     color: var(--text-primary);
-    font-family: inherit;
-    font-size: clamp(1.95rem, 4vw, 3.15rem);
-    font-weight: 800;
-    line-height: 1.02;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2.05rem, 4.15vw, 3.35rem);
+    font-weight: 900;
+    line-height: 0.94;
     text-transform: none;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.06em;
     box-shadow: none;
     margin: 0 0 12px 0;
 }
 
 .page-title-icon-shell,
 .page-pill-title > svg {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1792,6 +1792,7 @@ select {
     align-items: baseline;
     gap: 0.24em;
     flex-wrap: wrap;
+    text-transform: uppercase;
 }
 
 .page-title-muted {
@@ -1813,6 +1814,7 @@ select {
     color: rgba(236, 241, 238, 0.66);
     font-size: 0.76em;
     letter-spacing: -0.03em;
+    text-transform: none;
 }
 
 .page-title-keyword:empty,
@@ -6289,14 +6291,14 @@ label[for="editBannerImage"] {
 
     .page-pill-title {
         gap: 10px;
-        font-size: clamp(1.45rem, 7.2vw, 2.15rem);
+        font-size: clamp(1.55rem, 7.2vw, 2.35rem);
         margin-bottom: 10px;
     }
 
     .page-title-icon-shell,
     .page-pill-title > svg {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
     }
 
     .page-title-icon-svg,
