@@ -8950,13 +8950,11 @@ label[for="editBannerImage"] {
     object-position: center center;
     transform: scale(1.03);
     transform-origin: center;
-    filter: saturate(1.02) brightness(0.86) contrast(1.02);
+    filter: none;
 }
 
 .popular-hero-scrim {
-    background:
-        linear-gradient(90deg, rgba(6, 12, 9, 0.36) 0%, rgba(6, 12, 9, 0.08) 46%, rgba(6, 12, 9, 0.24) 100%),
-        linear-gradient(180deg, rgba(6, 12, 9, 0.02), rgba(6, 12, 9, 0.18));
+    display: none;
 }
 
 .popular-hero-ghost {
@@ -8970,7 +8968,7 @@ label[for="editBannerImage"] {
     grid-template-columns: minmax(0, 1.35fr) 320px;
     gap: 20px;
     min-height: 440px;
-    padding: 28px;
+    padding: 28px 28px 72px;
     align-items: end;
 }
 
@@ -9470,7 +9468,7 @@ label[for="editBannerImage"] {
 
 .popular-hero-carousel {
     position: relative;
-    min-height: 468px;
+    min-height: 500px;
 }
 
 .popular-hero-slide {
@@ -9620,12 +9618,14 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-dots {
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    inset: auto 0 18px 0;
+    z-index: 3;
     display: flex;
     justify-content: center;
     gap: 8px;
-    padding: 0 24px 18px;
+    padding: 0 24px;
+    pointer-events: none;
 }
 
 .popular-hero-dot {
@@ -9636,6 +9636,7 @@ label[for="editBannerImage"] {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.24);
     transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    pointer-events: auto;
 }
 
 .popular-hero-dot:hover {
@@ -9691,7 +9692,7 @@ label[for="editBannerImage"] {
     }
 
     .popular-hero-grid {
-        padding: 22px;
+        padding: 22px 22px 72px;
         min-height: 650px;
     }
 
@@ -9744,7 +9745,7 @@ label[for="editBannerImage"] {
 
     .popular-hero-grid {
         min-height: 0;
-        padding: 18px;
+        padding: 18px 18px 72px;
     }
 
     .popular-hero-ghost {
