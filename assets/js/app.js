@@ -3649,6 +3649,71 @@ function debounce(fn, delay) {
 //   PROFILE PAGE SYSTEM
 // ================================================================
 
+function createProfileHandle(username = '') {
+    const transliterationMap = {
+        ç: 'c', Ç: 'c',
+        ğ: 'g', Ğ: 'g',
+        ı: 'i', İ: 'i',
+        ö: 'o', Ö: 'o',
+        ş: 's', Ş: 's',
+        ü: 'u', Ü: 'u',
+    };
+
+    return String(username)
+        .split('')
+        .map(char => transliterationMap[char] || char)
+        .join('')
+        .toLocaleLowerCase('tr-TR')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'oyuncu';
+}
+
+function formatProfileMetric(value) {
+    return Number(value || 0).toLocaleString('tr-TR');
+}
+
+function renderProfileEmptyState({ icon, title, text, actionLabel = '', actionOnclick = '' }) {
+    return `
+        <div class="empty-state">
+            <div class="empty-state-icon">${icon}</div>
+            <h3>${title}</h3>
+            <p>${text}</p>
+            ${actionLabel && actionOnclick
+            ? `<button class="btn btn-primary" style="margin-top:16px;" onclick="${actionOnclick}">${actionLabel}</button>`
+            : ''}
+        </div>
+    `;
+}
+
+function renderProfilePostCollection(container, posts, options) {
+    if (!container) return;
+
+    const {
+        emptyIcon,
+        emptyTitle,
+        emptyText,
+        actionLabel = '',
+        actionOnclick = '',
+    } = options;
+
+    if (!posts.length) {
+        container.innerHTML = renderProfileEmptyState({
+            icon: emptyIcon,
+            title: emptyTitle,
+            text: emptyText,
+            actionLabel,
+            actionOnclick,
+        });
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="profile-posts-grid">
+            ${posts.map(post => renderPostCard(post)).join('')}
+        </div>
+    `;
+}
+
 function renderProfilePage() {
     const tabsWrapper = document.getElementById('profileTabsWrapper');
     const statsGrid = document.getElementById('profileStatsGrid');
@@ -3672,19 +3737,18 @@ function renderProfilePage() {
 
     tabsWrapper.style.display = '';
     const user = currentUser;
-    const initial = user.username.charAt(0).toUpperCase();
-    const gradientIdx = user.avatarGradient !== undefined ? user.avatarGradient : (parseInt(user.id.replace('u', '')) % AVATAR_GRADIENTS.length);
-    const gradient = AVATAR_GRADIENTS[gradientIdx];
+    const { bg: avatarStyle, initial: avatarContent } = getAuthorStyle(user);
     const joinDate = new Date(user.joinDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     const stats = calculateProfileStats(user.id);
-
-    const avatarStyle = user.avatarImage
-        ? `background-image: url('${user.avatarImage}');`
-        : `background: ${gradient};`;
-    const avatarContent = user.avatarImage ? '' : initial;
+    const handle = createProfileHandle(user.username);
+    const bioText = user.bio && user.bio.trim()
+        ? escapeHtml(user.bio.trim())
+        : 'Henüz bir biyografi eklenmedi. Profilini birkaç cümleyle canlandırabilirsin.';
+    const hasBio = Boolean(user.bio && user.bio.trim());
 
     const bannerEl = document.querySelector('.profile-banner');
     if (bannerEl) {
+        bannerEl.classList.toggle('profile-banner--custom', Boolean(user.bannerImage));
         if (user.bannerImage) {
             bannerEl.style.backgroundImage = `url('${user.bannerImage}')`;
         } else {
@@ -3692,26 +3756,45 @@ function renderProfilePage() {
         }
     }
 
-    let extrasHtml = '';
-    if (user.favGame) {
-        extrasHtml = `<div class="profile-extras"><span class="profile-fav-game">🎮 ${escapeHtml(user.favGame)}</span></div>`;
-    }
-
     headerSection.innerHTML = `
-        <div class="profile-avatar-lg" style="${avatarStyle}">${avatarContent}</div>
+        <div class="profile-avatar-column">
+            <div class="profile-avatar-lg" style="${avatarStyle}">${avatarContent}</div>
+        </div>
         <div class="profile-info">
-            <h1 class="profile-username">${escapeHtml(user.username)}</h1>
-            ${extrasHtml}
-            ${user.bio ? `<p class="profile-bio">${escapeHtml(user.bio)}</p>` : ''}
-            <p class="profile-email">${escapeHtml(user.email)}</p>
-            <div class="profile-join-date">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span>${joinDate} tarihinden beri üye</span>
+            <div class="profile-identity-row">
+                <h1 class="profile-username">${escapeHtml(user.username)}</h1>
+                <span class="profile-handle">@${handle}</span>
+            </div>
+            <div class="profile-extras">
+                ${user.favGame ? `<span class="profile-fav-game">🎮 ${escapeHtml(user.favGame)}</span>` : ''}
+                <span class="profile-meta-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    ${joinDate} tarihinde katıldı
+                </span>
+            </div>
+            <p class="profile-bio ${hasBio ? '' : 'profile-bio--empty'}">${bioText}</p>
+            <div class="profile-micro-stats">
+                <div class="profile-micro-stat">
+                    <strong>${formatProfileMetric(stats.totalPosts)}</strong>
+                    <span>Gönderi</span>
+                </div>
+                <div class="profile-micro-stat">
+                    <strong>${formatProfileMetric(stats.mediaPosts)}</strong>
+                    <span>Medyalı gönderi</span>
+                </div>
+                <div class="profile-micro-stat">
+                    <strong>${formatProfileMetric(stats.totalLikesReceived)}</strong>
+                    <span>Alınan beğeni</span>
+                </div>
+                <div class="profile-micro-stat">
+                    <strong>${formatProfileMetric(stats.totalComments)}</strong>
+                    <span>Yorum</span>
+                </div>
             </div>
         </div>
         <div class="profile-actions">
@@ -3733,43 +3816,39 @@ function renderProfilePage() {
         </div>
     `;
 
-    statsGrid.innerHTML = `
-        <div class="profile-stat-card">
-            <div class="profile-stat-icon">📝</div>
-            <div class="profile-stat-value">${stats.totalPosts}</div>
-            <div class="profile-stat-label">Gönderi</div>
-        </div>
-        <div class="profile-stat-card">
-            <div class="profile-stat-icon">❤️</div>
-            <div class="profile-stat-value">${stats.totalLikesReceived}</div>
-            <div class="profile-stat-label">Beğeni Aldı</div>
-        </div>
-        <div class="profile-stat-card">
-            <div class="profile-stat-icon">💬</div>
-            <div class="profile-stat-value">${stats.totalComments}</div>
-            <div class="profile-stat-label">Yorum</div>
-        </div>
-        <div class="profile-stat-card">
-            <div class="profile-stat-icon">⭐</div>
-            <div class="profile-stat-value">${stats.totalLikesGiven}</div>
-            <div class="profile-stat-label">Beğeni Verdi</div>
-        </div>
-    `;
+    statsGrid.innerHTML = '';
 
     switchProfileTab(currentProfileTab);
 }
 
 function calculateProfileStats(userId) {
+    const profileUser = allUsers.find(user => user.id === userId) || (currentUser && currentUser.id === userId ? currentUser : {});
     const userPosts = allPosts.filter(p => p.userId === userId);
+    const userPostIds = new Set(userPosts.map(post => post.id));
     let totalLikesReceived = 0;
     userPosts.forEach(p => { totalLikesReceived += p.likes.length; });
     let totalComments = 0;
     let totalLikesGiven = 0;
+    let totalBookmarksReceived = 0;
     allPosts.forEach(p => {
         p.comments.forEach(c => { if (c.userId === userId) totalComments++; });
         if (p.likes.includes(userId)) totalLikesGiven++;
     });
-    return { totalPosts: userPosts.length, totalLikesReceived, totalComments, totalLikesGiven };
+    allUsers.forEach(user => {
+        (user.bookmarks || []).forEach(postId => {
+            if (userPostIds.has(postId)) totalBookmarksReceived++;
+        });
+    });
+
+    return {
+        totalPosts: userPosts.length,
+        totalLikesReceived,
+        totalComments,
+        totalLikesGiven,
+        totalBookmarksReceived,
+        totalSavedPosts: (profileUser.bookmarks || []).length,
+        mediaPosts: userPosts.filter(post => Boolean(post.imageUrl)).length,
+    };
 }
 
 function switchProfileTab(tab) {
@@ -3778,10 +3857,14 @@ function switchProfileTab(tab) {
         el.classList.toggle('active', el.dataset.ptab === tab);
     });
     const container = document.getElementById('profileTabContent');
-    if (tab === 'posts') renderProfilePosts(container);
-    else if (tab === 'likes') renderProfileLikes(container);
-    else if (tab === 'comments') renderProfileComments(container);
-    else if (tab === 'bookmarks') renderProfileBookmarks(container);
+    const renderers = {
+        posts: renderProfilePosts,
+        media: renderProfileMedia,
+        likes: renderProfileLikes,
+        comments: renderProfileComments,
+        bookmarks: renderProfileBookmarks,
+    };
+    (renderers[tab] || renderProfilePosts)(container);
     container.style.animation = 'none';
     void container.offsetWidth;
     container.style.animation = '';
@@ -3790,32 +3873,38 @@ function switchProfileTab(tab) {
 function renderProfilePosts(container) {
     if (!currentUser) return;
     const myPosts = allPosts.filter(p => p.userId === currentUser.id).sort((a, b) => new Date(b.date) - new Date(a.date));
-    if (myPosts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📝</div>
-                <h3>Henüz gönderin yok</h3>
-                <p>İlk gönderini oluştur ve oyun dünyasıyla paylaş!</p>
-                <button class="btn btn-primary" style="margin-top:16px;" onclick="openModal('newPostModal')">Gönderi Oluştur</button>
-            </div>`;
-        return;
-    }
-    container.innerHTML = myPosts.map(post => renderPostCard(post)).join('');
+    renderProfilePostCollection(container, myPosts, {
+        emptyIcon: '📝',
+        emptyTitle: 'Henüz gönderin yok',
+        emptyText: 'İlk gönderini paylaş ve profilini hareketlendirmeye başla.',
+        actionLabel: 'Gönderi Oluştur',
+        actionOnclick: "openModal('newPostModal')",
+    });
+}
+
+function renderProfileMedia(container) {
+    if (!currentUser) return;
+    const mediaPosts = allPosts
+        .filter(post => post.userId === currentUser.id && post.imageUrl)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    renderProfilePostCollection(container, mediaPosts, {
+        emptyIcon: '🌲',
+        emptyTitle: 'Henüz medya içeren gönderin yok',
+        emptyText: 'Kapak görseli ya da ekran görüntüsü eklediğin paylaşımlar burada sergilenecek.',
+        actionLabel: 'Görselli Gönderi Oluştur',
+        actionOnclick: "openModal('newPostModal')",
+    });
 }
 
 function renderProfileLikes(container) {
     if (!currentUser) return;
     const likedPosts = allPosts.filter(p => p.likes.includes(currentUser.id)).sort((a, b) => new Date(b.date) - new Date(a.date));
-    if (likedPosts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">❤️</div>
-                <h3>Henüz beğendiğin gönderi yok</h3>
-                <p>Beğendiğin gönderiler burada görünecek.</p>
-            </div>`;
-        return;
-    }
-    container.innerHTML = likedPosts.map(post => renderPostCard(post)).join('');
+    renderProfilePostCollection(container, likedPosts, {
+        emptyIcon: '❤️',
+        emptyTitle: 'Henüz beğendiğin gönderi yok',
+        emptyText: 'Beğeni bıraktığın gönderiler burada birikecek.',
+    });
 }
 
 function renderProfileComments(container) {
@@ -3830,47 +3919,52 @@ function renderProfileComments(container) {
     });
     userComments.sort((a, b) => new Date(b.date) - new Date(a.date));
     if (userComments.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">💬</div>
-                <h3>Henüz yorum yapmadın</h3>
-                <p>Yaptığın yorumlar burada görünecek.</p>
-            </div>`;
+        container.innerHTML = renderProfileEmptyState({
+            icon: '💬',
+            title: 'Henüz yorum yapmadın',
+            text: 'Yaptığın yorumlar burada zaman akışı gibi görünecek.',
+        });
         return;
     }
-    const gradientIdx = currentUser.avatarGradient !== undefined ? currentUser.avatarGradient : (parseInt(currentUser.id.replace('u', '')) % AVATAR_GRADIENTS.length);
-    container.innerHTML = userComments.map(item => `
-        <div class="profile-comment-item" onclick="expandPost('${item.post.id}')">
-            <div class="comment-avatar" style="background:${AVATAR_GRADIENTS[gradientIdx]}">${currentUser.username.charAt(0).toUpperCase()}</div>
-            <div style="flex:1; min-width:0;">
-                <div class="profile-comment-post-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    ${escapeHtml(item.post.title)}
+
+    const { bg: avatarStyle, initial: avatarContent } = getAuthorStyle(currentUser);
+    container.innerHTML = `
+        <div class="profile-comment-list">
+            ${userComments.map(item => `
+                <div class="profile-comment-item" onclick="expandPost('${item.post.id}')">
+                    <div class="comment-avatar" style="${avatarStyle}">${avatarContent}</div>
+                    <div style="flex:1; min-width:0;">
+                        <div class="profile-comment-post-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            ${escapeHtml(item.post.title)}
+                        </div>
+                        <div class="profile-comment-text">${escapeHtml(item.text)}</div>
+                        <div class="profile-comment-footer">
+                            <div class="profile-comment-meta">
+                                <span>${getTimeAgo(item.date)}</span>
+                                <span>❤️ ${item.likes.length}</span>
+                            </div>
+                            <span class="profile-comment-link">Gönderiyi aç</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="profile-comment-text">${escapeHtml(item.text)}</div>
-                <div class="profile-comment-meta">
-                    <span>${getTimeAgo(item.date)}</span>
-                    <span>❤️ ${item.likes.length}</span>
-                </div>
-            </div>
+            `).join('')}
         </div>
-    `).join('');
+    `;
 }
 
 function renderProfileBookmarks(container) {
     if (!currentUser) return;
     const bookmarkIds = currentUser.bookmarks || [];
-    const bookmarkedPosts = allPosts.filter(p => bookmarkIds.includes(p.id));
-    if (bookmarkedPosts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">🔖</div>
-                <h3>Henüz kaydettiğin gönderi yok</h3>
-                <p>Gönderilerdeki kaydet ikonuna tıklayarak burada biriktir.</p>
-            </div>`;
-        return;
-    }
-    container.innerHTML = bookmarkedPosts.map(post => renderPostCard(post)).join('');
+    const bookmarkedPosts = allPosts
+        .filter(p => bookmarkIds.includes(p.id))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    renderProfilePostCollection(container, bookmarkedPosts, {
+        emptyIcon: '🔖',
+        emptyTitle: 'Henüz kaydettiğin gönderi yok',
+        emptyText: 'Beğendiğin fikirleri saklamak için gönderilerdeki kayıt simgesini kullanabilirsin.',
+    });
 }
 
 function openEditProfile() {
