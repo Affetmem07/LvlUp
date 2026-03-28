@@ -4074,7 +4074,6 @@ function renderCreatorHeader(name, label, gameCount = null) {
         </div>
         <div class="creator-header-meta">
             <span class="creator-header-badge">${countText}</span>
-            <span class="creator-header-caption">4-3 kart dizilimi</span>
         </div>
     `;
 }
