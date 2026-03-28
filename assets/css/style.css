@@ -9635,37 +9635,80 @@ label[for="editBannerImage"] {
 
 .popular-hero-dots {
     position: absolute;
-    inset: auto 0 12px 0;
+    inset: auto 0 18px 0;
     z-index: 3;
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     padding: 0 24px;
     pointer-events: none;
 }
 
 .popular-hero-dot {
-    width: 14px;
-    height: 14px;
-    padding: 6px;
+    width: 8px;
+    height: 8px;
+    padding: 0;
     border: 0;
-    box-sizing: content-box;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.3);
-    transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    background: rgba(255, 255, 255, 0.24);
+    transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
     pointer-events: auto;
     cursor: pointer;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .popular-hero-dot:hover {
     transform: scale(1.08);
-    background: rgba(255, 255, 255, 0.5);
 }
 
 .popular-hero-dot.is-active {
-    width: 30px;
+    width: 24px;
     background: #d4f47d;
+}
+
+.popular-hero-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(8, 16, 12, 0.42);
+    color: #f4f7f5;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.92);
+    transition: opacity 220ms ease, transform 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.popular-hero-card:hover .popular-hero-nav,
+.popular-hero-card:focus-within .popular-hero-nav {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+}
+
+.popular-hero-nav:hover {
+    background: rgba(8, 16, 12, 0.62);
+    border-color: rgba(255, 255, 255, 0.24);
+}
+
+.popular-hero-nav--prev {
+    left: 18px;
+}
+
+.popular-hero-nav--next {
+    right: 18px;
+}
+
+.popular-hero-nav svg {
+    width: 22px;
+    height: 22px;
 }
 
 .popular-hero-actions .popular-hero-btn:not(.popular-hero-btn--primary) {

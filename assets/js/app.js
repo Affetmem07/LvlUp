@@ -905,17 +905,23 @@ function setPopularHeroSlide(index, { restart = true } = {}) {
     }
 }
 
+function shiftPopularHeroSlide(direction = 1, event) {
+    if (event) event.stopPropagation();
+    setPopularHeroSlide(popularHeroCarousel.index + direction);
+}
+
 function setupPopularHeroCarousel() {
     const root = document.getElementById('popularHeroCarousel');
     if (!root) {
         stopPopularHeroAutoplay();
         return;
     }
+    const hoverTarget = root.closest('.popular-hero-card') || root;
 
     popularHeroCarousel.index = Math.max(0, Math.min(popularHeroCarousel.index, root.children.length - 1));
     updatePopularHeroCarouselUI();
-    root.addEventListener('mouseenter', stopPopularHeroAutoplay);
-    root.addEventListener('mouseleave', startPopularHeroAutoplay);
+    hoverTarget.addEventListener('mouseenter', stopPopularHeroAutoplay);
+    hoverTarget.addEventListener('mouseleave', startPopularHeroAutoplay);
     startPopularHeroAutoplay();
 }
 
@@ -1988,6 +1994,26 @@ function renderPopularHero(topTags = []) {
                         aria-pressed="${slideIndex === safeIndex ? 'true' : 'false'}"></button>
                 `).join('')}
             </div>
+            ${slides.length > 1 ? `
+                <button
+                    type="button"
+                    class="popular-hero-nav popular-hero-nav--prev"
+                    onclick="shiftPopularHeroSlide(-1, event)"
+                    aria-label="Önceki slayt">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m15 18-6-6 6-6"></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    class="popular-hero-nav popular-hero-nav--next"
+                    onclick="shiftPopularHeroSlide(1, event)"
+                    aria-label="Sonraki slayt">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m9 18 6-6-6-6"></path>
+                    </svg>
+                </button>
+            ` : ''}
         </section>`;
 }
 
