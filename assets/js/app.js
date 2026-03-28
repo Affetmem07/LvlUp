@@ -1826,9 +1826,9 @@ function renderPopularShowcase(posts) {
             <section class="popular-story-section">
                 <div class="popular-section-heading">
                     <div>
-                        <span class="popular-section-kicker">Canlı akış</span>
-                        <h2>Sis içinden yükselenler</h2>
-                        <p>Topluluğun bugün en çok yankı verdiği gönderiler, alıntılar ve hızlı durum kartları.</p>
+                        <span class="popular-section-kicker">Günün nabzı</span>
+                        <h2>Bugün öne çıkanlar</h2>
+                        <p>Toplulukta bugün dikkat çeken paylaşımlar, alıntılar ve kısa gündem kartları.</p>
                     </div>
                 </div>
                 <div class="popular-columns">

@@ -9217,6 +9217,12 @@ label[for="editBannerImage"] {
     gap: 18px;
 }
 
+.popular-showcase-shell > .popular-story-section,
+.popular-showcase-shell > .popular-tag-field {
+    width: min(100%, 1180px);
+    margin-inline: auto;
+}
+
 .popular-section-heading h2 {
     margin: 8px 0 6px;
     font-size: 1.7rem;
