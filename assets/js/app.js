@@ -4058,6 +4058,75 @@ function renderGamesBrickLayout(games) {
     return html;
 }
 
+function renderCreatorGamesMasonry(games) {
+    return `
+        <div class="creator-masonry-grid">
+            ${games.map((game, index) => renderCreatorGameCard(game, index)).join('')}
+        </div>
+    `;
+}
+
+function renderCreatorGameCard(game, index) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+    const imageUrl = game.backgroundUrl || game.coverUrl || '';
+    const variants = ['tall', 'medium', 'short', 'medium', 'tall', 'short'];
+    const variant = variants[index % variants.length];
+    const releaseLabel = game.released
+        ? formatGameReleaseDate(game.released)
+        : (game.releaseYear > 0 ? String(game.releaseYear) : 'TBA');
+    const infoTags = [
+        game.genres && game.genres.length > 0 ? game.genres[0] : null,
+        game.platforms && game.platforms.length > 0 ? game.platforms[0] : null,
+        game.platforms && game.platforms.length > 1 ? game.platforms[1] : null,
+    ].filter(Boolean).slice(0, 3);
+    const fallbackLabel = infoTags[0] || 'LvlUp';
+
+    return `
+        <article class="creator-game-card creator-game-card--${variant}" onclick="openGameDetail('${game.id}')">
+            <div class="creator-game-card-media">
+                ${imageUrl
+            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(game.title)}" loading="lazy"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('creator-game-card-media--fallback')">`
+            : ''}
+                <div class="creator-game-card-fallback">${escapeHtml(fallbackLabel)}</div>
+                <div class="creator-game-card-top">
+                    ${game.rating > 0
+            ? `<div class="game-card-rating game-card-rating--corner ${ratingClass} creator-game-card-rating">
+                            ${starSvg}
+                            ${game.rating}
+                        </div>`
+            : '<span></span>'}
+                    <span class="creator-game-card-release">${escapeHtml(releaseLabel)}</span>
+                </div>
+            </div>
+            <div class="creator-game-card-body">
+                <h3 class="creator-game-card-title">${escapeHtml(game.title)}</h3>
+                <div class="creator-game-card-tags">
+                    ${infoTags.map(tag => `<span class="creator-game-card-tag">${escapeHtml(tag)}</span>`).join('')}
+                </div>
+            </div>
+        </article>
+    `;
+}
+
+function renderCreatorHeader(name, label, gameCount = null) {
+    const countText = Number.isFinite(gameCount) && gameCount >= 0
+        ? `${gameCount.toLocaleString('tr-TR')} oyun`
+        : 'Secilmis katalog';
+
+    return `
+        <div class="creator-header-copy">
+            <div class="creator-header-label">${label}</div>
+            <h2 class="creator-header-title">${escapeHtml(name)}</h2>
+        </div>
+        <div class="creator-header-meta">
+            <span class="creator-header-badge">${countText}</span>
+            <span class="creator-header-caption">Masonry gorunum</span>
+        </div>
+    `;
+}
+
 function renderGameCard(game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
@@ -4467,10 +4536,7 @@ async function openCreatorGames(name, slug, type) {
     const grid = document.getElementById('creatorGrid');
 
     const label = type === 'developer' ? 'Yapımcı' : 'Yayıncı';
-    header.innerHTML = `
-        <div class="creator-header-label">${label}</div>
-        <h2 class="creator-header-title">${escapeHtml(name)}</h2>
-    `;
+    header.innerHTML = renderCreatorHeader(name, label);
     grid.innerHTML = `
         <div class="creator-loading">
             <div class="games-loading-spinner"></div>
@@ -4506,7 +4572,8 @@ async function openCreatorGames(name, slug, type) {
             if (!allGames.find(ag => ag.id === g.id)) allGames.push(g);
         });
 
-        grid.innerHTML = renderGamesBrickLayout(games);
+        header.innerHTML = renderCreatorHeader(name, label, games.length);
+        grid.innerHTML = renderCreatorGamesMasonry(games);
     } catch (err) {
         console.error('Creator oyunları alınırken hata:', err);
         grid.innerHTML = `<div class="creator-empty">Oyunlar yüklenirken hata oluştu.</div>`;
