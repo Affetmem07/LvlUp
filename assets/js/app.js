@@ -2013,6 +2013,7 @@ function expandPost(postId) {
     const commentsHtml = post.comments.map(c => {
         const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
         const cLiked = currentUser && c.likes.includes(currentUser.id);
+        const canDeleteComment = currentUser && currentUser.id === c.userId;
         const cIdx = cAuthor.id ? parseInt(cAuthor.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
         const cBg = AVATAR_GRADIENTS[cIdx] || AVATAR_GRADIENTS_LIST[cIdx] || 'linear-gradient(135deg,#2D5A43,#8FBC8F)';
         return `
@@ -2029,6 +2030,11 @@ function expandPost(postId) {
                         <button class="comment-action-btn" onclick="document.getElementById('expandedCommentInput').focus()">
                             💬 Yanıtla
                         </button>
+                        ${canDeleteComment ? `
+                        <button class="comment-action-btn" onclick="deleteComment('${post.id}', '${c.id}')">
+                            🗑️ Sil
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -2120,6 +2126,27 @@ function toggleCommentLike(postId, commentId) {
 
     setStore(STORAGE_KEYS.posts, allPosts);
     expandPost(postId); // Re-render expanded view
+}
+
+function deleteComment(postId, commentId) {
+    if (!currentUser) return;
+
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment || comment.userId !== currentUser.id) {
+        showToast('Bu yorumu silme yetkin yok.', 'error');
+        return;
+    }
+
+    if (!confirm('Bu yorumu silmek istediğinden emin misin?')) return;
+
+    post.comments = post.comments.filter(c => c.id !== commentId);
+    setStore(STORAGE_KEYS.posts, allPosts);
+    expandPost(postId);
+    refreshCurrentView();
+    showToast('Yorum silindi.', 'success');
 }
 
 // ── Comments ──
