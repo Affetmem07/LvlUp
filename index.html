@@ -640,7 +640,7 @@
 
                 <!-- 3. Oyun referansı -->
                 <div class="npe-row npe-game-row">
-                    <div class="npe-game-trigger" id="npeGameTrigger">
+                    <button type="button" class="npe-game-trigger" id="npeGameTrigger" onclick="openNpeGameOverlay()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"
                             height="15">
                             <line x1="6" x2="10" y1="11" y2="11" />
@@ -650,10 +650,9 @@
                             <path
                                 d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z" />
                         </svg>
-                        <input type="text" id="npeGameInput" placeholder="Oyuna atıfta bulun…" autocomplete="off"
-                            oninput="npeSearchGame(this.value)">
-                        <div class="npe-game-dropdown" id="npeGameDropdown"></div>
-                    </div>
+                        <span class="npe-game-trigger-text">Oyuna atifta bulun</span>
+                        <span class="npe-game-trigger-action">Ara</span>
+                    </button>
                     <div class="npe-game-badge" id="npeGameBadge" style="display:none">
                         <img id="npeGameBadgeImg" src="" alt="" onerror="this.style.display='none'">
                         <span id="npeGameBadgeName"></span>
@@ -925,6 +924,22 @@
                     <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="creator-overlay" id="npeGameOverlay" onclick="closeNpeGameOverlay(event)">
+        <div class="creator-container npe-game-overlay-shell">
+            <button class="creator-close" onclick="closeNpeGameOverlay()">&times;</button>
+            <div class="creator-header" id="npeGameOverlayHeader"></div>
+            <div class="games-search-bar npe-game-overlay-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="npeGameInput" placeholder="Oyun ara..." autocomplete="off"
+                    oninput="npeSearchGame(this.value)">
+            </div>
+            <div class="creator-grid npe-game-overlay-results" id="npeGameResults"></div>
         </div>
     </div>
 

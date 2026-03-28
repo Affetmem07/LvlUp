@@ -2277,6 +2277,7 @@ function npeReset() {
     if (fileInput) fileInput.value = '';
     // Clear game
     npeGameSelected = null;
+    npeGameSearchResults = [];
     clearTimeout(npeGameSearchTimeout);
     if (npeGameAbortController) npeGameAbortController.abort();
     npeGameRequestId++;
@@ -2292,6 +2293,9 @@ function npeReset() {
     if (gameImgRef) gameImgRef.value = '';
     const gameDD = document.getElementById('npeGameDropdown');
     if (gameDD) { gameDD.innerHTML = ''; gameDD.classList.remove('active'); }
+    const gameResults = document.getElementById('npeGameResults');
+    if (gameResults) gameResults.innerHTML = '';
+    closeNpeGameOverlay();
     // Reset category
     document.querySelectorAll('.npe-cat-pill').forEach(p => p.classList.toggle('active', p.dataset.val === 'genel'));
     const catHidden = document.getElementById('postCategory');
@@ -2447,10 +2451,13 @@ function npeRenderGameDD(games, q) {
 
 function npeSelectGame(title, imageUrl) {
     npeGameSelected = { title, imageUrl };
+    npeGameSearchResults = [];
     document.getElementById('npeGameRef').value = title;
     document.getElementById('npeGameImageRef').value = imageUrl;
     const inp = document.getElementById('npeGameInput');
     if (inp) inp.value = '';
+    const results = document.getElementById('npeGameResults');
+    if (results) results.innerHTML = '';
     const dd = document.getElementById('npeGameDropdown');
     if (dd) { dd.innerHTML = ''; dd.classList.remove('active'); }
     const badge = document.getElementById('npeGameBadge');
@@ -2463,16 +2470,19 @@ function npeSelectGame(title, imageUrl) {
         if (nm) nm.textContent = title;
     }
     if (trigger) trigger.style.display = 'none';
+    closeNpeGameOverlay();
 }
 
 function npeClearGame() {
     npeGameSelected = null;
+    npeGameSearchResults = [];
     document.getElementById('npeGameRef').value = '';
     document.getElementById('npeGameImageRef').value = '';
     const badge = document.getElementById('npeGameBadge');
     if (badge) badge.style.display = 'none';
     const trigger = document.getElementById('npeGameTrigger');
     if (trigger) trigger.style.display = '';
+    closeNpeGameOverlay();
 }
 
 // Media
@@ -3677,6 +3687,7 @@ let npeGameSelected = null;
 let npeGameSearchTimeout = null;
 let npeGameAbortController = null;
 let npeGameRequestId = 0;
+let npeGameSearchResults = [];
 
 // Helper: get today's date in YYYY-MM-DD format for API filtering
 function getTodayDate() {
@@ -4003,7 +4014,8 @@ async function searchRawgGames(query, options = {}) {
         signal = null,
         pageSize = 40,
         minValid = 12,
-        maxPages = 5
+        maxPages = 5,
+        fetchAll = false
     } = options;
 
     const normalizedQuery = (query || '').trim();
@@ -4015,7 +4027,7 @@ async function searchRawgGames(query, options = {}) {
     let fetchCount = 0;
     let validGames = [];
 
-    while (currentUrl && fetchCount < maxPages && validGames.length < minValid) {
+    while (currentUrl && (fetchAll || (fetchCount < maxPages && validGames.length < minValid))) {
         fetchCount++;
 
         const response = await fetch(currentUrl, signal ? { signal } : undefined);
@@ -5390,6 +5402,191 @@ function closeCreatorOverlay(e) {
     document.getElementById('creatorOverlay').classList.remove('active');
     document.body.style.overflow = '';
 }
+
+function renderNpeGameOverlayHeader(query = '', gameCount = null) {
+    const cleanQuery = (query || '').trim();
+    let badgeText = 'Tum sonuclar listelenir';
+
+    if (Number.isFinite(gameCount)) {
+        badgeText = `${gameCount.toLocaleString('tr-TR')} oyun`;
+    } else if (cleanQuery.length >= 2) {
+        badgeText = 'Araniyor...';
+    }
+
+    return `
+        <div class="creator-header-copy">
+            <div class="creator-header-label">Gonderi Oyunu</div>
+            <h2 class="creator-header-title">${escapeHtml(cleanQuery.length >= 2 ? `"${cleanQuery}"` : 'Oyuna atif ekle')}</h2>
+        </div>
+        <div class="creator-header-meta">
+            <span class="creator-header-badge">${escapeHtml(badgeText)}</span>
+        </div>
+    `;
+}
+
+function renderNpeGameSearchCard(game) {
+    const ratingClass = getRatingClass(game.rating || 0);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+    const coverUrl = game.coverUrl || game.backgroundUrl || game.imageUrl || '';
+    const escapedId = escapeHtml(String(game.id || ''));
+
+    return `
+        <div class="game-card game-card--list npe-game-card" onclick="npeSelectSearchResult('${escapedId}')">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
+                 loading="lazy"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
+            <div class="game-card-overlay game-card-overlay--hover">
+                ${game.rating > 0 ? `
+                    <div class="game-card-rating game-card-rating--corner ${ratingClass}">
+                        ${starSvg}
+                        ${game.rating}
+                    </div>
+                ` : ''}
+                <div class="game-card-overlay-body">
+                    <div class="game-card-title">${escapeHtml(game.title)}</div>
+                    <span class="npe-game-card-badge">Sec</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderNpeGameSearchLayout(games) {
+    let html = '';
+
+    for (let i = 0; i < games.length; i += 7) {
+        const chunk = games.slice(i, i + 7);
+        const topRow = chunk.slice(0, 4);
+        const bottomRow = chunk.slice(4, 7);
+
+        if (topRow.length) {
+            html += `<div class="games-brick-row">${topRow.map(game => renderNpeGameSearchCard(game)).join('')}</div>`;
+        }
+
+        if (bottomRow.length) {
+            html += `<div class="games-brick-row games-brick-row--bottom">${bottomRow.map(game => renderNpeGameSearchCard(game)).join('')}</div>`;
+        }
+    }
+
+    return html;
+}
+
+function openNpeGameOverlay() {
+    const overlay = document.getElementById('npeGameOverlay');
+    const header = document.getElementById('npeGameOverlayHeader');
+    const results = document.getElementById('npeGameResults');
+    const input = document.getElementById('npeGameInput');
+    if (!overlay || !header || !results || !input) return;
+
+    overlay.classList.add('active');
+    input.value = '';
+    npeGameSearchResults = [];
+    header.innerHTML = renderNpeGameOverlayHeader();
+    results.innerHTML = `<div class="creator-empty">Aramak icin en az 2 karakter yaz.</div>`;
+
+    requestAnimationFrame(() => input.focus());
+}
+
+function closeNpeGameOverlay(e) {
+    if (e && e.target !== document.getElementById('npeGameOverlay')) return;
+    clearTimeout(npeGameSearchTimeout);
+    if (npeGameAbortController) npeGameAbortController.abort();
+    npeGameRequestId++;
+    const overlay = document.getElementById('npeGameOverlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+function npeSelectSearchResult(gameId) {
+    const game = npeGameSearchResults.find(item => String(item.id) === String(gameId));
+    if (!game) return;
+    npeSelectGame(game.title, game.imageUrl || game.coverUrl || game.backgroundUrl || '');
+}
+
+function npeRenderGameOverlayResults(games, query) {
+    const header = document.getElementById('npeGameOverlayHeader');
+    const results = document.getElementById('npeGameResults');
+    if (!header || !results) return;
+
+    npeGameSearchResults = games;
+    header.innerHTML = renderNpeGameOverlayHeader(query, games.length);
+
+    if (games.length === 0) {
+        results.innerHTML = `<div class="creator-empty">"${escapeHtml(query)}" icin sonuc bulunamadi.</div>`;
+        return;
+    }
+
+    results.innerHTML = renderNpeGameSearchLayout(games);
+}
+
+npeSearchGame = function (q) {
+    clearTimeout(npeGameSearchTimeout);
+
+    const header = document.getElementById('npeGameOverlayHeader');
+    const results = document.getElementById('npeGameResults');
+    if (!header || !results) return;
+
+    const query = (q || '').trim();
+    if (query.length < 2) {
+        if (npeGameAbortController) npeGameAbortController.abort();
+        npeGameRequestId++;
+        npeGameSearchResults = [];
+        header.innerHTML = renderNpeGameOverlayHeader();
+        results.innerHTML = `<div class="creator-empty">Aramak icin en az 2 karakter yaz.</div>`;
+        return;
+    }
+
+    header.innerHTML = renderNpeGameOverlayHeader(query);
+    results.innerHTML = `
+        <div class="creator-loading">
+            <div class="games-loading-spinner"></div>
+            <span>Oyunlar araniyor...</span>
+        </div>
+    `;
+
+    npeGameSearchTimeout = setTimeout(async () => {
+        if (!RAWG_API_KEY) {
+            const localMatches = sortGamesBySearchQuery(
+                allGames.filter(g => g.title && g.title.toLowerCase().includes(query.toLowerCase())),
+                query
+            ).map(g => ({
+                ...g,
+                imageUrl: g.backgroundUrl || g.coverUrl || ''
+            }));
+
+            npeRenderGameOverlayResults(localMatches, query);
+            return;
+        }
+
+        try {
+            if (npeGameAbortController) npeGameAbortController.abort();
+            npeGameAbortController = new AbortController();
+            const myRequestId = ++npeGameRequestId;
+
+            const result = await searchRawgGames(query, {
+                signal: npeGameAbortController.signal,
+                fetchAll: true
+            });
+            if (myRequestId !== npeGameRequestId) return;
+
+            const games = result.games.map(g => ({
+                ...g,
+                imageUrl: g.backgroundUrl || g.coverUrl || ''
+            }));
+
+            games.forEach(game => {
+                if (!allGames.find(existing => existing.id === game.id)) {
+                    allGames.push(game);
+                }
+            });
+
+            npeRenderGameOverlayResults(games, query);
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            header.innerHTML = renderNpeGameOverlayHeader(query, 0);
+            results.innerHTML = `<div class="creator-empty">Oyunlar yuklenirken hata olustu.</div>`;
+        }
+    }, 350);
+};
 
 // ── Close Game Detail ──
 function closeGameDetail(e) {

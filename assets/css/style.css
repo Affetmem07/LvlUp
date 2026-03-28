@@ -7153,20 +7153,54 @@ select {
     display: flex;
     align-items: center;
     gap: 8px;
+    width: 100%;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 9px 12px;
     transition: border-color 0.15s;
+    appearance: none;
+    cursor: pointer;
+    text-align: left;
 }
 
 .npe-game-trigger:focus-within {
     border-color: var(--accent);
 }
 
+.npe-game-trigger:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.npe-game-trigger:hover {
+    border-color: rgba(107, 170, 117, 0.4);
+}
+
 .npe-game-trigger svg {
     flex-shrink: 0;
     color: var(--text-muted);
+}
+
+.npe-game-trigger-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+}
+
+.npe-game-trigger-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(107, 170, 117, 0.14);
+    border: 1px solid rgba(107, 170, 117, 0.25);
+    color: #d9ffe1;
+    font-size: 0.76rem;
+    font-weight: 700;
 }
 
 .npe-game-trigger input {
@@ -7181,6 +7215,36 @@ select {
 
 .npe-game-trigger input::placeholder {
     color: var(--text-muted);
+}
+
+.npe-game-overlay-shell {
+    max-width: 1380px;
+}
+
+.npe-game-overlay-search {
+    margin-bottom: 24px;
+}
+
+.npe-game-overlay-results {
+    min-height: 260px;
+}
+
+.npe-game-card {
+    position: relative;
+}
+
+.npe-game-card-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #f5fff7;
+    font-size: 0.75rem;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
 }
 
 .npe-game-dropdown {
