@@ -2632,6 +2632,12 @@ function npeRenderGameDD(games, q) {
 }
 
 function npeSelectGame(title, imageUrl) {
+    if (activeGameOverlayContext === 'profile') {
+        syncEditFavGameSelection(title, imageUrl);
+        closeNpeGameOverlay();
+        return;
+    }
+
     npeGameSelected = { title, imageUrl };
     npeGameSearchResults = [];
     document.getElementById('npeGameRef').value = title;
@@ -4333,7 +4339,7 @@ function openEditProfile() {
     document.getElementById('editUsername').value = currentUser.username;
     document.getElementById('editBio').value = currentUser.bio || '';
     const favGameVal = currentUser.favGame || '';
-    document.getElementById('editFavGame').value = favGameVal;
+    syncEditFavGameSelection(currentUser.favGame || '', currentUser.favGameImage || '');
     document.getElementById('favGameSelectText').textContent = favGameVal || 'Oyun Seçilmedi';
 
     document.getElementById('editAvatarImage').value = '';
@@ -4344,6 +4350,38 @@ function openEditProfile() {
 }
 
 // ── Game Select Logic ──
+function syncEditFavGameSelection(gameName = '', imageUrl = '') {
+    const value = gameName || '';
+    const image = imageUrl || '';
+    const trigger = document.getElementById('editFavGameTrigger');
+    const badge = document.getElementById('editFavGameBadge');
+    const hidden = document.getElementById('editFavGame');
+    const imageHidden = document.getElementById('editFavGameImage');
+    const legacyText = document.getElementById('favGameSelectText');
+    const badgeName = document.getElementById('editFavGameBadgeName');
+    const badgeImg = document.getElementById('editFavGameBadgeImg');
+
+    if (hidden) hidden.value = value;
+    if (imageHidden) imageHidden.value = image;
+    if (legacyText) legacyText.textContent = value || 'Oyun Secilmedi';
+    if (badgeName) badgeName.textContent = value;
+    if (badgeImg) {
+        badgeImg.src = image;
+        badgeImg.style.display = image ? '' : 'none';
+    }
+
+    if (trigger) trigger.style.display = value ? 'none' : '';
+    if (badge) badge.style.display = value ? 'flex' : 'none';
+}
+
+function openProfileFavGameOverlay() {
+    openNpeGameOverlay('profile');
+}
+
+function clearEditFavGame() {
+    syncEditFavGameSelection('', '');
+}
+
 const popularGamesList = [
     'The Witcher 3: Wild Hunt', 'Grand Theft Auto V', 'Grand Theft Auto VI', 'Red Dead Redemption 2',
     'Minecraft', 'Counter-Strike 2', 'Valorant', 'League of Legends', 'Dota 2',
@@ -4527,6 +4565,7 @@ async function handleEditProfile(e) {
     currentUser.username = newUsername;
     currentUser.bio = newBio;
     currentUser.favGame = document.getElementById('editFavGame').value.trim();
+    currentUser.favGameImage = document.getElementById('editFavGameImage')?.value.trim() || '';
 
     const avatarFile = document.getElementById('editAvatarImage').files[0];
     const bannerFile = document.getElementById('editBannerImage').files[0];
@@ -4596,6 +4635,8 @@ let npeGameSearchTimeout = null;
 let npeGameAbortController = null;
 let npeGameRequestId = 0;
 let npeGameSearchResults = [];
+let activeGameOverlayContext = 'post';
+let activeGameOverlayModalId = 'npeModal';
 
 // Helper: get today's date in YYYY-MM-DD format for API filtering
 function getTodayDate() {
@@ -6371,11 +6412,14 @@ function closeCreatorOverlay(e) {
 
 function renderNpeGameOverlayHeader(query = '', gameCount = null, isLoading = false) {
     const cleanQuery = (query || '').trim();
+    const isProfileContext = activeGameOverlayContext === 'profile';
+    const headerLabel = isProfileContext ? 'Profil Oyunu' : 'Gonderi Oyunu';
+    const emptyTitle = isProfileContext ? 'En sevdigin oyunu sec' : 'Oyuna atif ekle';
 
     return `
         <div class="creator-header-copy">
-            <div class="creator-header-label">Gonderi Oyunu</div>
-            <h2 class="creator-header-title">${escapeHtml(cleanQuery.length >= 2 ? `"${cleanQuery}"` : 'Oyuna atif ekle')}</h2>
+            <div class="creator-header-label">${headerLabel}</div>
+            <h2 class="creator-header-title">${escapeHtml(cleanQuery.length >= 2 ? `"${cleanQuery}"` : emptyTitle)}</h2>
         </div>
     `;
 }
@@ -6427,17 +6471,19 @@ function renderNpeGameSearchLayout(games) {
     return html;
 }
 
-function openNpeGameOverlay() {
+function openNpeGameOverlay(context = 'post') {
     const overlay = document.getElementById('npeGameOverlay');
     const header = document.getElementById('npeGameOverlayHeader');
     const results = document.getElementById('npeGameResults');
     const input = document.getElementById('npeGameInput');
-    const npeModal = document.getElementById('npeModal');
+    activeGameOverlayContext = context === 'profile' ? 'profile' : 'post';
+    activeGameOverlayModalId = activeGameOverlayContext === 'profile' ? 'editProfileModal' : 'npeModal';
+    const parentModal = document.getElementById(activeGameOverlayModalId);
     if (!overlay || !header || !results || !input) return;
 
     overlay.classList.add('active');
     syncViewportLock();
-    if (npeModal) npeModal.style.overflow = 'hidden';
+    if (parentModal) parentModal.style.overflow = 'hidden';
     overlay.scrollTop = 0;
     results.scrollTop = 0;
     input.value = '';
@@ -6454,10 +6500,10 @@ function closeNpeGameOverlay(e) {
     if (npeGameAbortController) npeGameAbortController.abort();
     npeGameRequestId++;
     const overlay = document.getElementById('npeGameOverlay');
-    const npeModal = document.getElementById('npeModal');
+    const parentModal = document.getElementById(activeGameOverlayModalId);
     if (overlay) overlay.classList.remove('active');
     syncViewportLock();
-    if (npeModal) npeModal.style.overflow = '';
+    if (parentModal) parentModal.style.overflow = '';
 }
 
 function npeSelectSearchResult(gameId) {

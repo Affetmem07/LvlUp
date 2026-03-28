@@ -2601,6 +2601,11 @@ select {
     color: var(--text-primary);
 }
 
+#editProfileForm .custom-select-button,
+#editProfileForm .custom-select-menu {
+    display: none;
+}
+
 
 .form-group-split {
     display: flex;
