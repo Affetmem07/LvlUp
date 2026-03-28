@@ -1756,7 +1756,7 @@ select {
     border: 0;
     background: none;
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Orbitron', sans-serif;
     font-size: clamp(2.05rem, 4.15vw, 3.35rem);
     font-weight: 700;
     line-height: 0.94;
