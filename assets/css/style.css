@@ -8920,13 +8920,14 @@ label[for="editBannerImage"] {
 .popular-hero-card {
     position: relative;
     overflow: hidden;
+    aspect-ratio: var(--popular-hero-aspect, 16 / 9);
     border-radius: 32px;
     border: 1px solid rgba(164, 198, 57, 0.14);
     background:
         radial-gradient(circle at top left, rgba(164, 198, 57, 0.14), transparent 28%),
         linear-gradient(180deg, rgba(10, 20, 15, 0.98), rgba(6, 11, 8, 0.98));
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    min-height: 440px;
+    min-height: 0;
 }
 
 .popular-hero-bg,
@@ -8954,7 +8955,10 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-scrim {
-    display: none;
+    display: block;
+    background:
+        linear-gradient(90deg, rgba(6, 12, 9, 0.18) 0%, rgba(6, 12, 9, 0.03) 46%, rgba(6, 12, 9, 0.12) 100%),
+        linear-gradient(180deg, rgba(6, 12, 9, 0), rgba(6, 12, 9, 0.1));
 }
 
 .popular-hero-ghost {
@@ -8967,7 +8971,7 @@ label[for="editBannerImage"] {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) 320px;
     gap: 20px;
-    min-height: 440px;
+    min-height: 100%;
     padding: 28px 28px 72px;
     align-items: end;
 }
@@ -9463,17 +9467,19 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-card {
-    min-height: 500px;
+    min-height: 0;
 }
 
 .popular-hero-carousel {
     position: relative;
-    min-height: 500px;
+    aspect-ratio: inherit;
+    min-height: 0;
 }
 
 .popular-hero-slide {
     position: absolute;
     inset: 0;
+    height: 100%;
     opacity: 0;
     pointer-events: none;
     transform: translateY(12px) scale(1.01);
@@ -9489,7 +9495,7 @@ label[for="editBannerImage"] {
 .popular-hero-grid {
     grid-template-columns: minmax(0, 1fr);
     align-items: end;
-    min-height: 468px;
+    min-height: 100%;
 }
 
 .popular-hero-copy {
@@ -9658,11 +9664,11 @@ label[for="editBannerImage"] {
     }
 
     .popular-hero-grid {
-        min-height: 680px;
+        min-height: 100%;
     }
 
     .popular-hero-carousel {
-        min-height: 680px;
+        min-height: 0;
     }
 
     .popular-hero-copy {
@@ -9693,7 +9699,7 @@ label[for="editBannerImage"] {
 
     .popular-hero-grid {
         padding: 22px 22px 72px;
-        min-height: 650px;
+        min-height: 100%;
     }
 
     .popular-hero-card {
@@ -9701,7 +9707,7 @@ label[for="editBannerImage"] {
     }
 
     .popular-hero-carousel {
-        min-height: 650px;
+        min-height: 0;
     }
 
     .popular-hero-feature-card {
@@ -9736,7 +9742,7 @@ label[for="editBannerImage"] {
     }
 
     .popular-hero-carousel {
-        min-height: 700px;
+        min-height: 0;
     }
 
     .popular-hero-slide {

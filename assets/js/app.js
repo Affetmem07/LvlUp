@@ -545,6 +545,7 @@ let popularHeroCarousel = {
     index: 0,
     timer: null,
     delay: 9000,
+    aspectRatio: '16 / 9',
 };
 
 const AVATAR_GRADIENTS = [
@@ -817,6 +818,40 @@ function openPopularHeroGame(gameId, event) {
     openGameDetail(targetId);
 }
 
+function setPopularHeroAspectRatio(ratioValue) {
+    const resolvedRatio = typeof ratioValue === 'string' && ratioValue.includes('/')
+        ? ratioValue
+        : '16 / 9';
+
+    popularHeroCarousel.aspectRatio = resolvedRatio;
+
+    document.querySelectorAll('.popular-hero-card').forEach((card) => {
+        card.style.setProperty('--popular-hero-aspect', resolvedRatio);
+    });
+}
+
+function syncPopularHeroImageRatio(image) {
+    if (!image || !image.naturalWidth || !image.naturalHeight) return;
+    const slide = image.closest('.popular-hero-slide');
+    if (slide && !slide.classList.contains('is-active')) return;
+    setPopularHeroAspectRatio(`${image.naturalWidth} / ${image.naturalHeight}`);
+}
+
+function syncPopularHeroActiveSlideRatio() {
+    const activeImage = document.querySelector('.popular-hero-slide.is-active .popular-hero-bg img');
+    if (!activeImage) {
+        setPopularHeroAspectRatio(popularHeroCarousel.aspectRatio || '16 / 9');
+        return;
+    }
+
+    if (activeImage.complete && activeImage.naturalWidth && activeImage.naturalHeight) {
+        syncPopularHeroImageRatio(activeImage);
+        return;
+    }
+
+    setPopularHeroAspectRatio(popularHeroCarousel.aspectRatio || '16 / 9');
+}
+
 function updatePopularHeroCarouselUI() {
     const slides = document.querySelectorAll('.popular-hero-slide');
     const dots = document.querySelectorAll('.popular-hero-dot');
@@ -836,6 +871,8 @@ function updatePopularHeroCarouselUI() {
         dot.classList.toggle('is-active', isActive);
         dot.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+
+    syncPopularHeroActiveSlideRatio();
 }
 
 function stopPopularHeroAutoplay() {
@@ -1906,7 +1943,7 @@ function renderPopularHero(topTags = []) {
                     <section class="popular-hero-slide${slideIndex === safeIndex ? ' is-active' : ''}" aria-hidden="${slideIndex === safeIndex ? 'false' : 'true'}">
                         <div class="popular-hero-bg">
                             ${game?.backgroundUrl || game?.coverUrl
-                ? `<img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="${escapeHtml(game.title || slide.title)}" loading="${slideIndex === safeIndex ? 'eager' : 'lazy'}">`
+                ? `<img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="${escapeHtml(game.title || slide.title)}" loading="${slideIndex === safeIndex ? 'eager' : 'lazy'}" onload="syncPopularHeroImageRatio(this)">`
                 : ''}
                         </div>
                         <div class="popular-hero-scrim"></div>
