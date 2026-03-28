@@ -531,6 +531,7 @@ let searchResultsGames = [];
 let currentGameFilter = 'all';
 let currentGameSearch = '';
 let currentProfileTab = 'posts';
+let activeProfileUserId = null;
 let selectedAvatarColor = 0;
 let hasLoadedGamesCatalog = false;
 let homeHeroGames = {
@@ -1035,6 +1036,7 @@ function handleRegister(e) {
 
 function logout() {
     currentUser = null;
+    activeProfileUserId = null;
     localStorage.removeItem(STORAGE_KEYS.currentUser);
     updateAuthUI();
 
@@ -1065,6 +1067,15 @@ function handleRoute() {
         }
     }
 
+    if (hash.startsWith('profile')) {
+        const requestedUserId = hash.split('/')[1];
+        activeProfileUserId = requestedUserId ? decodeURIComponent(requestedUserId) : null;
+        isRouting = true;
+        navigate('profile');
+        isRouting = false;
+        return;
+    }
+
     // Otherwise it's a page route
     const validPages = ['home', 'popular', 'games', 'reviews', 'profile', 'browser-games'];
     // Handle search route
@@ -1078,6 +1089,7 @@ function handleRoute() {
             return;
         }
     }
+    activeProfileUserId = null;
     const page = validPages.includes(hash) ? hash : 'home';
 
     isRouting = true;
@@ -1290,6 +1302,93 @@ function refreshCurrentView() {
     } else {
         renderFeed();
     }
+}
+
+function getAllKnownUsers() {
+    if (!currentUser) return [...allUsers];
+    return allUsers.some(user => user.id === currentUser.id)
+        ? [...allUsers]
+        : [...allUsers, currentUser];
+}
+
+function findUserById(userId) {
+    if (!userId) return null;
+    const normalizedUserId = String(userId);
+    return userMap.get(normalizedUserId) || (currentUser && currentUser.id === normalizedUserId ? currentUser : null);
+}
+
+function getMatchedUsers(query, limit = Infinity) {
+    const normalizedQuery = String(query || '').trim().toLocaleLowerCase('tr-TR');
+    if (!normalizedQuery) return [];
+
+    const seenUserIds = new Set();
+    return getAllKnownUsers()
+        .filter(user => {
+            if (!user?.id || seenUserIds.has(user.id)) return false;
+            const username = String(user.username || '').toLocaleLowerCase('tr-TR');
+            const bio = String(user.bio || '').toLocaleLowerCase('tr-TR');
+            const matches = username.includes(normalizedQuery) || bio.includes(normalizedQuery);
+            if (matches) seenUserIds.add(user.id);
+            return matches;
+        })
+        .sort((a, b) => {
+            const aUsername = String(a.username || '').toLocaleLowerCase('tr-TR');
+            const bUsername = String(b.username || '').toLocaleLowerCase('tr-TR');
+            const aStarts = aUsername.startsWith(normalizedQuery) ? 0 : 1;
+            const bStarts = bUsername.startsWith(normalizedQuery) ? 0 : 1;
+            if (aStarts !== bStarts) return aStarts - bStarts;
+
+            const aInUsername = aUsername.includes(normalizedQuery) ? 0 : 1;
+            const bInUsername = bUsername.includes(normalizedQuery) ? 0 : 1;
+            if (aInUsername !== bInUsername) return aInUsername - bInUsername;
+
+            return aUsername.localeCompare(bUsername, 'tr');
+        })
+        .slice(0, limit);
+}
+
+function getProfileRoute(userId) {
+    const normalizedUserId = userId ? String(userId) : '';
+    if (!normalizedUserId || (currentUser && normalizedUserId === currentUser.id)) {
+        return '#profile';
+    }
+    return `#profile/${encodeURIComponent(normalizedUserId)}`;
+}
+
+function getActiveProfileUser() {
+    if (activeProfileUserId) {
+        return findUserById(activeProfileUserId);
+    }
+    return currentUser ? (findUserById(currentUser.id) || currentUser) : null;
+}
+
+function isOwnProfile(user = getActiveProfileUser()) {
+    return Boolean(user && currentUser && user.id === currentUser.id);
+}
+
+function openUserProfile(userId, event) {
+    if (event) event.stopPropagation();
+
+    const targetUser = findUserById(userId);
+    if (!targetUser) {
+        showToast('Kullanici bulunamadi.', 'error');
+        return;
+    }
+
+    activeProfileUserId = (currentUser && targetUser.id === currentUser.id) ? null : targetUser.id;
+    currentProfileTab = 'posts';
+    closeSearchOverlay();
+    closeExpandedPost();
+
+    const newHash = getProfileRoute(targetUser.id);
+    if (window.location.hash !== newHash) {
+        window.location.hash = newHash;
+        return;
+    }
+
+    isRouting = true;
+    navigate('profile');
+    isRouting = false;
 }
 
 function renderFeed() {
@@ -1732,7 +1831,7 @@ function renderPinterestPin(post, index, bookmarkCountMap = buildBookmarkCountMa
                 <div class="md-body pinterest-pin-md" onclick="expandPost('${post.id}')">${renderMarkdown(post.content)}</div>
                 ${textActions}
                 <div class="pinterest-pin-footer">
-                    <div class="pinterest-pin-author" onclick="expandPost('${post.id}')">
+                    <div class="pinterest-pin-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                         <div class="pinterest-author-avatar" style="${bg}">${initial}</div>
                         <span>@${escapeHtml(author.username)}</span>
                     </div>
@@ -1765,6 +1864,47 @@ function getAuthorStyle(author) {
     return { bg: `background:${AVATAR_GRADIENTS[idx] || AVATAR_GRADIENTS_LIST[idx]};`, initial: author.username.charAt(0).toUpperCase() };
 }
 
+function renderSearchUserResultItem(user, { query = '', extraStyle = '' } = {}) {
+    const { bg, initial } = getAuthorStyle(user);
+    const handle = createProfileHandle(user.username);
+    const bioText = user.bio && user.bio.trim()
+        ? user.bio.trim()
+        : 'HenÃ¼z bir biyografi eklenmemiÅŸ.';
+    const formatText = (text) => query
+        ? highlightCompletion(escapeHtml(text), query)
+        : escapeHtml(text);
+    const safeBioText = user.bio && user.bio.trim()
+        ? user.bio.trim()
+        : 'Henuz bir biyografi eklenmemis.';
+
+    return `
+        <div class="filtered-post-item" style="${extraStyle}" onclick="openUserProfile('${user.id}')">
+            <div class="filtered-post-avatar" style="${bg}">${initial}</div>
+            <div class="filtered-post-info">
+                <div class="filtered-post-title">${formatText(user.username)}</div>
+                <div class="filtered-post-snippet">${formatText(safeBioText || bioText)}</div>
+                <div class="filtered-post-meta">
+                    <span>@${escapeHtml(handle)}</span>
+                    <span>${user.favGame ? escapeHtml(user.favGame) : 'Kullanici'}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function mapUsersToAutocompleteCompletions(users) {
+    return users.map(user => {
+        const { bg, initial } = getAuthorStyle(user);
+        return {
+            text: user.username,
+            type: 'user',
+            iconMarkup: `<div style="${bg}; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff;">${initial}</div>`,
+            meta: user.favGame ? `Kullanici / ${user.favGame}` : 'Kullanici',
+            userId: user.id
+        };
+    });
+}
+
 function renderFeaturedPost(post) {
     const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
     const { bg, initial } = getAuthorStyle(author);
@@ -1775,7 +1915,7 @@ function renderFeaturedPost(post) {
     const top = post.imageUrl
         ? `<div class="fp-img-wrap" onclick="expandPost('${post.id}')">
                <img src="${escapeHtml(post.imageUrl)}" alt="" onerror="this.parentElement.style.display='none'">
-               <div class="fp-author-overlay">
+               <div class="fp-author-overlay" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                    <div class="fp-avatar-wrap">
                        <div class="fp-avatar" style="${bg}">${initial}</div>
                        <div class="fp-online"></div>
@@ -1788,7 +1928,7 @@ function renderFeaturedPost(post) {
            </div>`
         : `<div class="fp-noimg-header" onclick="expandPost('${post.id}')">
                <div class="fp-noimg-avatar" style="${bg}">${initial}</div>
-               <div>
+               <div onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                    <div class="fp-noimg-name">@${escapeHtml(author.username)}</div>
                    <div class="fp-noimg-role">${getCategoryName(post.category)}</div>
                </div>
@@ -1881,7 +2021,7 @@ function renderPostCard(post) {
         const commentsHtml = topComments.map(c => {
             const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
             return `<div class="preview-comment">
-                <span class="preview-comment-author">${escapeHtml(cAuthor.username)}</span>
+                <span class="preview-comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${escapeHtml(cAuthor.username)}</span>
                 <span class="preview-comment-text">${escapeHtml(c.text)}</span>
             </div>`;
         }).join('');
@@ -1901,7 +2041,7 @@ function renderPostCard(post) {
             <div class="post-hero" onclick="expandPost('${post.id}')">
                 <img src="${escapeHtml(post.imageUrl)}" class="post-hero-img" alt="${escapeHtml(post.title)}" onerror="this.parentElement.classList.add('post-hero--hidden')">
                 <div class="post-hero-gradient"></div>
-                <div class="post-hero-author">
+                <div class="post-hero-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                     <div class="post-avatar" style="${customAvatarStyle}">${avatarContent}</div>
                     <div class="post-meta">
                         <div class="post-author">${escapeHtml(author.username)}</div>
@@ -1912,8 +2052,8 @@ function renderPostCard(post) {
             </div>
             ` : `
             <div class="post-header" onclick="expandPost('${post.id}')">
-                <div class="post-avatar" style="${customAvatarStyle}">${avatarContent}</div>
-                <div class="post-meta">
+                <div class="post-avatar" style="${customAvatarStyle}" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">${avatarContent}</div>
+                <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                     <div class="post-author">${escapeHtml(author.username)}</div>
                     <div class="post-time">${timeAgo}</div>
                 </div>
@@ -1966,14 +2106,13 @@ function expandPost(postId) {
     const author = userMap.get(post.userId) || { username: 'Bilinmeyen' };
     const isLiked = currentUser && post.likes.includes(currentUser.id);
 
-    const gradientIndex = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
-    const authorBg = AVATAR_GRADIENTS[gradientIndex] || AVATAR_GRADIENTS_LIST[gradientIndex] || 'linear-gradient(135deg,#2D5A43,#8FBC8F)';
+    const { bg: authorBg, initial: authorInitial } = getAuthorStyle(author);
 
     // Render expanded post content
     document.getElementById('expandedPost').innerHTML = `
         <div class="post-header">
-            <div class="post-avatar" style="background:${authorBg}">${author.username.charAt(0).toUpperCase()}</div>
-            <div class="post-meta">
+            <div class="post-avatar" style="${authorBg}" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">${authorInitial}</div>
+            <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                 <div class="post-author">${escapeHtml(author.username)}</div>
                 <div class="post-time">${getTimeAgo(post.date)} • ${new Date(post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
             </div>
@@ -2014,13 +2153,12 @@ function expandPost(postId) {
         const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
         const cLiked = currentUser && c.likes.includes(currentUser.id);
         const canDeleteComment = currentUser && currentUser.id === c.userId;
-        const cIdx = cAuthor.id ? parseInt(cAuthor.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
-        const cBg = AVATAR_GRADIENTS[cIdx] || AVATAR_GRADIENTS_LIST[cIdx] || 'linear-gradient(135deg,#2D5A43,#8FBC8F)';
+        const { bg: cBg, initial: cInitial } = getAuthorStyle(cAuthor);
         return `
             <div class="comment-item">
-                <div class="comment-avatar" style="background:${cBg}">${cAuthor.username.charAt(0).toUpperCase()}</div>
+                <div class="comment-avatar" style="${cBg}" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${cInitial}</div>
                 <div class="comment-body">
-                    <span class="comment-author">${escapeHtml(cAuthor.username)}</span>
+                    <span class="comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${escapeHtml(cAuthor.username)}</span>
                     <span class="comment-time">${getTimeAgo(c.date)}</span>
                     <div class="comment-text">${escapeHtml(c.text)}</div>
                     <div class="comment-actions-row">
@@ -2108,6 +2246,26 @@ function toggleLike(postId, event) {
 
 function toggleCommentLike(postId, commentId) {
     if (!currentUser) {
+        showToast('BeÄŸenmek iÃ§in giriÅŸ yapmalÄ±sÄ±n!', 'error');
+        return;
+    }
+    const user = currentUser;
+
+    if (!user && activeProfileUserId) {
+        headerSection.innerHTML = renderProfileEmptyState({
+            icon: '&#128100;',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
+            actionOnclick: "navigate('home')",
+        });
+        statsGrid.innerHTML = '';
+        tabContent.innerHTML = '';
+        tabsWrapper.style.display = 'none';
+        return;
+    }
+
+    if (!user) {
         showToast('Beğenmek için giriş yapmalısın!', 'error');
         return;
     }
@@ -3114,9 +3272,9 @@ function renderSearchAutocomplete(query, completions) {
     autocompleteEl.innerHTML = `
         <div class="autocomplete-label">Tamamlamalar</div>
         ${completions.map((c, i) => {
-            const iconMarkup = c.thumbnailUrl
+            const iconMarkup = c.iconMarkup || (c.thumbnailUrl
                 ? `<img src="${escapeHtml(c.thumbnailUrl)}" alt="${escapeHtml(c.text)}" loading="lazy">`
-                : (c.icon || '?');
+                : (c.icon || '?'));
             const actionMarkup = c.isDisabled ? '' : '<span class="autocomplete-item-action">Enter ↵</span>';
 
             return `
@@ -3153,11 +3311,20 @@ function handleSearchOverlayInputV2() {
 
     const localCompletions = [];
     const seenCompletions = new Set();
+    const matchedUsers = getMatchedUsers(rawQuery, 4);
+
+    mapUsersToAutocompleteCompletions(matchedUsers).forEach(userCompletion => {
+        const userKey = `user:${userCompletion.userId}`;
+        if (seenCompletions.has(userKey)) return;
+        seenCompletions.add(userKey);
+        localCompletions.push(userCompletion);
+    });
 
     allPosts.forEach(p => {
         const titleLower = p.title.toLowerCase();
-        if (titleLower.includes(query) && !seenCompletions.has(titleLower)) {
-            seenCompletions.add(titleLower);
+        const titleKey = `post:${titleLower}`;
+        if (titleLower.includes(query) && !seenCompletions.has(titleKey)) {
+            seenCompletions.add(titleKey);
             localCompletions.push({
                 text: p.title,
                 type: 'post',
@@ -3169,8 +3336,9 @@ function handleSearchOverlayInputV2() {
 
         p.tags.forEach(tag => {
             const tagLower = tag.toLowerCase();
-            if (tagLower.includes(query) && !seenCompletions.has(tagLower)) {
-                seenCompletions.add(tagLower);
+            const tagKey = `tag:${tagLower}`;
+            if (tagLower.includes(query) && !seenCompletions.has(tagKey)) {
+                seenCompletions.add(tagKey);
                 localCompletions.push({
                     text: tag,
                     type: 'tag',
@@ -3189,8 +3357,9 @@ function handleSearchOverlayInputV2() {
     };
     Object.entries(categoryNames).forEach(([key, name]) => {
         const nameLower = name.toLowerCase();
-        if (nameLower.includes(query) && !seenCompletions.has(nameLower)) {
-            seenCompletions.add(nameLower);
+        const categoryKey = `category:${nameLower}`;
+        if (nameLower.includes(query) && !seenCompletions.has(categoryKey)) {
+            seenCompletions.add(categoryKey);
             localCompletions.push({
                 text: name,
                 type: 'category',
@@ -3229,8 +3398,21 @@ function handleSearchOverlayInputV2() {
         getCategoryName(p.category).toLowerCase().includes(query)
     ).slice(0, 6);
 
-    if (filteredPosts.length > 0) {
-        filteredPostsEl.innerHTML = `
+    const usersHtml = matchedUsers.length > 0
+        ? `
+            <div class="filtered-posts-label">KullanÄ±cÄ±lar (${matchedUsers.length} sonuÃ§)</div>
+            ${matchedUsers.map(user => renderSearchUserResultItem(user, { query })).join('')}
+        `
+        : '';
+    const normalizedUsersHtml = matchedUsers.length > 0
+        ? `
+            <div class="filtered-posts-label">Kullanicilar (${matchedUsers.length} sonuc)</div>
+            ${matchedUsers.map(user => renderSearchUserResultItem(user, { query })).join('')}
+        `
+        : usersHtml;
+
+    const postsHtml = filteredPosts.length > 0
+        ? `
             <div class="filtered-posts-label">&#304;&#231;erikler (${filteredPosts.length} sonu&#231;)</div>
             ${filteredPosts.map(p => {
             const author = userMap.get(p.userId) || { username: 'Bilinmeyen', id: 'u0' };
@@ -3254,7 +3436,11 @@ function handleSearchOverlayInputV2() {
                     </div>
                 `;
         }).join('')}
-        `;
+        `
+        : '';
+
+    if (normalizedUsersHtml || postsHtml) {
+        filteredPostsEl.innerHTML = `${normalizedUsersHtml}${postsHtml}`;
     } else if (query.length >= 2 && initialCompletions.length === 0) {
         filteredPostsEl.innerHTML = `
                 <div class="search-no-results">
@@ -3337,6 +3523,8 @@ function handleAutocompleteClick(index) {
     if (c.postId) {
         closeSearchOverlay();
         expandPost(c.postId);
+    } else if (c.type === 'user' && c.userId) {
+        openUserProfile(c.userId);
     } else if (c.type === 'game' && c.gameData) {
         cacheSearchGames([c.gameData]);
         closeSearchOverlay();
@@ -3465,27 +3653,19 @@ async function loadSearchResultsGames(query) {
 
 function renderSearchResultsPage(query) {
     document.getElementById('searchResultsKeyword').textContent = '"' + query + '"';
+    const rawQuery = query;
     query = query.toLowerCase();
 
     // 1. Users
-    const users = allUsers.filter(u => u.username.toLowerCase().includes(query) || (u.bio && u.bio.toLowerCase().includes(query)));
+    const users = getMatchedUsers(rawQuery, 24);
     const usersContainer = document.getElementById('searchResUsersContainer');
     const usersGrid = document.getElementById('searchResUsers');
     if (users.length > 0) {
         usersContainer.style.display = 'block';
-        usersGrid.innerHTML = users.map(u => {
-            const avatarGradients = ['linear-gradient(135deg, #2D5A43, #8FBC8F)', 'linear-gradient(135deg, #BC6C25, #DDA15E)', 'linear-gradient(135deg, #606C38, #283618)', 'linear-gradient(135deg, #A4C639, #6BAA75)'];
-            const gradientIndex = parseInt(u.id.replace('u', '')) % avatarGradients.length || 0;
-            const bg = u.avatarImage ? `background-image: url('${u.avatarImage}'); background-size: cover;` : `background: ${AVATAR_GRADIENTS[gradientIndex] || avatarGradients[gradientIndex]};`;
-            return `
-                <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="navigate('profile')">
-                    <div style="width: 50px; height: 50px; border-radius: 50%; ${bg} display: flex; align-items:center; justify-content:center; font-weight:bold; color:#fff;">
-                        ${!u.avatarImage ? u.username[0].toUpperCase() : ''}
-                    </div>
-                    <span style="font-size:0.8rem; margin-top:5px; color:var(--text-primary); font-weight:600;">${escapeHtml(u.username)}</span>
-                </div>
-            `;
-        }).join('');
+        usersGrid.innerHTML = users.map(user => renderSearchUserResultItem(user, {
+            query,
+            extraStyle: 'flex:1 1 240px; min-width:220px; max-width:320px;'
+        })).join('');
     } else {
         usersContainer.style.display = 'none';
         usersGrid.innerHTML = '';
@@ -3556,12 +3736,57 @@ function updateAutocompleteSelection() {
 }
 
 function showProfile() {
+    if (!currentUser) {
+        openModal('loginModal');
+        return;
+    }
+
+    activeProfileUserId = null;
+    const fallbackHash = '#profile';
+    if (window.location.hash !== fallbackHash) {
+        window.location.hash = fallbackHash;
+        return;
+    }
+
+    isRouting = true;
     navigate('profile');
+    isRouting = false;
+    return;
+
+    if (!user && activeProfileUserId) {
+        headerSection.innerHTML = renderProfileEmptyState({
+            icon: '&#128100;',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
+            actionOnclick: "navigate('home')",
+        });
+        statsGrid.innerHTML = '';
+        tabContent.innerHTML = '';
+        tabsWrapper.style.display = 'none';
+        return;
+    }
+
+    if (!user) {
+        openModal('loginModal');
+        return;
+    }
+
+    activeProfileUserId = null;
+    const profileHashFallback = '#profile';
+    if (window.location.hash !== profileHashFallback) {
+        window.location.hash = profileHashFallback;
+        return;
+    }
+
+    isRouting = true;
+    navigate('profile');
+    isRouting = false;
 }
 
 function showMyPosts() {
     currentProfileTab = 'posts';
-    navigate('profile');
+    showProfile();
 }
 
 // ── Modal Helpers ──
@@ -3805,8 +4030,38 @@ function renderProfilePage() {
     const statsGrid = document.getElementById('profileStatsGrid');
     const tabContent = document.getElementById('profileTabContent');
     const headerSection = document.getElementById('profileHeaderSection');
+    const user = getActiveProfileUser();
+    const viewingOwnProfile = isOwnProfile(user);
 
-    if (!currentUser) {
+    if (!user && activeProfileUserId) {
+        headerSection.innerHTML = renderProfileEmptyState({
+            icon: '&#128100;',
+            title: 'Kullanici bulunamadi',
+            text: 'Bu profil artik mevcut olmayabilir ya da kullanici kimligi gecersiz.',
+            actionLabel: 'Ana Sayfaya Don',
+            actionOnclick: "navigate('home')",
+        });
+        statsGrid.innerHTML = '';
+        tabContent.innerHTML = '';
+        tabsWrapper.style.display = 'none';
+        return;
+    }
+
+    if (!user && activeProfileUserId) {
+        headerSection.innerHTML = renderProfileEmptyState({
+            icon: '&#128100;',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
+            actionOnclick: "navigate('home')",
+        });
+        statsGrid.innerHTML = '';
+        tabContent.innerHTML = '';
+        tabsWrapper.style.display = 'none';
+        return;
+    }
+
+    if (!user) {
         headerSection.innerHTML = `
             <div class="profile-login-required" style="width:100%;">
                 <div class="profile-login-icon">🔒</div>
@@ -3822,7 +4077,6 @@ function renderProfilePage() {
     }
 
     tabsWrapper.style.display = '';
-    const user = currentUser;
     const { bg: avatarStyle, initial: avatarContent } = getAuthorStyle(user);
     const joinDate = new Date(user.joinDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     const stats = calculateProfileStats(user.id);
@@ -3831,6 +4085,27 @@ function renderProfilePage() {
         ? escapeHtml(user.bio.trim())
         : 'Henüz bir biyografi eklenmedi. Profilini birkaç cümleyle canlandırabilirsin.';
     const hasBio = Boolean(user.bio && user.bio.trim());
+    const profileActionsHtml = viewingOwnProfile
+        ? `
+            <button class="btn btn-ghost profile-edit-btn" onclick="${viewingOwnProfile ? 'openEditProfile()' : 'showProfile()'}" style="${(viewingOwnProfile || currentUser) ? '' : 'display:none;'}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                ${viewingOwnProfile ? 'Profili DÃ¼zenle' : 'Profilime Don'}
+            </button>
+            <button class="btn btn-logout" onclick="logout()" style="${viewingOwnProfile ? '' : 'display:none;'}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Ã‡Ä±kÄ±ÅŸ Yap
+            </button>
+        `
+        : (currentUser
+            ? '<button class="btn btn-ghost profile-edit-btn" onclick="showProfile()">Profilime Don</button>'
+            : '');
 
     const bannerEl = document.querySelector('.profile-banner');
     if (bannerEl) {
@@ -3884,14 +4159,14 @@ function renderProfilePage() {
             </div>
         </div>
         <div class="profile-actions">
-            <button class="btn btn-ghost profile-edit-btn" onclick="openEditProfile()">
+            <button class="btn btn-ghost profile-edit-btn" onclick="${viewingOwnProfile ? 'openEditProfile()' : 'showProfile()'}" style="${(viewingOwnProfile || currentUser) ? '' : 'display:none;'}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
                 Profili Düzenle
             </button>
-            <button class="btn btn-logout" onclick="logout()">
+            <button class="btn btn-logout" onclick="logout()" style="${viewingOwnProfile ? '' : 'display:none;'}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
@@ -3901,6 +4176,13 @@ function renderProfilePage() {
             </button>
         </div>
     `;
+
+    if (currentUser && !viewingOwnProfile) {
+        const primaryProfileAction = headerSection.querySelector('.profile-edit-btn');
+        if (primaryProfileAction) {
+            primaryProfileAction.textContent = 'Profilime Don';
+        }
+    }
 
     statsGrid.innerHTML = '';
 
@@ -3956,9 +4238,11 @@ function switchProfileTab(tab) {
 }
 
 function renderProfilePosts(container) {
-    if (!currentUser) return;
-    const myPosts = allPosts.filter(p => p.userId === currentUser.id).sort((a, b) => new Date(b.date) - new Date(a.date));
-    renderProfilePostCollection(container, myPosts, {
+    const profileUser = getActiveProfileUser();
+    if (!profileUser) return;
+    const viewingOwnProfile = isOwnProfile(profileUser);
+    const profilePosts = allPosts.filter(p => p.userId === profileUser.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+    renderProfilePostCollection(container, profilePosts, {
         emptyIcon: '📝',
         emptyTitle: 'Henüz gönderin yok',
         emptyText: 'İlk gönderini paylaş ve profilini hareketlendirmeye başla.',
@@ -3968,8 +4252,9 @@ function renderProfilePosts(container) {
 }
 
 function renderProfileLikes(container) {
-    if (!currentUser) return;
-    const likedPosts = allPosts.filter(p => p.likes.includes(currentUser.id)).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const profileUser = getActiveProfileUser();
+    if (!profileUser) return;
+    const likedPosts = allPosts.filter(p => p.likes.includes(profileUser.id)).sort((a, b) => new Date(b.date) - new Date(a.date));
     renderProfilePostCollection(container, likedPosts, {
         emptyIcon: '❤️',
         emptyTitle: 'Henüz beğendiğin gönderi yok',
@@ -3978,11 +4263,12 @@ function renderProfileLikes(container) {
 }
 
 function renderProfileComments(container) {
-    if (!currentUser) return;
+    const profileUser = getActiveProfileUser();
+    if (!profileUser) return;
     const userComments = [];
     allPosts.forEach(post => {
         post.comments.forEach(comment => {
-            if (comment.userId === currentUser.id) {
+            if (comment.userId === profileUser.id) {
                 userComments.push({ ...comment, post });
             }
         });
@@ -3997,7 +4283,7 @@ function renderProfileComments(container) {
         return;
     }
 
-    const { bg: avatarStyle, initial: avatarContent } = getAuthorStyle(currentUser);
+    const { bg: avatarStyle, initial: avatarContent } = getAuthorStyle(profileUser);
     container.innerHTML = `
         <div class="profile-comment-list">
             ${userComments.map(item => `
@@ -4024,8 +4310,9 @@ function renderProfileComments(container) {
 }
 
 function renderProfileBookmarks(container) {
-    if (!currentUser) return;
-    const bookmarkIds = currentUser.bookmarks || [];
+    const profileUser = getActiveProfileUser();
+    if (!profileUser) return;
+    const bookmarkIds = profileUser.bookmarks || [];
     const bookmarkedPosts = allPosts
         .filter(p => bookmarkIds.includes(p.id))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
