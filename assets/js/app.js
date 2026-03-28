@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
     users: 'lvlup_users',
     posts: 'lvlup_posts',
     currentUser: 'lvlup_currentUser',
+    gamePopularity: 'lvlup_game_popularity',
 };
 
 function getStore(key) {
@@ -383,6 +384,41 @@ function setStore(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 
+function createGamePopularitySnapshot(game) {
+    if (!game || !game.id) return null;
+    const rawgId = Number(game.rawgId || game.id);
+    return {
+        id: String(game.id),
+        rawgId: Number.isFinite(rawgId) ? rawgId : null,
+        title: game.title || game.name || 'Bilinmeyen',
+        coverUrl: game.coverUrl || game.backgroundUrl || '',
+        backgroundUrl: game.backgroundUrl || game.coverUrl || '',
+        genres: Array.isArray(game.genres) ? game.genres : [],
+        platforms: Array.isArray(game.platforms) ? game.platforms : [],
+        releaseYear: Number(game.releaseYear) || 0,
+        released: game.released || '',
+        rating: Number(game.rating) || 0,
+        added: Number(game.added) || 0,
+        slug: game.slug || '',
+    };
+}
+
+function normalizeGamePopularityStore(store) {
+    if (!store || typeof store !== 'object') return {};
+
+    return Object.values(store).reduce((acc, entry) => {
+        const snapshot = createGamePopularitySnapshot(entry);
+        if (!snapshot) return acc;
+
+        acc[snapshot.id] = {
+            ...snapshot,
+            visitCount: Math.max(0, Number(entry.visitCount) || 0),
+            lastVisitedAt: entry.lastVisitedAt || '',
+        };
+        return acc;
+    }, {});
+}
+
 function createPostCoverDataUrl(options = {}) {
     const {
         label = 'LVLUP',
@@ -475,6 +511,7 @@ function normalizeDemoPostImages(posts) {
 let currentUser = getStore(STORAGE_KEYS.currentUser);
 let allPosts = getStore(STORAGE_KEYS.posts) || [];
 let allUsers = getStore(STORAGE_KEYS.users) || [];
+let gamePopularityStore = normalizeGamePopularityStore(getStore(STORAGE_KEYS.gamePopularity) || {});
 
 // O(1) user lookup map — rebuild whenever allUsers changes
 let userMap = new Map(allUsers.map(u => [u.id, u]));
@@ -516,6 +553,124 @@ const AVATAR_GRADIENTS = [
 
 let RAWG_API_KEY = '';
 let ITAD_API_KEY = '';
+const POST_POPULARITY_WEIGHTS = {
+    like: 4,
+    comment: 6,
+    bookmark: 5,
+};
+
+function saveGamePopularityStore() {
+    setStore(STORAGE_KEYS.gamePopularity, gamePopularityStore);
+}
+
+function buildBookmarkCountMap(users = allUsers) {
+    const counts = new Map();
+    users.forEach((user) => {
+        (user.bookmarks || []).forEach((postId) => {
+            counts.set(postId, (counts.get(postId) || 0) + 1);
+        });
+    });
+    return counts;
+}
+
+function getPostPopularityLabel(score) {
+    if (score >= 42) return 'Alevde';
+    if (score >= 24) return 'Yukseliste';
+    if (score >= 10) return 'One cikiyor';
+    return 'Kesfediliyor';
+}
+
+function getPostPopularity(post, bookmarkCountMap = buildBookmarkCountMap()) {
+    const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
+    const commentCount = Array.isArray(post.comments) ? post.comments.length : 0;
+    const bookmarkCount = bookmarkCountMap.get(post.id) || 0;
+    const score = (likeCount * POST_POPULARITY_WEIGHTS.like)
+        + (commentCount * POST_POPULARITY_WEIGHTS.comment)
+        + (bookmarkCount * POST_POPULARITY_WEIGHTS.bookmark);
+
+    return {
+        likeCount,
+        commentCount,
+        bookmarkCount,
+        score,
+        label: getPostPopularityLabel(score),
+    };
+}
+
+function comparePostsByPopularity(a, b, bookmarkCountMap = buildBookmarkCountMap()) {
+    const aPopularity = getPostPopularity(a, bookmarkCountMap);
+    const bPopularity = getPostPopularity(b, bookmarkCountMap);
+
+    if (bPopularity.score !== aPopularity.score) {
+        return bPopularity.score - aPopularity.score;
+    }
+    if (bPopularity.commentCount !== aPopularity.commentCount) {
+        return bPopularity.commentCount - aPopularity.commentCount;
+    }
+    if (bPopularity.likeCount !== aPopularity.likeCount) {
+        return bPopularity.likeCount - aPopularity.likeCount;
+    }
+    return new Date(b.date) - new Date(a.date);
+}
+
+function sortPostsByPopularity(posts) {
+    const bookmarkCountMap = buildBookmarkCountMap();
+    return [...posts].sort((a, b) => comparePostsByPopularity(a, b, bookmarkCountMap));
+}
+
+function getGamePopularityEntry(gameId) {
+    return gamePopularityStore[String(gameId)] || null;
+}
+
+function compareGamesByPopularity(a, b) {
+    const visitDiff = (Number(b.visitCount) || 0) - (Number(a.visitCount) || 0);
+    if (visitDiff !== 0) return visitDiff;
+
+    const lastVisitedDiff = new Date(b.lastVisitedAt || 0) - new Date(a.lastVisitedAt || 0);
+    if (lastVisitedDiff !== 0) return lastVisitedDiff;
+
+    return (Number(b.added) || 0) - (Number(a.added) || 0);
+}
+
+function upsertGamePopularity(game, { increment = false } = {}) {
+    const snapshot = createGamePopularitySnapshot(game);
+    if (!snapshot) return null;
+
+    const existing = gamePopularityStore[snapshot.id] || {};
+    const visitCount = Math.max(0, Number(existing.visitCount) || 0) + (increment ? 1 : 0);
+
+    gamePopularityStore[snapshot.id] = {
+        ...existing,
+        ...snapshot,
+        visitCount,
+        lastVisitedAt: increment ? new Date().toISOString() : (existing.lastVisitedAt || ''),
+    };
+
+    saveGamePopularityStore();
+    mergeGamesIntoLibrary([gamePopularityStore[snapshot.id]]);
+    return gamePopularityStore[snapshot.id];
+}
+
+function recordGameVisit(game) {
+    return upsertGamePopularity(game, { increment: true });
+}
+
+function syncGamePopularitySnapshot(game) {
+    return upsertGamePopularity(game, { increment: false });
+}
+
+function getHomePopularGames(limit = 3, excludedIds = new Set()) {
+    const storedPopularGames = Object.values(gamePopularityStore)
+        .filter((game) => (game.visitCount || 0) > 0 && !excludedIds.has(String(game.id)))
+        .sort(compareGamesByPopularity);
+    const storedIds = new Set(storedPopularGames.map((game) => String(game.id)));
+    const fallbackGames = (homeHeroGames.popular || []).filter((game) => {
+        const id = String(game.id);
+        return !excludedIds.has(id) && !storedIds.has(id);
+    });
+
+    return dedupeMappedGames([...storedPopularGames, ...fallbackGames]).slice(0, limit);
+}
 
 async function fetchConfig() {
     try {
@@ -541,6 +696,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (normalizedPosts.changed) {
         allPosts = normalizedPosts.posts;
         setStore(STORAGE_KEYS.posts, allPosts);
+    }
+    if (Object.keys(gamePopularityStore).length > 0) {
+        mergeGamesIntoLibrary(Object.values(gamePopularityStore));
     }
     updateAuthUI();
 
@@ -1132,7 +1290,7 @@ function renderFeed() {
 
     // Filter by page
     if (currentPage === 'popular') {
-        posts.sort((a, b) => b.likes.length - a.likes.length);
+        posts = sortPostsByPopularity(posts);
     } else if (currentPage === 'reviews') {
         posts = posts.filter(p => p.title.toLowerCase().includes('inceleme') || p.title.toLowerCase().includes('review'));
     } else if (currentPage === 'games') {
@@ -1148,7 +1306,7 @@ function renderFeed() {
     if (currentSort === 'newest') {
         posts.sort((a, b) => new Date(b.date) - new Date(a.date));
     } else if (currentSort === 'hot') {
-        posts.sort((a, b) => b.likes.length - a.likes.length);
+        posts = sortPostsByPopularity(posts);
     } else if (currentSort === 'discussed') {
         posts.sort((a, b) => b.comments.length - a.comments.length);
     }
@@ -1186,7 +1344,9 @@ function renderFeed() {
 }
 
 function renderPinterestHome(posts) {
-    const tags = [...new Set(posts.flatMap(post => post.tags || []))].slice(0, 8);
+    const bookmarkCountMap = buildBookmarkCountMap();
+    const popularPosts = [...posts].sort((a, b) => comparePostsByPopularity(a, b, bookmarkCountMap));
+    const tags = [...new Set(popularPosts.flatMap(post => post.tags || []))].slice(0, 8);
 
     return `
         <section class="pinterest-home-shell">
@@ -1207,7 +1367,7 @@ function renderPinterestHome(posts) {
             </div>
 
             <div class="pinterest-masonry-grid">
-                ${posts.map((post, index) => renderPinterestPin(post, index)).join('')}
+                ${popularPosts.map((post, index) => renderPinterestPin(post, index, bookmarkCountMap)).join('')}
             </div>
         </section>`;
 }
@@ -1219,7 +1379,8 @@ function renderPinterestHomeHeroGames() {
 
 function getHomeHeroCardSequence() {
     const newest = homeHeroGames.newest || [];
-    const popular = homeHeroGames.popular || [];
+    const newestIds = new Set(newest.map((game) => String(game.id)));
+    const popular = getHomePopularGames(3, newestIds);
 
     if (!newest.length && !popular.length) {
         return Array.from({ length: 5 }, (_, index) => ({ kind: 'placeholder', id: `hero-placeholder-${index}` }));
@@ -1254,9 +1415,12 @@ function renderPinterestSpotlightGame(item, index) {
     const subLabel = game.genres && game.genres.length > 0
         ? game.genres[0]
         : (game.platforms && game.platforms.length > 0 ? game.platforms[0] : 'Oyun');
+    const gamePopularity = getGamePopularityEntry(game.id);
     const meta = kind === 'newest'
         ? (game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'TBA'))
-        : `${Math.max(0, game.added || 0).toLocaleString('tr-TR')} takip`;
+        : ((gamePopularity && gamePopularity.visitCount > 0)
+            ? `${gamePopularity.visitCount.toLocaleString('tr-TR')} kez acildi`
+            : `${Math.max(0, game.added || 0).toLocaleString('tr-TR')} takip`);
     const imageMarkup = image
         ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
         : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`;
@@ -1441,11 +1605,12 @@ function ensureHomeHeroGamesLoaded() {
     });
 }
 
-function renderPinterestPin(post, index) {
+function renderPinterestPin(post, index, bookmarkCountMap = buildBookmarkCountMap()) {
     const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
     const { bg, initial } = getAuthorStyle(author);
     const liked = currentUser && post.likes.includes(currentUser.id);
     const saved = currentUser && currentUser.bookmarks && currentUser.bookmarks.includes(post.id);
+    const popularity = getPostPopularity(post, bookmarkCountMap);
     const pinSize = ['pin-tall', 'pin-medium', 'pin-short', 'pin-medium'][index % 4];
     const image = post.imageUrl
         ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.closest('.pinterest-pin-media').classList.add('fallback')">`
@@ -1472,7 +1637,7 @@ function renderPinterestPin(post, index) {
                 </div>
             </div>
             <div class="pinterest-pin-body">
-                <div class="pinterest-pin-kicker">${escapeHtml(getCategoryName(post.category))}</div>
+                <div class="pinterest-pin-kicker">${escapeHtml(getCategoryName(post.category))} â€¢ ${escapeHtml(popularity.label)}</div>
                 <h3 onclick="expandPost('${post.id}')">${escapeHtml(post.title)}</h3>
                 <p onclick="expandPost('${post.id}')">${escapeHtml(post.content)}</p>
                 <div class="pinterest-pin-footer">
@@ -1488,6 +1653,10 @@ function renderPinterestPin(post, index) {
                         <button class="pinterest-stat-btn" onclick="expandPost('${post.id}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             <span>${post.comments.length}</span>
+                        </button>
+                        <button class="pinterest-stat-btn${saved ? ' saved' : ''}" onclick="bookmarkPost('${post.id}', event)">
+                            <svg viewBox="0 0 24 24" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            <span>${popularity.bookmarkCount}</span>
                         </button>
                     </div>
                 </div>
@@ -4121,6 +4290,10 @@ async function openGameDetail(gameId) {
     renderGameDetailContentV2(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
+    recordGameVisit(game);
+    if (currentPage === 'home' && !currentCategory) {
+        renderFeed();
+    }
 
     // If we haven't fetched detailed info yet, fetch it now
     if (!game.description || !game.developer) {
@@ -4135,6 +4308,7 @@ async function openGameDetail(gameId) {
         const detailed = await fetchGameDetails(game.rawgId || gameId);
         if (detailed) {
             game = detailed;
+            syncGamePopularitySnapshot(game);
             renderGameDetailContentV2(game);
         }
     }

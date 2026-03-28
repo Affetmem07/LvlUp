@@ -7397,6 +7397,10 @@ select {
     color: var(--accent-light);
 }
 
+.pinterest-stat-btn.saved {
+    color: var(--accent-light);
+}
+
 @media (max-width: 1200px) {
     .pinterest-masonry-grid {
         column-count: 3;
