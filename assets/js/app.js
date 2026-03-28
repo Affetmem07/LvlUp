@@ -4058,36 +4058,8 @@ function renderGamesBrickLayout(games) {
     return html;
 }
 
-function renderCreatorGamesMasonry(games) {
-    return `
-        <div class="creator-masonry-grid">
-            ${games.map(game => renderCreatorGameCard(game)).join('')}
-        </div>
-    `;
-}
-
-function renderCreatorGameCard(game) {
-    const ratingClass = getRatingClass(game.rating);
-    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
-
-    return `
-        <div class="game-card game-card--list creator-game-card" onclick="openGameDetail('${game.id}')">
-            <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-card-cover"
-                 loading="lazy"
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Crect fill=%22%23111d17%22 width=%221200%22 height=%22675%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2260%22 x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22%3EGame%3C/text%3E%3C/svg%3E'">
-            <div class="game-card-overlay game-card-overlay--hover">
-                ${game.rating > 0 ? `
-                    <div class="game-card-rating game-card-rating--corner ${ratingClass}">
-                        ${starSvg}
-                        ${game.rating}
-                    </div>
-                ` : ''}
-                <div class="game-card-overlay-body">
-                    <div class="game-card-title">${escapeHtml(game.title)}</div>
-                </div>
-            </div>
-        </div>
-    `;
+function renderCreatorGamesBrickLayout(games) {
+    return renderGamesBrickLayout(games);
 }
 
 function renderCreatorHeader(name, label, gameCount = null) {
@@ -4102,7 +4074,7 @@ function renderCreatorHeader(name, label, gameCount = null) {
         </div>
         <div class="creator-header-meta">
             <span class="creator-header-badge">${countText}</span>
-            <span class="creator-header-caption">Yatay kart gorunumu</span>
+            <span class="creator-header-caption">4-3 kart dizilimi</span>
         </div>
     `;
 }
@@ -4553,7 +4525,7 @@ async function openCreatorGames(name, slug, type) {
         });
 
         header.innerHTML = renderCreatorHeader(name, label, games.length);
-        grid.innerHTML = renderCreatorGamesMasonry(games);
+        grid.innerHTML = renderCreatorGamesBrickLayout(games);
     } catch (err) {
         console.error('Creator oyunları alınırken hata:', err);
         grid.innerHTML = `<div class="creator-empty">Oyunlar yüklenirken hata oluştu.</div>`;

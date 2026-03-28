@@ -4514,22 +4514,10 @@ select {
 }
 
 .creator-grid {
-    min-height: 220px;
-}
-
-.creator-masonry-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 18px;
-}
-
-.creator-game-card {
-    margin: 0;
-    aspect-ratio: 16 / 10;
-}
-
-.creator-game-card:hover {
-    transform: translateY(-3px) scale(1.01);
+    min-height: 220px;
 }
 
 .creator-loading,
@@ -6014,12 +6002,6 @@ select {
         max-width: 100%;
     }
 
-    /* Creator masonry: 3 kolon */
-    .creator-masonry-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-    }
-
     /* Browser games: 3 kolon */
     .browser-games-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -6108,12 +6090,6 @@ select {
         flex-direction: column;
     }
 
-    /* Creator masonry: 2 kolon */
-    .creator-masonry-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-
     /* Game detail: cover gizle, hero küçült */
     .game-detail-hero {
         height: 200px;
@@ -6195,11 +6171,6 @@ select {
         font-size: 1.4rem;
     }
 
-    .creator-masonry-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
     /* Profile istatistikleri: 2 kolon (zaten var ama güvence) */
     .profile-stats-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -6265,11 +6236,6 @@ select {
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
-    }
-
-    .creator-masonry-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
     }
 
     /* Game filter chips: scroll */
@@ -6391,11 +6357,6 @@ select {
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 6px;
-    }
-
-    .creator-masonry-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
     }
 
     .browser-games-grid {
