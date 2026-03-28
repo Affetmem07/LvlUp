@@ -9687,7 +9687,7 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-card:hover .popular-hero-nav,
-.popular-hero-card:focus-within .popular-hero-nav {
+.popular-hero-nav:focus-visible {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-50%) scale(1);
