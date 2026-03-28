@@ -6156,12 +6156,17 @@ select {
         justify-self: stretch;
         flex-direction: row;
         flex-wrap: wrap;
+        gap: 10px;
         padding-top: 0;
     }
 
     .profile-actions .btn,
     .profile-actions .btn-logout {
         flex: 1 1 180px;
+        min-height: 42px;
+        padding: 0 16px;
+        font-size: 0.84rem;
+        border-radius: 22px;
     }
 
     .form-group-split {
@@ -6533,11 +6538,23 @@ select {
 
     .profile-actions {
         flex-direction: column;
+        gap: 10px;
     }
 
     .profile-actions .btn,
     .profile-actions .btn-logout {
+        flex: 0 0 auto;
         width: 100%;
+        min-height: 40px;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        border-radius: 20px;
+    }
+
+    .profile-actions .btn svg,
+    .profile-actions .btn-logout svg {
+        width: 16px;
+        height: 16px;
     }
 
     .profile-avatar-column {
@@ -6545,7 +6562,15 @@ select {
     }
 
     .profile-posts-grid {
-        grid-template-columns: 1fr;
+        display: block;
+    }
+
+    .profile-posts-grid .post-card {
+        grid-row-end: auto;
+    }
+
+    .profile-posts-grid .post-card+.post-card {
+        margin-top: 16px;
     }
 
     .profile-comment-footer {
