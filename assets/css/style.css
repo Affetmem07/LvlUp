@@ -5216,15 +5216,16 @@ select {
 
 .profile-banner {
     position: relative;
-    height: 340px;
+    height: 300px;
     background-color: #040907;
     background-image:
         radial-gradient(circle at 18% 24%, rgba(48, 95, 67, 0.42), transparent 38%),
         radial-gradient(circle at 82% 18%, rgba(255, 243, 190, 0.12), transparent 20%),
         linear-gradient(180deg, #101815 0%, #09110d 48%, #020705 100%);
     overflow: hidden;
-    border-radius: 32px;
+    border-radius: 30px 30px 0 0;
     border: 1px solid rgba(116, 160, 125, 0.18);
+    border-bottom: 0;
     box-shadow: 0 26px 80px rgba(0, 0, 0, 0.38), inset 0 -18px 60px rgba(0, 0, 0, 0.34);
     width: 100%;
     background-size: cover !important;
@@ -5293,8 +5294,8 @@ select {
     position: absolute;
     left: -10%;
     right: -10%;
-    bottom: -52px;
-    height: 190px;
+    bottom: -32px;
+    height: 150px;
     background: radial-gradient(circle at 50% 0%, rgba(56, 113, 78, 0.48) 0%, rgba(18, 49, 31, 0.28) 42%, transparent 76%);
     filter: blur(34px);
     opacity: 0.95;
@@ -5303,7 +5304,7 @@ select {
 
 .profile-content {
     position: relative;
-    margin: -108px 18px 0;
+    margin: 0;
     padding: 0 clamp(18px, 3vw, 30px) 36px;
 }
 
@@ -5311,9 +5312,10 @@ select {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(7, 17, 12, 0.92) 0%, rgba(4, 12, 8, 0.97) 100%);
+    background: linear-gradient(180deg, rgba(5, 7, 9, 0.97) 0%, rgba(4, 10, 8, 0.98) 100%);
     border: 1px solid rgba(96, 143, 106, 0.18);
-    border-radius: 30px;
+    border-top: 0;
+    border-radius: 0 0 30px 30px;
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -5331,32 +5333,32 @@ select {
 .profile-header-section {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: flex-end;
-    gap: 26px;
-    margin-bottom: 28px;
+    align-items: start;
+    gap: 24px;
+    margin: -72px 0 30px;
 }
 
 .profile-avatar-column {
-    padding-left: 8px;
+    padding-left: 28px;
 }
 
 .profile-avatar-lg {
-    width: 126px;
-    height: 126px;
-    border-radius: 30px;
+    width: 138px;
+    height: 138px;
+    border-radius: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
     font-size: 2.9rem;
     color: #fff;
-    border: 2px solid rgba(225, 240, 214, 0.9);
-    outline: 8px solid rgba(6, 16, 11, 0.84);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(121, 171, 126, 0.24);
+    border: 5px solid rgba(2, 6, 7, 0.98);
+    outline: 0;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(121, 171, 126, 0.24);
     flex-shrink: 0;
     position: relative;
     z-index: 2;
-    margin-top: -44px;
+    margin-top: 0;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     background-size: cover !important;
     background-position: center !important;
@@ -5369,6 +5371,7 @@ select {
 
 .profile-info {
     min-width: 0;
+    padding-top: 74px;
     padding-bottom: 6px;
 }
 
@@ -5481,7 +5484,7 @@ select {
     gap: 12px;
     align-self: start;
     justify-self: end;
-    padding-top: 16px;
+    padding-top: 74px;
 }
 
 .profile-actions .btn,
@@ -5541,7 +5544,7 @@ select {
 }
 
 .profile-tabs-wrapper {
-    margin-bottom: 24px;
+    margin-bottom: 26px;
     padding-top: 8px;
     border-top: 1px solid rgba(108, 145, 110, 0.14);
 }
@@ -5620,17 +5623,33 @@ select {
 
 .profile-posts-grid {
     column-count: 3;
-    column-gap: 18px;
+    column-gap: 22px;
 }
 
 .profile-posts-grid .post-card {
     display: inline-block;
     width: 100%;
     break-inside: avoid;
-    margin: 0 0 18px;
+    margin: 0 0 22px;
     background: rgba(7, 18, 12, 0.96);
     border-color: rgba(113, 156, 110, 0.16);
     box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.profile-posts-grid>.post-card:nth-child(3n + 2) {
+    margin-top: 22px;
+}
+
+.profile-posts-grid>.post-card:nth-child(5n) {
+    margin-top: 52px;
+}
+
+.profile-posts-grid>.post-card:nth-child(7n + 4) {
+    margin-top: 12px;
+}
+
+.profile-posts-grid>.post-card:first-child {
+    margin-top: 0;
 }
 
 .profile-posts-grid .post-card:hover {
@@ -5647,8 +5666,20 @@ select {
     break-inside: avoid;
 }
 
-.profile-posts-grid .post-hero-img {
+.profile-posts-grid>.post-card:nth-child(4n + 1) .post-hero-img {
     aspect-ratio: 4 / 5;
+}
+
+.profile-posts-grid>.post-card:nth-child(4n + 2) .post-hero-img {
+    aspect-ratio: 5 / 4;
+}
+
+.profile-posts-grid>.post-card:nth-child(4n + 3) .post-hero-img {
+    aspect-ratio: 1 / 1.12;
+}
+
+.profile-posts-grid>.post-card:nth-child(4n) .post-hero-img {
+    aspect-ratio: 3 / 5;
 }
 
 .profile-posts-grid .post-body {
@@ -6090,7 +6121,7 @@ select {
     }
 
     .profile-content {
-        margin: -92px 12px 0;
+        margin: 0;
     }
 
     .profile-stats-grid {
@@ -6099,6 +6130,15 @@ select {
 
     .profile-posts-grid {
         column-count: 2;
+    }
+
+    .profile-header-section {
+        margin: -64px 0 28px;
+    }
+
+    .profile-info,
+    .profile-actions {
+        padding-top: 66px;
     }
 
     .games-grid {
@@ -6142,10 +6182,12 @@ select {
         grid-template-columns: 1fr;
         align-items: start;
         gap: 18px;
+        margin: -54px 0 24px;
     }
 
     .profile-info {
         text-align: left;
+        padding-top: 0;
     }
 
     .profile-identity-row {
@@ -6196,30 +6238,30 @@ select {
     }
 
     .profile-banner {
-        height: 240px;
-        border-radius: 26px;
+        height: 220px;
+        border-radius: 26px 26px 0 0;
     }
 
     .profile-content {
-        margin: -78px 10px 0;
+        margin: 0;
         padding: 0 18px 28px;
     }
 
     .profile-content::before {
-        border-radius: 26px;
+        border-radius: 0 0 26px 26px;
     }
 
     .profile-avatar-column {
-        padding-left: 0;
+        padding-left: 18px;
     }
 
     .profile-avatar-lg {
-        width: 104px;
-        height: 104px;
+        width: 110px;
+        height: 110px;
         font-size: 2.2rem;
-        margin-top: -36px;
-        border-radius: 24px;
-        outline-width: 6px;
+        margin-top: 0;
+        border-radius: 26px;
+        border-width: 4px;
     }
 
     .profile-username {
@@ -6236,11 +6278,11 @@ select {
 
     .profile-posts-grid {
         column-count: 2;
-        column-gap: 14px;
+        column-gap: 16px;
     }
 
     .profile-posts-grid .post-card {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
 
     .profile-tab-content .empty-state {
@@ -6512,16 +6554,20 @@ select {
     }
 
     .profile-banner {
-        height: 210px;
+        height: 190px;
     }
 
     .profile-content {
-        margin: -64px 8px 0;
+        margin: 0;
         padding: 0 14px 22px;
     }
 
     .profile-content::before {
-        border-radius: 24px;
+        border-radius: 0 0 24px 24px;
+    }
+
+    .profile-header-section {
+        margin: -44px 0 20px;
     }
 
     .profile-micro-stats {
@@ -6545,8 +6591,16 @@ select {
         width: 100%;
     }
 
+    .profile-avatar-column {
+        padding-left: 14px;
+    }
+
     .profile-posts-grid {
         column-count: 1;
+    }
+
+    .profile-posts-grid>.post-card {
+        margin-top: 0 !important;
     }
 
     .profile-comment-footer {
@@ -6641,24 +6695,32 @@ select {
     }
 
     .profile-banner {
-        height: 190px;
-        border-radius: 22px;
+        height: 170px;
+        border-radius: 22px 22px 0 0;
     }
 
     .profile-content {
-        margin: -56px 0 0;
+        margin: 0;
         padding: 0 12px 18px;
     }
 
     .profile-content::before {
-        border-radius: 22px;
+        border-radius: 0 0 22px 22px;
+    }
+
+    .profile-header-section {
+        margin: -38px 0 18px;
     }
 
     .profile-avatar-lg {
-        width: 92px;
-        height: 92px;
+        width: 88px;
+        height: 88px;
         font-size: 2rem;
         border-radius: 22px;
+    }
+
+    .profile-avatar-column {
+        padding-left: 12px;
     }
 
     .profile-tabs {

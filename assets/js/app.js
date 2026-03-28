@@ -3784,8 +3784,8 @@ function renderProfilePage() {
                     <span>Gönderi</span>
                 </div>
                 <div class="profile-micro-stat">
-                    <strong>${formatProfileMetric(stats.mediaPosts)}</strong>
-                    <span>Medyalı gönderi</span>
+                    <strong>${formatProfileMetric(stats.totalSavedPosts)}</strong>
+                    <span>Kaydettiği</span>
                 </div>
                 <div class="profile-micro-stat">
                     <strong>${formatProfileMetric(stats.totalLikesReceived)}</strong>
@@ -3859,7 +3859,6 @@ function switchProfileTab(tab) {
     const container = document.getElementById('profileTabContent');
     const renderers = {
         posts: renderProfilePosts,
-        media: renderProfileMedia,
         likes: renderProfileLikes,
         comments: renderProfileComments,
         bookmarks: renderProfileBookmarks,
@@ -3878,21 +3877,6 @@ function renderProfilePosts(container) {
         emptyTitle: 'Henüz gönderin yok',
         emptyText: 'İlk gönderini paylaş ve profilini hareketlendirmeye başla.',
         actionLabel: 'Gönderi Oluştur',
-        actionOnclick: "openModal('newPostModal')",
-    });
-}
-
-function renderProfileMedia(container) {
-    if (!currentUser) return;
-    const mediaPosts = allPosts
-        .filter(post => post.userId === currentUser.id && post.imageUrl)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    renderProfilePostCollection(container, mediaPosts, {
-        emptyIcon: '🌲',
-        emptyTitle: 'Henüz medya içeren gönderin yok',
-        emptyText: 'Kapak görseli ya da ekran görüntüsü eklediğin paylaşımlar burada sergilenecek.',
-        actionLabel: 'Görselli Gönderi Oluştur',
         actionOnclick: "openModal('newPostModal')",
     });
 }
