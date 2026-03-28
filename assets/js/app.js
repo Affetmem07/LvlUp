@@ -1898,9 +1898,6 @@ function renderPopularHero(topTags = []) {
             <div class="popular-hero-carousel" id="popularHeroCarousel">
                 ${slides.map((slide, slideIndex) => {
         const game = slide.game;
-        const heroGhost = game
-            ? getPopularHeroGhost({ title: game.title, tags: [] })
-            : slide.kicker;
         const releaseDate = formatPopularHeroReleaseDate(game);
         const criticScore = game?.rating > 0 ? game.rating : '-';
         const userScore = formatPopularHeroUserScore(game);
@@ -1913,7 +1910,6 @@ function renderPopularHero(topTags = []) {
                 : ''}
                         </div>
                         <div class="popular-hero-scrim"></div>
-                        <div class="popular-hero-ghost">${escapeHtml(heroGhost)}</div>
                         <div class="popular-hero-grid">
                             <div class="popular-hero-copy">
                                 <span class="popular-hero-kicker">${escapeHtml(slide.kicker)} • ${slide.position}/${slide.total}</span>

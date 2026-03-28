@@ -6924,6 +6924,7 @@ label[for="editBannerImage"] {
    SCROLL TO TOP BUTTON
 ============================================ */
 .scroll-to-top {
+    display: none !important;
     position: fixed;
     bottom: 32px;
     right: 32px;
@@ -8935,30 +8936,31 @@ label[for="editBannerImage"] {
     inset: 0;
 }
 
+.popular-hero-bg,
+.popular-hero-carousel,
+.popular-hero-slide {
+    overflow: hidden;
+}
+
 .popular-hero-bg img {
     width: 100%;
     height: 100%;
+    display: block;
     object-fit: cover;
-    filter: saturate(0.98) brightness(0.78) contrast(1.03);
+    object-position: center center;
+    transform: scale(1.03);
+    transform-origin: center;
+    filter: saturate(1.02) brightness(0.86) contrast(1.02);
 }
 
 .popular-hero-scrim {
     background:
-        linear-gradient(90deg, rgba(6, 12, 9, 0.48) 0%, rgba(6, 12, 9, 0.14) 46%, rgba(6, 12, 9, 0.4) 100%),
-        linear-gradient(180deg, rgba(6, 12, 9, 0.06), rgba(6, 12, 9, 0.28));
+        linear-gradient(90deg, rgba(6, 12, 9, 0.36) 0%, rgba(6, 12, 9, 0.08) 46%, rgba(6, 12, 9, 0.24) 100%),
+        linear-gradient(180deg, rgba(6, 12, 9, 0.02), rgba(6, 12, 9, 0.18));
 }
 
 .popular-hero-ghost {
-    inset: auto 18px 48px auto;
-    font-size: clamp(4.6rem, 13vw, 10rem);
-    line-height: 0.84;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    color: rgba(241, 245, 249, 0.08);
-    pointer-events: none;
-    width: fit-content;
-    height: fit-content;
-    text-shadow: 0 0 28px rgba(255, 255, 255, 0.04);
+    display: none;
 }
 
 .popular-hero-grid {
