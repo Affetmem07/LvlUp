@@ -5492,23 +5492,11 @@ function closeCreatorOverlay(e) {
 
 function renderNpeGameOverlayHeader(query = '', gameCount = null, isLoading = false) {
     const cleanQuery = (query || '').trim();
-    let badgeText = 'Tum sonuclar listelenir';
-
-    if (Number.isFinite(gameCount)) {
-        badgeText = isLoading
-            ? `${gameCount.toLocaleString('tr-TR')}+ oyun yukleniyor`
-            : `${gameCount.toLocaleString('tr-TR')} oyun`;
-    } else if (cleanQuery.length >= 2) {
-        badgeText = 'Araniyor...';
-    }
 
     return `
         <div class="creator-header-copy">
             <div class="creator-header-label">Gonderi Oyunu</div>
             <h2 class="creator-header-title">${escapeHtml(cleanQuery.length >= 2 ? `"${cleanQuery}"` : 'Oyuna atif ekle')}</h2>
-        </div>
-        <div class="creator-header-meta">
-            <span class="creator-header-badge">${escapeHtml(badgeText)}</span>
         </div>
     `;
 }
