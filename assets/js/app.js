@@ -1828,7 +1828,7 @@ function renderPopularShowcase(posts) {
                     <div>
                         <span class="popular-section-kicker">Günün nabzı</span>
                         <h2>Bugün öne çıkanlar</h2>
-                        <p>Toplulukta bugün dikkat çeken paylaşımlar, alıntılar ve kısa gündem kartları.</p>
+                        <p>Toplulukta bugün dikkat çeken paylaşımlar.</p>
                     </div>
                 </div>
                 <div class="popular-columns">
@@ -1836,7 +1836,7 @@ function renderPopularShowcase(posts) {
                 </div>
             </section>
             <section class="popular-tag-field">
-                <div class="popular-tag-field-title">Kök etiketler</div>
+                <div class="popular-tag-field-title">En popüler etiketler</div>
                 <div class="popular-tag-list">
                     ${topTags.map(({ tag, score }, index) => `
                         <button type="button" class="popular-tag-pill${index < 3 ? ' is-hot' : ''}" onclick="openSearchOverlay()" title="${formatCompactTrNumber(score)} puanlık görünürlük">
