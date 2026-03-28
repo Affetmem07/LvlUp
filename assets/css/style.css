@@ -5332,7 +5332,7 @@ select {
 
 .profile-info {
     min-width: 0;
-    padding-top: 54px;
+    padding-top: 34px;
     padding-bottom: 6px;
 }
 
@@ -6086,7 +6086,10 @@ select {
         margin: -78px 0 28px;
     }
 
-    .profile-info,
+    .profile-info {
+        padding-top: 30px;
+    }
+
     .profile-actions {
         padding-top: 48px;
     }
