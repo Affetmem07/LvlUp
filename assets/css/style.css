@@ -8939,13 +8939,13 @@ label[for="editBannerImage"] {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: saturate(0.68) brightness(0.34) contrast(1.04);
+    filter: saturate(0.98) brightness(0.78) contrast(1.03);
 }
 
 .popular-hero-scrim {
     background:
-        linear-gradient(90deg, rgba(6, 12, 9, 0.92) 0%, rgba(6, 12, 9, 0.54) 46%, rgba(6, 12, 9, 0.86) 100%),
-        linear-gradient(180deg, rgba(6, 12, 9, 0.2), rgba(6, 12, 9, 0.78));
+        linear-gradient(90deg, rgba(6, 12, 9, 0.48) 0%, rgba(6, 12, 9, 0.14) 46%, rgba(6, 12, 9, 0.4) 100%),
+        linear-gradient(180deg, rgba(6, 12, 9, 0.06), rgba(6, 12, 9, 0.28));
 }
 
 .popular-hero-ghost {
@@ -9155,10 +9155,7 @@ label[for="editBannerImage"] {
 }
 
 .popular-hero-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 12px 0 14px;
+    display: none;
 }
 
 .popular-hero-tags span,

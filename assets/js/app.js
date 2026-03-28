@@ -817,10 +817,6 @@ function openPopularHeroGame(gameId, event) {
     openGameDetail(targetId);
 }
 
-function renderPopularHeroFeatureCard(slide) {
-    return '';
-}
-
 function updatePopularHeroCarouselUI() {
     const slides = document.querySelectorAll('.popular-hero-slide');
     const dots = document.querySelectorAll('.popular-hero-dot');
@@ -1903,18 +1899,11 @@ function renderPopularHero(topTags = []) {
                 ${slides.map((slide, slideIndex) => {
         const game = slide.game;
         const heroGhost = game
-            ? getPopularHeroGhost({ title: game.title, tags: game.genres || [] })
+            ? getPopularHeroGhost({ title: game.title, tags: [] })
             : slide.kicker;
-        const releaseYear = game?.releaseYear || 'Yakında';
         const releaseDate = formatPopularHeroReleaseDate(game);
         const criticScore = game?.rating > 0 ? game.rating : '-';
         const userScore = formatPopularHeroUserScore(game);
-        const chips = slide.chips && slide.chips.length > 0
-            ? slide.chips
-            : topTags.slice(0, 4).map((entry) => entry.tag || entry).filter(Boolean);
-        const subline = game
-            ? [slide.title, game.genres?.[0] || '', game.platforms?.[0] || ''].filter(Boolean).join(' • ')
-            : slide.description;
 
         return `
                     <section class="popular-hero-slide${slideIndex === safeIndex ? ' is-active' : ''}" aria-hidden="${slideIndex === safeIndex ? 'false' : 'true'}">
@@ -1947,14 +1936,7 @@ function renderPopularHero(topTags = []) {
                                     ${game
                 ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openPopularHeroGame('${game.id}', event)">Oyuna git</button>`
                 : `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="navigate('games')">Oyunları aç</button>`}
-                                    <button type="button" class="popular-hero-btn" onclick="navigate('games')">Tüm oyunlar</button>
                                 </div>
-                                <div class="popular-hero-tags">
-                                    ${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join('')}
-                                </div>
-                            </div>
-                            <div class="popular-hero-game-deck">
-                                ${renderPopularHeroFeatureCard(slide)}
                             </div>
                         </div>
                     </section>`;
