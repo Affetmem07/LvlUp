@@ -785,7 +785,7 @@ html {
 }
 
 body {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
@@ -1084,7 +1084,7 @@ select {
 }
 
 .logo-text {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 1.4rem;
     letter-spacing: 2px;
@@ -2542,7 +2542,7 @@ select {
 }
 
 .modal-header h2 {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 4px;
@@ -2676,7 +2676,7 @@ select {
     margin-bottom: 12px;
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(45, 90, 67, 0.3);
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
@@ -2719,7 +2719,7 @@ select {
     margin-right: 12px;
     cursor: pointer;
     font-weight: 600;
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: all 0.2s;
 }
 
@@ -3175,7 +3175,7 @@ label[for="editBannerImage"] {
 }
 
 .games-page-title {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 2rem;
     font-weight: 900;
     background: linear-gradient(135deg, var(--accent-light), var(--neon-green), var(--accent));
@@ -4425,7 +4425,7 @@ label[for="editBannerImage"] {
 }
 
 .game-detail-posts-title {
-    font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.15rem;
     font-weight: 700;
     margin-bottom: 18px;

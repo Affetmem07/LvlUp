@@ -42,7 +42,7 @@ d:\LvlUp\
 | Stil           | CSS3 (custom properties, flexbox, grid, backdrop-filter)        |
 | Mantık         | Vanilla JavaScript (ES6+)                                       |
 | Veri           | localStorage (no backend)                                       |
-| Fontlar        | Inter (300–900), Orbitron (600, 700, 900) – Google Fonts        |
+| Fontlar        | Inter (300–900), Audiowide, Orbitron (600, 700, 900) – Google Fonts |
 | Ses            | Web Audio API (Minesweeper için)                                |
 | Routing        | Hash-based (#home, #games, vs.)                                 |
 | Oyun fiyatları | RAWG API + IsThereAnyDeal API v2                                 |
@@ -164,9 +164,9 @@ d:\LvlUp\
 | `--color-text`            | `#f1f5f9` | Ana metin                     |
 
 ### Tipografi
-- **Comic Sans MS** — ana yazı tipi (casual, oyun dostu)
-- **Orbitron** — başlıklar / özel vurgular (Google Fonts)
-- **Inter** — yardımcı metin (Google Fonts)
+- **Inter** — ana yazı tipi (site geneli ve arayüz metinleri)
+- **Audiowide** — sayfa başlıkları / vitrin metinleri (Google Fonts)
+- **Orbitron** — özel vurgular ve display alanları (Google Fonts)
 
 ### UI Bileşenleri
 - Glassmorphism kartlar (backdrop-filter + yarı saydam arka plan)
