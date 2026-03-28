@@ -1353,9 +1353,9 @@ function renderPinterestHome(posts) {
             <div class="pinterest-hero-card">
                 <div class="pinterest-hero-copy">
                     <span class="pinterest-eyebrow">İlham al • keşfet • kaydet</span>
-                    <h2>Oyun dünyasında ilgini çeken her şeyi tek akışta keşfet.</h2>
+                    <h2>Oyun dünyasında ilgini çeken her şeyi keşfet.</h2>
                     <p>
-                        Rehberler, incelemeler, duyurular ve topluluk paylaşımları; giriş yapmamış kullanıcıya da güçlü bir keşif hissi veren görsel bir akışta sunuluyor.
+                        LvlUp; oyun dünyasının öne çıkan haberlerini, taze incelemelerini, keşfedilecek yapımlarını ve topluluk enerjisini aynı yerde buluşturur. Giriş yapmasan bile burada gezinebilirsin.
                     </p>
                     <div class="pinterest-topic-row">
                         ${tags.map(tag => `<button class="pinterest-topic-chip" onclick="openSearchOverlay()">${escapeHtml(tag)}</button>`).join('')}
