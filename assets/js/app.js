@@ -1724,8 +1724,9 @@ function renderFeed() {
 
     if (isPopularFeed) {
         const popularPosts = sortPostsByPopularity(posts);
+        const visiblePopularPosts = popularPosts.slice(0, 32);
 
-        if (popularPosts.length === 0) {
+        if (visiblePopularPosts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">🎮</div>
@@ -1736,7 +1737,7 @@ function renderFeed() {
             return;
         }
 
-        container.innerHTML = renderPopularShowcase(popularPosts);
+        container.innerHTML = renderPopularShowcase(visiblePopularPosts);
         ensureHomeHeroGamesLoaded();
         setupPopularHeroCarousel();
         if (sidebar) sidebar.style.display = 'none';
@@ -1814,7 +1815,7 @@ function renderPopularShowcase(posts) {
             <section class="popular-story-section">
                 <div class="popular-section-heading">
                     <div>
-                        <span class="popular-section-kicker">Günün nabzı</span>
+                        <span class="popular-section-kicker">Öne çıkan akış</span>
                         <h2>Bugün öne çıkanlar</h2>
                         <p>Toplulukta bugün dikkat çeken paylaşımlar.</p>
                     </div>
