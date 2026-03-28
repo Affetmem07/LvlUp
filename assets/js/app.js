@@ -3189,13 +3189,11 @@ function handleSearchOverlayInputV2() {
             isDisabled: true
         }]
         : [];
-    renderSearchAutocomplete(
-        query,
-        mergeSearchAutocompleteCompletions(localCompletions, [
-            ...instantGameCompletions,
-            ...loadingGameCompletion
-        ])
-    );
+    const initialCompletions = mergeSearchAutocompleteCompletions(localCompletions, [
+        ...instantGameCompletions,
+        ...loadingGameCompletion
+    ]);
+    renderSearchAutocomplete(query, initialCompletions);
 
     const filteredPosts = allPosts.filter(p =>
         p.title.toLowerCase().includes(query) ||
@@ -3230,7 +3228,7 @@ function handleSearchOverlayInputV2() {
                 `;
         }).join('')}
         `;
-    } else if (query.length >= 2) {
+    } else if (query.length >= 2 && initialCompletions.length === 0) {
         filteredPostsEl.innerHTML = `
                 <div class="search-no-results">
                     <div class="search-no-results-icon">&#128269;</div>
@@ -3266,10 +3264,14 @@ function handleSearchOverlayInputV2() {
             searchOverlayGamesCache.set(query, games);
             cacheSearchGames(games);
 
+            const updatedCompletions = mergeSearchAutocompleteCompletions(localCompletions, mapGamesToAutocompleteCompletions(games));
             renderSearchAutocomplete(
                 query,
-                mergeSearchAutocompleteCompletions(localCompletions, mapGamesToAutocompleteCompletions(games))
+                updatedCompletions
             );
+            if (updatedCompletions.length > 0 && filteredPostsEl.querySelector('.search-no-results')) {
+                filteredPostsEl.innerHTML = '';
+            }
         } catch (error) {
             if (error.name === 'AbortError') return;
             console.error('Search overlay RAWG error:', error);
