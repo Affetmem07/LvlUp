@@ -1806,19 +1806,7 @@ function renderFeed() {
 function renderPopularShowcase(posts) {
     const bookmarkCountMap = buildBookmarkCountMap();
     const topTags = getPopularTagCloud(posts, bookmarkCountMap, 14);
-    const quoteEntry = getPopularQuoteEntry(posts);
-    const masonryItems = [
-        posts[1] ? renderPopularPostCard(posts[1], 'tall', bookmarkCountMap) : '',
-        quoteEntry ? renderPopularQuoteCard(quoteEntry) : '',
-        renderPopularSignalCard(posts, bookmarkCountMap),
-        posts[2] ? renderPopularPostCard(posts[2], 'text', bookmarkCountMap) : '',
-        posts[3] ? renderPopularPostCard(posts[3], 'landscape', bookmarkCountMap) : '',
-        posts[4] ? renderPopularPostCard(posts[4], 'note', bookmarkCountMap) : '',
-        renderPopularWatchCard(posts),
-        posts[5] ? renderPopularPostCard(posts[5], 'tall', bookmarkCountMap) : '',
-        posts[6] ? renderPopularPostCard(posts[6], 'text', bookmarkCountMap) : '',
-        posts[7] ? renderPopularPostCard(posts[7], 'landscape', bookmarkCountMap) : '',
-    ].filter(Boolean);
+    const masonryItems = posts.map((post, index) => renderPinterestPin(post, index, bookmarkCountMap));
 
     return `
         <section class="popular-showcase-shell">
@@ -1831,7 +1819,7 @@ function renderPopularShowcase(posts) {
                         <p>Toplulukta bugün dikkat çeken paylaşımlar.</p>
                     </div>
                 </div>
-                <div class="popular-columns">
+                <div class="pinterest-masonry-grid popular-pinterest-grid">
                     ${masonryItems.join('')}
                 </div>
             </section>
