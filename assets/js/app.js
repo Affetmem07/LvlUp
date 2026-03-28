@@ -4049,6 +4049,55 @@ async function searchRawgGames(query, options = {}) {
     };
 }
 
+async function searchRawgGamesProgressive(query, options = {}) {
+    const {
+        signal = null,
+        pageSize = 40,
+        onChunk = null
+    } = options;
+
+    const normalizedQuery = (query || '').trim();
+    if (!RAWG_API_KEY || normalizedQuery.length < 2) {
+        return { games: [], nextUrl: null };
+    }
+
+    let currentUrl = `${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=${pageSize}&search=${encodeURIComponent(normalizedQuery)}&dates=1970-01-01,${getTodayDate()}`;
+    const seenIds = new Set();
+    let validGames = [];
+
+    while (currentUrl) {
+        const response = await fetch(currentUrl, signal ? { signal } : undefined);
+        if (!response.ok) throw new Error(`API HatasÄ±: ${response.status}`);
+
+        const data = await response.json();
+        currentUrl = data.next;
+
+        const mappedChunk = (data.results || [])
+            .filter(isValidGameForDisplay)
+            .map(mapRawgGame)
+            .filter(game => {
+                if (seenIds.has(game.id)) return false;
+                seenIds.add(game.id);
+                return true;
+            });
+
+        validGames.push(...mappedChunk);
+
+        if (typeof onChunk === 'function') {
+            onChunk({
+                games: sortGamesBySearchQuery(validGames, normalizedQuery),
+                nextUrl: currentUrl,
+                isComplete: !currentUrl
+            });
+        }
+    }
+
+    return {
+        games: sortGamesBySearchQuery(validGames, normalizedQuery),
+        nextUrl: currentUrl
+    };
+}
+
 // ── Load Games from RAWG API ──
 async function loadGames(append = false) {
     if (gamesIsLoading && append) return;
@@ -5403,12 +5452,14 @@ function closeCreatorOverlay(e) {
     document.body.style.overflow = '';
 }
 
-function renderNpeGameOverlayHeader(query = '', gameCount = null) {
+function renderNpeGameOverlayHeader(query = '', gameCount = null, isLoading = false) {
     const cleanQuery = (query || '').trim();
     let badgeText = 'Tum sonuclar listelenir';
 
     if (Number.isFinite(gameCount)) {
-        badgeText = `${gameCount.toLocaleString('tr-TR')} oyun`;
+        badgeText = isLoading
+            ? `${gameCount.toLocaleString('tr-TR')}+ oyun yukleniyor`
+            : `${gameCount.toLocaleString('tr-TR')} oyun`;
     } else if (cleanQuery.length >= 2) {
         badgeText = 'Araniyor...';
     }
@@ -5476,9 +5527,13 @@ function openNpeGameOverlay() {
     const header = document.getElementById('npeGameOverlayHeader');
     const results = document.getElementById('npeGameResults');
     const input = document.getElementById('npeGameInput');
+    const npeModal = document.getElementById('npeModal');
     if (!overlay || !header || !results || !input) return;
 
     overlay.classList.add('active');
+    if (npeModal) npeModal.style.overflow = 'hidden';
+    overlay.scrollTop = 0;
+    results.scrollTop = 0;
     input.value = '';
     npeGameSearchResults = [];
     header.innerHTML = renderNpeGameOverlayHeader();
@@ -5493,7 +5548,9 @@ function closeNpeGameOverlay(e) {
     if (npeGameAbortController) npeGameAbortController.abort();
     npeGameRequestId++;
     const overlay = document.getElementById('npeGameOverlay');
+    const npeModal = document.getElementById('npeModal');
     if (overlay) overlay.classList.remove('active');
+    if (npeModal) npeModal.style.overflow = '';
 }
 
 function npeSelectSearchResult(gameId) {
@@ -5502,20 +5559,34 @@ function npeSelectSearchResult(gameId) {
     npeSelectGame(game.title, game.imageUrl || game.coverUrl || game.backgroundUrl || '');
 }
 
-function npeRenderGameOverlayResults(games, query) {
+function npeRenderGameOverlayResults(games, query, isLoading = false) {
     const header = document.getElementById('npeGameOverlayHeader');
     const results = document.getElementById('npeGameResults');
     if (!header || !results) return;
 
     npeGameSearchResults = games;
-    header.innerHTML = renderNpeGameOverlayHeader(query, games.length);
+    header.innerHTML = renderNpeGameOverlayHeader(query, games.length, isLoading);
 
     if (games.length === 0) {
-        results.innerHTML = `<div class="creator-empty">"${escapeHtml(query)}" icin sonuc bulunamadi.</div>`;
+        results.innerHTML = isLoading
+            ? `
+                <div class="creator-loading">
+                    <div class="games-loading-spinner"></div>
+                    <span>Oyunlar araniyor...</span>
+                </div>
+            `
+            : `<div class="creator-empty">"${escapeHtml(query)}" icin sonuc bulunamadi.</div>`;
         return;
     }
 
-    results.innerHTML = renderNpeGameSearchLayout(games);
+    results.innerHTML = renderNpeGameSearchLayout(games) + (isLoading
+        ? `
+            <div class="creator-loading npe-game-loading-more">
+                <div class="games-loading-spinner"></div>
+                <span>Daha fazla sonuc yukleniyor...</span>
+            </div>
+        `
+        : '');
 }
 
 npeSearchGame = function (q) {
@@ -5530,11 +5601,13 @@ npeSearchGame = function (q) {
         if (npeGameAbortController) npeGameAbortController.abort();
         npeGameRequestId++;
         npeGameSearchResults = [];
+        results.scrollTop = 0;
         header.innerHTML = renderNpeGameOverlayHeader();
         results.innerHTML = `<div class="creator-empty">Aramak icin en az 2 karakter yaz.</div>`;
         return;
     }
 
+    results.scrollTop = 0;
     header.innerHTML = renderNpeGameOverlayHeader(query);
     results.innerHTML = `
         <div class="creator-loading">
@@ -5562,24 +5635,24 @@ npeSearchGame = function (q) {
             npeGameAbortController = new AbortController();
             const myRequestId = ++npeGameRequestId;
 
-            const result = await searchRawgGames(query, {
+            await searchRawgGamesProgressive(query, {
                 signal: npeGameAbortController.signal,
-                fetchAll: true
-            });
-            if (myRequestId !== npeGameRequestId) return;
+                onChunk: ({ games, isComplete }) => {
+                    if (myRequestId !== npeGameRequestId) return;
 
-            const games = result.games.map(g => ({
-                ...g,
-                imageUrl: g.backgroundUrl || g.coverUrl || ''
-            }));
+                    games.forEach(game => {
+                        if (!allGames.find(existing => existing.id === game.id)) {
+                            allGames.push(game);
+                        }
+                    });
 
-            games.forEach(game => {
-                if (!allGames.find(existing => existing.id === game.id)) {
-                    allGames.push(game);
+                    npeRenderGameOverlayResults(games.map(g => ({
+                        ...g,
+                        imageUrl: g.backgroundUrl || g.coverUrl || ''
+                    })), query, !isComplete);
                 }
             });
-
-            npeRenderGameOverlayResults(games, query);
+            if (myRequestId !== npeGameRequestId) return;
         } catch (error) {
             if (error.name === 'AbortError') return;
             header.innerHTML = renderNpeGameOverlayHeader(query, 0);

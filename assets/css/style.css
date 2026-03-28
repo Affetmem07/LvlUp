@@ -7219,18 +7219,34 @@ select {
 
 .npe-game-overlay-shell {
     max-width: 1380px;
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    overscroll-behavior: contain;
 }
 
 .npe-game-overlay-search {
     margin-bottom: 24px;
+    flex-shrink: 0;
 }
 
 .npe-game-overlay-results {
     min-height: 260px;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 6px;
 }
 
 .npe-game-card {
     position: relative;
+}
+
+.npe-game-loading-more {
+    min-height: 0;
+    padding: 20px 0 8px;
+    border: none;
+    background: transparent;
 }
 
 .npe-game-card-badge {
