@@ -3898,6 +3898,8 @@ function debounce(fn, delay) {
 
 document.getElementById('editAvatarImage')?.addEventListener('change', handleEditProfileImageChange);
 document.getElementById('editBannerImage')?.addEventListener('change', handleEditProfileImageChange);
+bindEditProfilePreviewTrigger('editAvatarPreview', 'editAvatarImage');
+bindEditProfilePreviewTrigger('editBannerPreview', 'editBannerImage');
 
 // ================================================================
 //   PROFILE PAGE SYSTEM
@@ -4447,6 +4449,23 @@ function setEditProfilePreview(targetId, imageData, placeholderText, fallbackSty
     previewEl.style.backgroundSize = imageData ? 'cover' : '';
     previewEl.style.backgroundPosition = imageData ? 'center' : '';
     previewEl.textContent = imageData ? '' : fallbackText;
+}
+
+function triggerEditProfileFilePicker(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) input.click();
+}
+
+function bindEditProfilePreviewTrigger(previewId, inputId) {
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+
+    preview.addEventListener('click', () => triggerEditProfileFilePicker(inputId));
+    preview.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        triggerEditProfileFilePicker(inputId);
+    });
 }
 
 function syncEditProfileMediaPreviews() {

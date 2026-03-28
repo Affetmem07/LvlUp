@@ -2683,6 +2683,28 @@ select {
     border-radius: var(--radius-md);
     background: rgba(5, 8, 7, 0.55);
     overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.edit-media-preview-card:hover {
+    border-color: rgba(143, 188, 143, 0.55);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.edit-media-preview-card:focus-visible {
+    outline: 2px solid var(--accent-light);
+    outline-offset: 2px;
+}
+
+.edit-media-file-input {
+    display: none;
+}
+
+label[for="editAvatarImage"],
+label[for="editBannerImage"] {
+    display: none;
 }
 
 .edit-media-preview-label {
