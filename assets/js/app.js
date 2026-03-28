@@ -576,9 +576,9 @@ function buildBookmarkCountMap(users = allUsers) {
 
 function getPostPopularityLabel(score) {
     if (score >= 42) return 'Alevde';
-    if (score >= 24) return 'Yukseliste';
-    if (score >= 10) return 'One cikiyor';
-    return 'Kesfediliyor';
+    if (score >= 24) return 'Yükselişte';
+    if (score >= 10) return 'Öne çıkıyor';
+    return 'Keşfediliyor';
 }
 
 function getPostPopularity(post, bookmarkCountMap = buildBookmarkCountMap()) {
@@ -617,6 +617,65 @@ function comparePostsByPopularity(a, b, bookmarkCountMap = buildBookmarkCountMap
 function sortPostsByPopularity(posts) {
     const bookmarkCountMap = buildBookmarkCountMap();
     return [...posts].sort((a, b) => comparePostsByPopularity(a, b, bookmarkCountMap));
+}
+
+function truncateText(text = '', maxLength = 140) {
+    const normalized = String(text).replace(/\s+/g, ' ').trim();
+    if (normalized.length <= maxLength) return normalized;
+    return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function formatCompactTrNumber(value) {
+    return new Intl.NumberFormat('tr-TR', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+    }).format(Number(value) || 0);
+}
+
+function getPopularTagCloud(posts, bookmarkCountMap = buildBookmarkCountMap(), limit = 12) {
+    const tagScores = new Map();
+
+    posts.forEach((post, index) => {
+        const popularity = getPostPopularity(post, bookmarkCountMap);
+        (post.tags || []).forEach((tag, tagIndex) => {
+            const weight = popularity.score + Math.max(2, 10 - index) - tagIndex;
+            tagScores.set(tag, (tagScores.get(tag) || 0) + weight);
+        });
+    });
+
+    return [...tagScores.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([tag, score]) => ({ tag, score }));
+}
+
+function getPopularQuoteEntry(posts) {
+    const quotePool = [];
+
+    posts.forEach((post) => {
+        (post.comments || []).forEach((comment) => {
+            quotePool.push({
+                post,
+                comment,
+                likeCount: Array.isArray(comment.likes) ? comment.likes.length : 0,
+            });
+        });
+    });
+
+    return quotePool.sort((a, b) => {
+        if (b.likeCount !== a.likeCount) return b.likeCount - a.likeCount;
+        return new Date(b.comment.date) - new Date(a.comment.date);
+    })[0] || null;
+}
+
+function getPopularHeroGhost(post) {
+    const source = (post.tags && post.tags[0]) || post.title || 'LvlUp';
+    return source
+        .replace(/^#/, '')
+        .split(/\s+/)
+        .slice(0, 2)
+        .join(' ')
+        .toLocaleUpperCase('tr-TR');
 }
 
 function getGamePopularityEntry(gameId) {
@@ -1145,11 +1204,11 @@ function navigate(page) {
         reviews: '<circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>'
     };
 
-    // Toggle Trending Section and Feed Tabs (Show only on popular)
+    // Popüler görünüm kendi kahraman alanını çizdiği için üstteki yardımcı blokları gizle
     const trendSect = document.getElementById('trendingSection');
     const tabsSect = document.getElementById('feedTabsContainer');
-    if (trendSect) trendSect.style.display = (page === 'popular') ? 'block' : 'none';
-    if (tabsSect) tabsSect.style.display = (page === 'popular') ? 'block' : 'none';
+    if (trendSect) trendSect.style.display = 'none';
+    if (tabsSect) tabsSect.style.display = 'none';
 
     // Toggle between feed, games and profile page with animation
     const feed = document.getElementById('feed');
@@ -1392,11 +1451,41 @@ function openUserProfile(userId, event) {
 
 function renderFeed() {
     let posts = [...allPosts];
+    const container = document.getElementById('postsContainer');
+    const feed = document.getElementById('feed');
+    const sidebar = document.getElementById('homeSidebar');
+    const mainLayout = document.getElementById('mainLayout');
+    const isPopularFeed = currentPage === 'popular' && !currentCategory;
+
+    if (feed) {
+        feed.classList.toggle('popular-showcase-mode', isPopularFeed);
+        if (isPopularFeed) {
+            feed.classList.remove('home-pinterest-mode');
+        }
+    }
+
+    if (isPopularFeed) {
+        const popularPosts = sortPostsByPopularity(posts);
+
+        if (popularPosts.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎮</div>
+                    <h3>Henüz popüler içerik yok</h3>
+                    <p>Topluluğun dikkatini çeken gönderiler burada birikecek.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = renderPopularShowcase(popularPosts);
+        if (sidebar) sidebar.style.display = 'none';
+        if (mainLayout) mainLayout.classList.remove('has-sidebar');
+        return;
+    }
 
     // Filter by page
-    if (currentPage === 'popular') {
-        posts = sortPostsByPopularity(posts);
-    } else if (currentPage === 'reviews') {
+    if (currentPage === 'reviews') {
         // show all posts, newest first — handled below
     } else if (currentPage === 'games') {
         posts = posts.filter(p => !['genel'].includes(p.category));
@@ -1415,11 +1504,6 @@ function renderFeed() {
     } else if (currentSort === 'discussed') {
         posts.sort((a, b) => b.comments.length - a.comments.length);
     }
-
-    const container = document.getElementById('postsContainer');
-    const feed = document.getElementById('feed');
-    const sidebar = document.getElementById('homeSidebar');
-    const mainLayout = document.getElementById('mainLayout');
 
     if (posts.length === 0) {
         if (feed) feed.classList.remove('home-pinterest-mode');
@@ -1457,6 +1541,267 @@ function renderFeed() {
         if (sidebar) sidebar.style.display = 'none';
         if (mainLayout) mainLayout.classList.remove('has-sidebar');
     }
+}
+
+function renderPopularShowcase(posts) {
+    const bookmarkCountMap = buildBookmarkCountMap();
+    const topTags = getPopularTagCloud(posts, bookmarkCountMap, 14);
+    const quoteEntry = getPopularQuoteEntry(posts);
+    const masonryItems = [
+        posts[1] ? renderPopularPostCard(posts[1], 'tall', bookmarkCountMap) : '',
+        quoteEntry ? renderPopularQuoteCard(quoteEntry) : '',
+        renderPopularSignalCard(posts, bookmarkCountMap),
+        posts[2] ? renderPopularPostCard(posts[2], 'text', bookmarkCountMap) : '',
+        posts[3] ? renderPopularPostCard(posts[3], 'landscape', bookmarkCountMap) : '',
+        posts[4] ? renderPopularPostCard(posts[4], 'note', bookmarkCountMap) : '',
+        renderPopularWatchCard(posts),
+        posts[5] ? renderPopularPostCard(posts[5], 'tall', bookmarkCountMap) : '',
+        posts[6] ? renderPopularPostCard(posts[6], 'text', bookmarkCountMap) : '',
+        posts[7] ? renderPopularPostCard(posts[7], 'landscape', bookmarkCountMap) : '',
+    ].filter(Boolean);
+
+    return `
+        <section class="popular-showcase-shell">
+            ${renderPopularHero(posts, bookmarkCountMap, topTags)}
+            <section class="popular-story-section">
+                <div class="popular-section-heading">
+                    <div>
+                        <span class="popular-section-kicker">Canlı akış</span>
+                        <h2>Sis içinden yükselenler</h2>
+                        <p>Topluluğun bugün en çok yankı verdiği gönderiler, alıntılar ve hızlı durum kartları.</p>
+                    </div>
+                </div>
+                <div class="popular-columns">
+                    ${masonryItems.join('')}
+                </div>
+            </section>
+            <section class="popular-tag-field">
+                <div class="popular-tag-field-title">Kök etiketler</div>
+                <div class="popular-tag-list">
+                    ${topTags.map(({ tag, score }, index) => `
+                        <button type="button" class="popular-tag-pill${index < 3 ? ' is-hot' : ''}" onclick="openSearchOverlay()" title="${formatCompactTrNumber(score)} puanlık görünürlük">
+                            <span>${escapeHtml(tag)}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            </section>
+        </section>`;
+}
+
+function renderPopularHero(posts, bookmarkCountMap, topTags) {
+    const featured = posts[0];
+    const author = userMap.get(featured.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const popularity = getPostPopularity(featured, bookmarkCountMap);
+    const spotlight = posts.slice(1, 4);
+    const totalLikes = posts.reduce((sum, post) => sum + (post.likes || []).length, 0);
+    const totalComments = posts.reduce((sum, post) => sum + (post.comments || []).length, 0);
+    const totalBookmarks = posts.reduce((sum, post) => sum + (bookmarkCountMap.get(post.id) || 0), 0);
+    const heroGhost = getPopularHeroGhost(featured);
+
+    return `
+        <section class="popular-hero-card">
+            <div class="popular-hero-bg">
+                ${featured.imageUrl ? `<img src="${escapeHtml(featured.imageUrl)}" alt="${escapeHtml(featured.title)}" loading="eager">` : ''}
+            </div>
+            <div class="popular-hero-scrim"></div>
+            <div class="popular-hero-ghost">${escapeHtml(heroGhost)}</div>
+            <div class="popular-hero-grid">
+                <div class="popular-hero-copy">
+                    <span class="popular-hero-kicker">Öne çıkan dosya</span>
+                    <h2>${escapeHtml(featured.title)}</h2>
+                    <p>${escapeHtml(truncateText(featured.content, 205))}</p>
+                    <div class="popular-hero-meta">
+                        <span>${escapeHtml(getCategoryName(featured.category))}</span>
+                        <span>${escapeHtml(getTimeAgo(featured.date))}</span>
+                        <span>${formatCompactTrNumber(popularity.score)} popülerlik puanı</span>
+                    </div>
+                    <div class="popular-hero-actions">
+                        <button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="expandPost('${featured.id}')">Akışa dal</button>
+                        <button type="button" class="popular-hero-btn" onclick="openUserProfile('${featured.userId}')">Detaylar</button>
+                    </div>
+                    <div class="popular-hero-dots" aria-hidden="true">
+                        ${posts.slice(0, 7).map((_, index) => `<span class="popular-hero-dot${index === 0 ? ' is-active' : ''}"></span>`).join('')}
+                    </div>
+                </div>
+                <aside class="popular-hero-rail">
+                    <div class="popular-rail-card">
+                        <span class="popular-card-kicker">Nabız özeti</span>
+                        <div class="popular-rail-stats">
+                            <div>
+                                <strong>${formatCompactTrNumber(totalLikes)}</strong>
+                                <span>beğeni</span>
+                            </div>
+                            <div>
+                                <strong>${formatCompactTrNumber(totalComments)}</strong>
+                                <span>yorum</span>
+                            </div>
+                            <div>
+                                <strong>${formatCompactTrNumber(totalBookmarks)}</strong>
+                                <span>kayıt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="popular-rail-card">
+                        <span class="popular-card-kicker">Hızlı radar</span>
+                        <div class="popular-spotlight-list">
+                            ${spotlight.map((post) => {
+            const entry = getPostPopularity(post, bookmarkCountMap);
+            return `
+                                    <button type="button" class="popular-spotlight-item" onclick="expandPost('${post.id}')">
+                                        <span>${escapeHtml(truncateText(post.title, 48))}</span>
+                                        <strong>${formatCompactTrNumber(entry.score)} puan</strong>
+                                    </button>`;
+        }).join('')}
+                        </div>
+                    </div>
+                    <div class="popular-rail-card popular-rail-card--tags">
+                        <span class="popular-card-kicker">Öne çıkan izler</span>
+                        <div class="popular-hero-tags">
+                            ${topTags.slice(0, 4).map(({ tag }) => `<span>${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                        <button type="button" class="popular-hero-author" onclick="openUserProfile('${featured.userId}')">
+                            <div class="popular-hero-author-avatar" style="${bg}">${initial}</div>
+                            <div>
+                                <strong>@${escapeHtml(author.username)}</strong>
+                                <span>${escapeHtml(getCategoryName(featured.category))}</span>
+                            </div>
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>`;
+}
+
+function renderPopularPostCard(post, variant = 'tall', bookmarkCountMap = buildBookmarkCountMap()) {
+    const author = userMap.get(post.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const popularity = getPostPopularity(post, bookmarkCountMap);
+    const isTextCard = variant === 'text' || variant === 'note';
+    const cardClasses = ['popular-card', `popular-card--${variant}`, isTextCard ? 'popular-card--textual' : 'popular-card--media'].join(' ');
+    const excerptLength = variant === 'note' ? 108 : 132;
+    const tagMarkup = (post.tags || []).slice(0, variant === 'note' ? 1 : 2)
+        .map(tag => `<span>${escapeHtml(tag)}</span>`)
+        .join('');
+
+    if (!isTextCard) {
+        return `
+            <article class="${cardClasses}" onclick="expandPost('${post.id}')">
+                <div class="popular-card-media-wrap">
+                    ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}" loading="lazy">` : ''}
+                    <div class="popular-card-media-overlay"></div>
+                    <div class="popular-card-topline">
+                        <span>${escapeHtml(getCategoryName(post.category))}</span>
+                        <span>${escapeHtml(getTimeAgo(post.date))}</span>
+                    </div>
+                    <div class="popular-card-bottomline">
+                        <h3>${escapeHtml(post.title)}</h3>
+                        <p>${escapeHtml(truncateText(post.content, excerptLength))}</p>
+                    </div>
+                </div>
+                <div class="popular-card-footer">
+                    <button type="button" class="popular-card-author" onclick="openUserProfile('${post.userId}', event)">
+                        <div class="popular-card-avatar" style="${bg}">${initial}</div>
+                        <span>@${escapeHtml(author.username)}</span>
+                    </button>
+                    <div class="popular-card-metrics">
+                        <span>${formatCompactTrNumber(post.likes.length)} beğeni</span>
+                        <span>${formatCompactTrNumber(post.comments.length)} yorum</span>
+                    </div>
+                </div>
+            </article>`;
+    }
+
+    return `
+        <article class="${cardClasses}">
+            <div class="popular-card-body">
+                <span class="popular-card-kicker">${escapeHtml(getCategoryName(post.category))} · ${escapeHtml(popularity.label)}</span>
+                <h3 onclick="expandPost('${post.id}')">${escapeHtml(post.title)}</h3>
+                <p onclick="expandPost('${post.id}')">${escapeHtml(truncateText(post.content, variant === 'note' ? 120 : 150))}</p>
+                <div class="popular-card-tags">
+                    ${tagMarkup}
+                </div>
+            </div>
+            <div class="popular-card-footer">
+                <button type="button" class="popular-card-author" onclick="openUserProfile('${post.userId}', event)">
+                    <div class="popular-card-avatar" style="${bg}">${initial}</div>
+                    <span>@${escapeHtml(author.username)}</span>
+                </button>
+                <div class="popular-card-metrics">
+                    <span>${formatCompactTrNumber(popularity.score)} puan</span>
+                </div>
+            </div>
+        </article>`;
+}
+
+function renderPopularQuoteCard(entry) {
+    const author = userMap.get(entry.comment.userId) || { username: 'Bilinmeyen', id: '' };
+
+    return `
+        <article class="popular-card popular-card--quote">
+            <span class="popular-card-kicker">Topluluktan alıntı</span>
+            <div class="popular-quote-mark">99</div>
+            <blockquote>${escapeHtml(truncateText(entry.comment.text, 130))}</blockquote>
+            <div class="popular-quote-foot">
+                <strong>@${escapeHtml(author.username)}</strong>
+                <span>${escapeHtml(truncateText(entry.post.title, 44))}</span>
+            </div>
+        </article>`;
+}
+
+function renderPopularSignalCard(posts, bookmarkCountMap = buildBookmarkCountMap()) {
+    const mostDiscussed = [...posts].sort((a, b) => (b.comments || []).length - (a.comments || []).length)[0];
+    const mostSaved = [...posts].sort((a, b) => (bookmarkCountMap.get(b.id) || 0) - (bookmarkCountMap.get(a.id) || 0))[0];
+    const fastest = [...posts].sort((a, b) => getPostPopularity(b, bookmarkCountMap).score - getPostPopularity(a, bookmarkCountMap).score)[1] || posts[0];
+
+    return `
+        <article class="popular-card popular-card--signal">
+            <span class="popular-card-kicker">Durum raporu</span>
+            <div class="popular-signal-stack">
+                <div class="popular-signal-item">
+                    <small>En çok konuşulan</small>
+                    <strong>${escapeHtml(truncateText(mostDiscussed.title, 42))}</strong>
+                    <span>${formatCompactTrNumber(mostDiscussed.comments.length)} yorum</span>
+                </div>
+                <div class="popular-signal-item">
+                    <small>En çok kaydedilen</small>
+                    <strong>${escapeHtml(truncateText(mostSaved.title, 42))}</strong>
+                    <span>${formatCompactTrNumber(bookmarkCountMap.get(mostSaved.id) || 0)} kayıt</span>
+                </div>
+                <div class="popular-signal-item">
+                    <small>Hızlı yükselen</small>
+                    <strong>${escapeHtml(truncateText(fastest.title, 42))}</strong>
+                    <span>${formatCompactTrNumber(getPostPopularity(fastest, bookmarkCountMap).score)} puan</span>
+                </div>
+            </div>
+        </article>`;
+}
+
+function renderPopularWatchCard(posts) {
+    const categoryCounts = posts.reduce((acc, post) => {
+        acc[post.category] = (acc[post.category] || 0) + 1;
+        return acc;
+    }, {});
+
+    const categoryRows = Object.entries(categoryCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([category, count]) => `
+            <div class="popular-watch-row">
+                <span>${escapeHtml(getCategoryName(category))}</span>
+                <strong>${formatCompactTrNumber(count)}</strong>
+            </div>`)
+        .join('');
+
+    return `
+        <article class="popular-card popular-card--watch">
+            <span class="popular-card-kicker">Takip listesi</span>
+            <h3>Hangi kulvar hareketli?</h3>
+            <p>Bugünün popüler akışında hangi türlerin öne çıktığını tek bakışta gör.</p>
+            <div class="popular-watch-list">
+                ${categoryRows}
+            </div>
+        </article>`;
 }
 
 function renderPinterestHome(posts) {
@@ -3878,7 +4223,7 @@ function getTimeAgo(dateStr) {
 function getCategoryName(cat) {
     const names = {
         fps: 'FPS', rpg: 'RPG', moba: 'MOBA',
-        'battle-royale': 'Battle Royale', indie: 'Indie',
+        'battle-royale': 'Battle Royale', indie: 'Bağımsız',
         strateji: 'Strateji', genel: 'Genel',
     };
     return names[cat] || cat;
