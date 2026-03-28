@@ -544,7 +544,7 @@ let homeHeroGames = {
 let popularHeroCarousel = {
     index: 0,
     timer: null,
-    delay: 5600,
+    delay: 9000,
 };
 
 const AVATAR_GRADIENTS = [
@@ -748,6 +748,76 @@ function getPopularHeroDecks(topTags = []) {
             chips: getPopularHeroDeckChips(weeklyPopularGames, fallbackTags),
         },
     ];
+}
+
+function getPopularHeroSlides(topTags = []) {
+    const fallbackTags = topTags.map((entry) => entry.tag || entry).filter(Boolean);
+
+    return getPopularHeroDecks(topTags).flatMap((deck) => {
+        if (!deck.games || deck.games.length === 0) {
+            return [{
+                id: `${deck.id}-placeholder`,
+                kind: deck.kind,
+                kicker: deck.kicker,
+                title: deck.title,
+                description: deck.description,
+                chips: deck.chips?.length ? deck.chips : fallbackTags.slice(0, 4),
+                game: null,
+                position: 1,
+                total: 1,
+            }];
+        }
+
+        return deck.games.map((game, index) => ({
+            id: `${deck.id}-${game.id}`,
+            kind: deck.kind,
+            kicker: deck.kicker,
+            title: deck.title,
+            description: deck.description,
+            chips: getPopularHeroDeckChips([game], deck.chips?.length ? deck.chips : fallbackTags),
+            game,
+            position: index + 1,
+            total: deck.games.length,
+        }));
+    });
+}
+
+function formatPopularHeroUserScore(game) {
+    return game && game.rawRating ? game.rawRating.toFixed(1) : '-';
+}
+
+function renderPopularHeroFeatureCard(slide) {
+    if (!slide || !slide.game) {
+        return `
+            <article class="popular-hero-feature-card is-placeholder">
+                <div class="popular-hero-feature-media no-image">
+                    <div class="pinterest-spotlight-fallback">RAWG</div>
+                </div>
+                <div class="popular-hero-feature-copy">
+                    <span>Hazırlanıyor</span>
+                    <strong>Oyun verisi gelir gelmez burada görünecek.</strong>
+                </div>
+            </article>`;
+    }
+
+    const game = slide.game;
+    const image = game.backgroundUrl || game.coverUrl || '';
+    const subLabel = game.genres?.[0] || game.platforms?.[0] || 'Oyun';
+    const releaseLabel = game.released ? formatGameReleaseDate(game.released) : (game.releaseYear || 'Yakında');
+
+    return `
+        <article class="popular-hero-feature-card" onclick="openGameDetail('${game.id}')">
+            <div class="popular-hero-feature-media${image ? '' : ' no-image'}">
+                ${image
+            ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(game.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('no-image')">`
+            : `<div class="pinterest-spotlight-fallback">${escapeHtml(subLabel)}</div>`}
+            </div>
+            <div class="popular-hero-feature-copy">
+                <span>${escapeHtml(slide.kicker)} • ${slide.position}/${slide.total}</span>
+                <strong>${escapeHtml(game.title)}</strong>
+                <small>${escapeHtml(subLabel)} • ${escapeHtml(String(releaseLabel))}</small>
+            </div>
+        </article>`;
 }
 
 function updatePopularHeroCarouselUI() {
@@ -1821,51 +1891,60 @@ function renderPopularHeroLegacy(posts, bookmarkCountMap, topTags) {
 }
 
 function renderPopularHero(topTags = []) {
-    const decks = getPopularHeroDecks(topTags);
-    const totalDecks = decks.length;
-    const safeIndex = Math.max(0, Math.min(popularHeroCarousel.index, totalDecks - 1));
+    const slides = getPopularHeroSlides(topTags);
+    const totalSlides = slides.length;
+    const safeIndex = Math.max(0, Math.min(popularHeroCarousel.index, totalSlides - 1));
     popularHeroCarousel.index = safeIndex;
 
     return `
         <section class="popular-hero-card">
             <div class="popular-hero-carousel" id="popularHeroCarousel">
-                ${decks.map((deck, deckIndex) => {
-        const primaryGame = deck.games[0] || null;
-        const heroGhost = primaryGame
-            ? getPopularHeroGhost({ title: primaryGame.title, tags: primaryGame.genres || [] })
-            : deck.kicker;
-        const releaseMeta = primaryGame?.released
-            ? formatGameReleaseDate(primaryGame.released)
-            : (primaryGame?.releaseYear || 'Yakında');
-        const followMeta = primaryGame
-            ? `${formatCompactTrNumber(primaryGame.added || 0)} takip`
-            : (homeHeroGames.error ? 'Bağlantı yok' : 'Veri hazırlanıyor');
-        const chips = deck.chips && deck.chips.length > 0
-            ? deck.chips
+                ${slides.map((slide, slideIndex) => {
+        const game = slide.game;
+        const heroGhost = game
+            ? getPopularHeroGhost({ title: game.title, tags: game.genres || [] })
+            : slide.kicker;
+        const releaseYear = game?.releaseYear || 'Yakında';
+        const criticScore = game?.rating > 0 ? game.rating : '-';
+        const userScore = formatPopularHeroUserScore(game);
+        const chips = slide.chips && slide.chips.length > 0
+            ? slide.chips
             : topTags.slice(0, 4).map((entry) => entry.tag || entry).filter(Boolean);
+        const subline = game
+            ? [slide.title, game.genres?.[0] || '', game.platforms?.[0] || ''].filter(Boolean).join(' • ')
+            : slide.description;
 
         return `
-                    <section class="popular-hero-slide${deckIndex === safeIndex ? ' is-active' : ''}" aria-hidden="${deckIndex === safeIndex ? 'false' : 'true'}">
+                    <section class="popular-hero-slide${slideIndex === safeIndex ? ' is-active' : ''}" aria-hidden="${slideIndex === safeIndex ? 'false' : 'true'}">
                         <div class="popular-hero-bg">
-                            ${primaryGame?.backgroundUrl || primaryGame?.coverUrl
-                ? `<img src="${escapeHtml(primaryGame.backgroundUrl || primaryGame.coverUrl)}" alt="${escapeHtml(primaryGame.title || deck.title)}" loading="${deckIndex === safeIndex ? 'eager' : 'lazy'}">`
+                            ${game?.backgroundUrl || game?.coverUrl
+                ? `<img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="${escapeHtml(game.title || slide.title)}" loading="${slideIndex === safeIndex ? 'eager' : 'lazy'}">`
                 : ''}
                         </div>
                         <div class="popular-hero-scrim"></div>
                         <div class="popular-hero-ghost">${escapeHtml(heroGhost)}</div>
                         <div class="popular-hero-grid">
                             <div class="popular-hero-copy">
-                                <span class="popular-hero-kicker">${escapeHtml(deck.kicker)}</span>
-                                <h2>${escapeHtml(deck.title)}</h2>
-                                <p>${escapeHtml(deck.description)}</p>
-                                <div class="popular-hero-meta">
-                                    <span>${deck.games.filter(Boolean).length} oyun</span>
-                                    <span>${escapeHtml(releaseMeta)}</span>
-                                    <span>${escapeHtml(followMeta)}</span>
+                                <span class="popular-hero-kicker">${escapeHtml(slide.kicker)} • ${slide.position}/${slide.total}</span>
+                                <h2>${escapeHtml(game?.title || slide.title)}</h2>
+                                <p>${escapeHtml(subline || slide.description)}</p>
+                                <div class="popular-hero-stat-grid">
+                                    <div class="popular-hero-stat">
+                                        <small>Çıkış Yılı</small>
+                                        <strong>${escapeHtml(String(releaseYear))}</strong>
+                                    </div>
+                                    <div class="popular-hero-stat">
+                                        <small>Metacritic</small>
+                                        <strong>${escapeHtml(String(criticScore))}</strong>
+                                    </div>
+                                    <div class="popular-hero-stat">
+                                        <small>Kullanıcı</small>
+                                        <strong>${escapeHtml(String(userScore))}</strong>
+                                    </div>
                                 </div>
                                 <div class="popular-hero-actions">
-                                    ${primaryGame
-                ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openGameDetail('${primaryGame.id}')">İlk oyunu aç</button>`
+                                    ${game
+                ? `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="openGameDetail('${game.id}')">Oyuna git</button>`
                 : `<button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="navigate('games')">Oyunları aç</button>`}
                                     <button type="button" class="popular-hero-btn" onclick="navigate('games')">Tüm oyunlar</button>
                                 </div>
@@ -1874,20 +1953,20 @@ function renderPopularHero(topTags = []) {
                                 </div>
                             </div>
                             <div class="popular-hero-game-deck">
-                                ${deck.items.map((item, index) => renderPinterestSpotlightGame(item, index)).join('')}
+                                ${renderPopularHeroFeatureCard(slide)}
                             </div>
                         </div>
                     </section>`;
     }).join('')}
             </div>
             <div class="popular-hero-dots" aria-label="Popüler oyun slaytları">
-                ${decks.map((deck, deckIndex) => `
+                ${slides.map((slide, slideIndex) => `
                     <button
                         type="button"
-                        class="popular-hero-dot${deckIndex === safeIndex ? ' is-active' : ''}"
-                        onclick="setPopularHeroSlide(${deckIndex})"
-                        aria-label="${escapeHtml(deck.kicker)}"
-                        aria-pressed="${deckIndex === safeIndex ? 'true' : 'false'}"></button>
+                        class="popular-hero-dot${slideIndex === safeIndex ? ' is-active' : ''}"
+                        onclick="setPopularHeroSlide(${slideIndex})"
+                        aria-label="${escapeHtml(`${slide.kicker} ${slide.position}`)}"
+                        aria-pressed="${slideIndex === safeIndex ? 'true' : 'false'}"></button>
                 `).join('')}
             </div>
         </section>`;
