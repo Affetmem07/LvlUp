@@ -2051,15 +2051,13 @@ function expandPost(postId) {
     `;
 
     document.getElementById('postOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    syncViewportLock();
 }
 
 function closeExpandedPost(e) {
     if (e && e.target !== document.getElementById('postOverlay')) return;
     document.getElementById('postOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    syncViewportLock();
 }
 
 function deletePost(postId) {
@@ -2073,8 +2071,7 @@ function deletePost(postId) {
     allPosts = allPosts.filter(p => p.id !== postId);
     setStore(STORAGE_KEYS.posts, allPosts);
     document.getElementById('postOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    syncViewportLock();
     refreshCurrentView();
     showToast('Gönderi silindi.', 'success');
 }
@@ -2781,11 +2778,52 @@ function bookmarkPost(postId, event) {
 
 // ── Search Overlay System ──
 let searchSelectedIndex = -1;
+let bodyScrollLocked = false;
+let bodyScrollLockY = 0;
+
+function hasActiveViewportLayer() {
+    return Boolean(document.querySelector(
+        '.modal-overlay.active, .search-overlay.active, .post-overlay.active, .game-detail-overlay.active, .creator-overlay.active'
+    ));
+}
+
+function lockBodyScroll() {
+    if (bodyScrollLocked) return;
+
+    bodyScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${bodyScrollLockY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    bodyScrollLocked = true;
+}
+
+function unlockBodyScroll() {
+    if (!bodyScrollLocked) return;
+
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    bodyScrollLocked = false;
+    window.scrollTo(0, bodyScrollLockY);
+}
+
+function syncViewportLock() {
+    if (hasActiveViewportLayer()) lockBodyScroll();
+    else unlockBodyScroll();
+}
 
 function openSearchOverlay() {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    syncViewportLock();
     const input = document.getElementById('searchInput');
     input.value = '';
     input.focus();
@@ -2798,7 +2836,7 @@ function openSearchOverlay() {
 function closeSearchOverlay() {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
+    syncViewportLock();
     searchSelectedIndex = -1;
 }
 
@@ -3157,13 +3195,13 @@ function showMyPosts() {
 // ── Modal Helpers ──
 function openModal(id) {
     document.getElementById(id).classList.add('active');
-    document.body.style.overflow = 'hidden';
+    syncViewportLock();
     if (id === 'newPostModal') npeInit();
 }
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('active');
-    document.body.style.overflow = '';
+    syncViewportLock();
 
     // Stop iframe when closed
     if (id === 'browserGameOverlay') {
@@ -3192,7 +3230,7 @@ function closeAllModals() {
             if (iframe) iframe.src = '';
         }
     });
-    document.body.style.overflow = '';
+    syncViewportLock();
 }
 
 // ── User Dropdown ──
@@ -5030,7 +5068,7 @@ async function openGameDetail(gameId) {
     // Show overlay immediately with basic data
     renderGameDetailContentV2(game);
     document.getElementById('gameDetailOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    syncViewportLock();
     recordGameVisit(game);
     if (currentPage === 'home' && !currentCategory) {
         renderFeed();
@@ -5410,7 +5448,7 @@ async function openCreatorGames(name, slug, type) {
         </div>
     `;
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    syncViewportLock();
 
     try {
         const param = type === 'developer' ? 'developers' : 'publishers';
@@ -5449,7 +5487,7 @@ async function openCreatorGames(name, slug, type) {
 function closeCreatorOverlay(e) {
     if (e && e.target !== document.getElementById('creatorOverlay')) return;
     document.getElementById('creatorOverlay').classList.remove('active');
-    document.body.style.overflow = '';
+    syncViewportLock();
 }
 
 function renderNpeGameOverlayHeader(query = '', gameCount = null, isLoading = false) {
@@ -5531,6 +5569,7 @@ function openNpeGameOverlay() {
     if (!overlay || !header || !results || !input) return;
 
     overlay.classList.add('active');
+    syncViewportLock();
     if (npeModal) npeModal.style.overflow = 'hidden';
     overlay.scrollTop = 0;
     results.scrollTop = 0;
@@ -5550,6 +5589,7 @@ function closeNpeGameOverlay(e) {
     const overlay = document.getElementById('npeGameOverlay');
     const npeModal = document.getElementById('npeModal');
     if (overlay) overlay.classList.remove('active');
+    syncViewportLock();
     if (npeModal) npeModal.style.overflow = '';
 }
 
@@ -5665,7 +5705,7 @@ npeSearchGame = function (q) {
 function closeGameDetail(e) {
     if (e && e.target !== document.getElementById('gameDetailOverlay')) return;
     document.getElementById('gameDetailOverlay').classList.remove('active');
-    document.body.style.overflow = '';
+    syncViewportLock();
 }
 
 // ── Screenshot Lightbox ──

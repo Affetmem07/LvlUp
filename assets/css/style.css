@@ -2409,6 +2409,7 @@ select {
     align-items: center;
     justify-content: center;
     padding: 24px;
+    overscroll-behavior: contain;
 }
 
 .modal-overlay.active {
@@ -2427,6 +2428,7 @@ select {
     animation: scaleIn var(--transition-normal) ease;
     max-height: 98vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .modal::-webkit-scrollbar {
