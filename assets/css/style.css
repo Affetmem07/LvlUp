@@ -5787,6 +5787,23 @@ select {
         transform: scale(1.12);
     }
 
+    #notifBell {
+        width: auto;
+        height: auto;
+        padding: 6px 4px;
+        border-radius: 10px;
+    }
+
+    #notifBell svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    #notifBell .notif-badge {
+        top: 1px;
+        right: 0;
+    }
+
     #btnNewPost {
         display: none;
     }
