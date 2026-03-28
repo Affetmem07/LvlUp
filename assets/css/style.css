@@ -1690,7 +1690,7 @@ select {
 .main-layout {
     display: flex;
     justify-content: center;
-    padding-top: calc(var(--navbar-h) + 72px);
+    padding-top: calc(var(--navbar-h) + 48px);
     padding-left: 0;
     min-height: 100vh;
 }
@@ -1733,7 +1733,7 @@ select {
    ================================================================ */
 .feed {
     flex: 1;
-    padding: 24px;
+    padding: 14px 24px 24px;
     max-width: 780px;
     width: 100%;
     margin: 0 auto;
@@ -1751,17 +1751,17 @@ select {
 .page-pill-title {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 24px;
+    gap: 8px;
+    padding: 8px 20px;
     border-radius: 999px;
     border: 1.5px solid rgba(45, 90, 67, 0.6);
     background: rgba(15, 29, 23, 0.85);
     color: var(--accent-light);
     font-family: 'Inter', sans-serif;
-    font-size: 1.15rem;
+    font-size: 1.02rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.08em;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     margin: 0 0 16px 0;
 }
@@ -1769,6 +1769,8 @@ select {
 .page-pill-title svg {
     flex-shrink: 0;
     color: var(--accent-light);
+    width: 18px;
+    height: 18px;
 }
 
 .feed-tabs {
@@ -2973,7 +2975,7 @@ label[for="editBannerImage"] {
    ================================================================ */
 .games-page {
     flex: 1;
-    padding: 24px;
+    padding: 14px 24px 24px;
     max-width: 1200px;
     width: 100%;
 }
@@ -2995,7 +2997,7 @@ label[for="editBannerImage"] {
     align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
-    padding: 36px 24px 0;
+    padding: 20px 24px 0;
     flex-wrap: wrap;
 }
 
