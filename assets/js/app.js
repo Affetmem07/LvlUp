@@ -2781,6 +2781,7 @@ function bookmarkPost(postId, event) {
 let searchSelectedIndex = -1;
 let searchOverlayGamesTimeout = null;
 let searchOverlayAbortController = null;
+let searchOverlayGamesCache = new Map();
 let searchOverlayRequestId = 0;
 let bodyScrollLocked = false;
 let bodyScrollLockY = 0;
@@ -3026,6 +3027,39 @@ function cacheSearchGames(games) {
     });
 }
 
+function getInstantSearchOverlayGames(query) {
+    const normalizedQuery = (query || '').trim().toLowerCase();
+    if (normalizedQuery.length < 2) return [];
+
+    const cachedGames = searchOverlayGamesCache.get(normalizedQuery);
+    if (cachedGames && cachedGames.length > 0) {
+        return cachedGames.slice(0, 4);
+    }
+
+    const seenIds = new Set();
+    const localMatches = [...searchResultsGames, ...allGames]
+        .filter(game => {
+            if (!game?.title || seenIds.has(game.id)) return false;
+            if (!game.title.toLowerCase().includes(normalizedQuery)) return false;
+            seenIds.add(game.id);
+            return true;
+        });
+
+    return sortGamesBySearchQuery(localMatches, normalizedQuery).slice(0, 4);
+}
+
+function mapGamesToAutocompleteCompletions(games) {
+    return games.map(game => ({
+        text: game.title,
+        type: 'game',
+        icon: '&#127918;',
+        meta: ['Oyun', game.releaseYear].filter(Boolean).join(' / '),
+        gameId: game.id,
+        gameData: game,
+        thumbnailUrl: game.coverUrl || game.backgroundUrl || ''
+    }));
+}
+
 function mergeSearchAutocompleteCompletions(localCompletions, gameCompletions) {
     const merged = [];
     const seenCompletions = new Set();
@@ -3056,6 +3090,7 @@ function renderSearchAutocomplete(query, completions) {
             const iconMarkup = c.thumbnailUrl
                 ? `<img src="${escapeHtml(c.thumbnailUrl)}" alt="${escapeHtml(c.text)}" loading="lazy">`
                 : (c.icon || '?');
+            const actionMarkup = c.isDisabled ? '' : '<span class="autocomplete-item-action">Enter ↵</span>';
 
             return `
                 <div class="autocomplete-item ${i === searchSelectedIndex ? 'selected' : ''}" 
@@ -3067,7 +3102,7 @@ function renderSearchAutocomplete(query, completions) {
                         <div class="autocomplete-item-title">${highlightCompletion(escapeHtml(c.text), query)}</div>
                         <div class="autocomplete-item-meta">${escapeHtml(c.meta || '')}</div>
                     </div>
-                    <span class="autocomplete-item-action">Enter ↵</span>
+                    ${actionMarkup}
                 </div>
             `;
         }).join('')}
@@ -3140,7 +3175,27 @@ function handleSearchOverlayInputV2() {
         }
     });
 
-    renderSearchAutocomplete(query, localCompletions.slice(0, 5));
+    const instantGameCompletions = mapGamesToAutocompleteCompletions(
+        getInstantSearchOverlayGames(rawQuery)
+    );
+    const loadingGameCompletion = (query.length >= 2 &&
+        !searchOverlayGamesCache.has(query) &&
+        instantGameCompletions.length === 0)
+        ? [{
+            text: rawQuery,
+            type: 'status',
+            icon: '&#9203;',
+            meta: 'Oyunlar aranıyor...',
+            isDisabled: true
+        }]
+        : [];
+    renderSearchAutocomplete(
+        query,
+        mergeSearchAutocompleteCompletions(localCompletions, [
+            ...instantGameCompletions,
+            ...loadingGameCompletion
+        ])
+    );
 
     const filteredPosts = allPosts.filter(p =>
         p.title.toLowerCase().includes(query) ||
@@ -3189,16 +3244,18 @@ function handleSearchOverlayInputV2() {
 
     if (query.length < 2) return;
 
-    searchOverlayGamesTimeout = setTimeout(async () => {
-        const myRequestId = ++searchOverlayRequestId;
-        searchOverlayAbortController = new AbortController();
+    if (searchOverlayGamesCache.has(query)) return;
 
+    const myRequestId = ++searchOverlayRequestId;
+    searchOverlayAbortController = new AbortController();
+
+    (async () => {
         try {
             const result = await searchRawgGames(rawQuery, {
                 signal: searchOverlayAbortController.signal,
-                pageSize: 20,
+                pageSize: 10,
                 minValid: 4,
-                maxPages: 2
+                maxPages: 1
             });
             if (myRequestId !== searchOverlayRequestId) return;
 
@@ -3206,19 +3263,13 @@ function handleSearchOverlayInputV2() {
             if (currentQuery !== query) return;
 
             const games = (result?.games || []).slice(0, 4);
+            searchOverlayGamesCache.set(query, games);
             cacheSearchGames(games);
 
-            const gameCompletions = games.map(game => ({
-                text: game.title,
-                type: 'game',
-                icon: '&#127918;',
-                meta: ['Oyun', game.releaseYear].filter(Boolean).join(' / '),
-                gameId: game.id,
-                gameData: game,
-                thumbnailUrl: game.coverUrl || game.backgroundUrl || ''
-            }));
-
-            renderSearchAutocomplete(query, mergeSearchAutocompleteCompletions(localCompletions, gameCompletions));
+            renderSearchAutocomplete(
+                query,
+                mergeSearchAutocompleteCompletions(localCompletions, mapGamesToAutocompleteCompletions(games))
+            );
         } catch (error) {
             if (error.name === 'AbortError') return;
             console.error('Search overlay RAWG error:', error);
@@ -3227,7 +3278,7 @@ function handleSearchOverlayInputV2() {
                 searchOverlayAbortController = null;
             }
         }
-    }, 250);
+    })();
 }
 
 function highlightCompletion(text, query) {
@@ -3252,6 +3303,7 @@ function handleAutocompleteClick(index) {
     const completions = window._searchCompletions || [];
     if (!completions[index]) return;
     const c = completions[index];
+    if (c.isDisabled || c.type === 'status') return;
 
     if (c.postId) {
         closeSearchOverlay();
@@ -5309,7 +5361,23 @@ function renderGamesBrickLayout(games) {
 }
 
 function renderSearchResultsGameCards(games) {
-    return games.map(game => renderGameCard(game)).join('');
+    let html = '';
+
+    for (let i = 0; i < games.length; i += 5) {
+        const chunk = games.slice(i, i + 5);
+        const topRow = chunk.slice(0, 3);
+        const bottomRow = chunk.slice(3, 5);
+
+        if (topRow.length) {
+            html += `<div class="games-brick-row search-results-games-row">${topRow.map(game => renderGameCard(game)).join('')}</div>`;
+        }
+
+        if (bottomRow.length) {
+            html += `<div class="games-brick-row games-brick-row--bottom search-results-games-row search-results-games-row--bottom">${bottomRow.map(game => renderGameCard(game)).join('')}</div>`;
+        }
+    }
+
+    return html;
 }
 
 function renderCreatorGamesBrickLayout(games) {

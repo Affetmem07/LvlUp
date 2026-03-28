@@ -3306,9 +3306,18 @@ select {
 }
 
 .search-results-games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.search-results-games-grid .search-results-games-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.search-results-games-grid .search-results-games-row--bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .games-brick-row {
@@ -6000,6 +6009,12 @@ select {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .search-results-games-grid .search-results-games-row,
+    .search-results-games-grid .search-results-games-row--bottom {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
     .game-detail-hero {
         height: 260px;
     }
@@ -6125,6 +6140,12 @@ select {
     .games-brick-row,
     .games-brick-row--bottom {
         width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .search-results-games-grid .search-results-games-row,
+    .search-results-games-grid .search-results-games-row--bottom {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
     }
