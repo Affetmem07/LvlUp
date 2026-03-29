@@ -230,20 +230,13 @@ Ses: Web Audio API ile synthesize (tık, bayrak, patlama, kazanma/kaybetme)
 
 ### Öncelikli — Hata Düzeltmeleri
 
-- [ ] **ITAD fiyat hatası** — Fiyat bilgisi yüklenmiyor / hatalı gösteriliyor
-- [ ] **Filtre sistemi hataları** — Filtreleme çalışmıyor ya da yanlış sonuç veriyor
-- [ ] **Oyunları göstermiyor** — Tamamlama ve sonuç sayfasında oyun listesi boş geliyor
-- [ ] **Arama otomatik tamamlama hatası** — Öneri listesi düzgün açılmıyor/kapanmıyor
 - [ ] **Optimizasyon & kod düzenlemesi** — Gereksiz kodları temizle, tekrar eden blokları birleştir
-
-### Öncelikli — Tasarım Düzeltmeleri
-
-- [ ] **Profil Sekmesi** — Baştan tasarla
-- [ ] **Popüler Sekmesi** — Baştan tasarla
 
 ### Daha Sonra Yapılacaklar
 
 - [ ] **DeepL API** — Oyun detay açıklamalarını Türkçeye çevir; "devamını oku" ekle; siteyi farklı dillere çevirme seçeneği sun
+- [ ] **ITAD fiyat hatası** — Fiyat bilgisi yüklenmiyor / hatalı gösteriliyor
+- [ ] **Filtre sistemi hataları** — Filtreleme çalışmıyor ya da yanlış sonuç veriyor
 - [ ] **Treeman 3D model** — Treeman görseli yerine 3D model entegrasyonu
 - [ ] **İndirim bölümü** — İndirimde olan oyunları listele; filtre sistemine entegre et
 - [ ] **Oynanabilir oyunlar ekle** — Dinozor, Subway Surfers, yılan, Block Blast, satranç, yarış, futbol, hafıza oyunu vb.
@@ -266,4 +259,3 @@ Ses: Web Audio API ile synthesize (tık, bayrak, patlama, kazanma/kaybetme)
 - **Framework yok:** Saf HTML/CSS/JS — hiçbir kütüphane veya build sistemi kullanılmamıştır.
 - **treeman.png** şu an hiçbir yerde referans edilmiyor; ileriye dönük dekorasyon görseli.
 - **ITAD & RAWG API anahtarları:** `api/config.js` içinde tanımlı.
-  - ITAD ücretsiz anahtar: https://isthereanydeal.com/dev/app/
