@@ -16,6 +16,370 @@ function getStore(key) {
     } catch { return null; }
 }
 
+function splitGameTitleForHeroV3(title) {
+    const words = String(title || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 1) return [title || '', ''];
+    const splitIndex = Math.ceil(words.length / 2);
+    return [
+        words.slice(0, splitIndex).join(' '),
+        words.slice(splitIndex).join(' ')
+    ];
+}
+
+function formatCompactNumberV3(value) {
+    if (value == null || Number.isNaN(Number(value))) return '—';
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value));
+}
+
+function parseRequirementTextV3(text) {
+    if (!text) return [];
+    return String(text)
+        .replace(/\r/g, '\n')
+        .split(/\n+/)
+        .map(line => line.replace(/\t/g, ' ').trim())
+        .filter(Boolean)
+        .map(line => line.replace(/^[-*]\s*/, ''))
+        .map(line => {
+            const match = line.match(/^([^:]{2,40}):\s*(.+)$/);
+            if (!match) return null;
+            return {
+                label: match[1].trim(),
+                value: match[2].trim()
+            };
+        })
+        .filter(Boolean);
+}
+
+function renderRequirementCardV3(title, variant, text, fallbackText) {
+    const items = parseRequirementTextV3(text);
+    if (!text && !fallbackText) {
+        return `
+            <div class="gd-spec-card gd-spec-card--${variant}">
+                <div class="gd-spec-card-title">${title}</div>
+                <div class="gd-spec-empty">RAWG tarafinda bu katman icin veri bulunamadi.</div>
+            </div>
+        `;
+    }
+
+    if (!items.length) {
+        return `
+            <div class="gd-spec-card gd-spec-card--${variant}">
+                <div class="gd-spec-card-title">${title}</div>
+                <pre class="sysreq-text">${escapeHtml(text || fallbackText)}</pre>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="gd-spec-card gd-spec-card--${variant}">
+            <div class="gd-spec-card-title">${title}</div>
+            <div class="gd-spec-list">
+                ${items.map(item => `
+                    <div class="gd-spec-row">
+                        <span>${escapeHtml(item.label)}</span>
+                        <strong>${escapeHtml(item.value)}</strong>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderSystemRequirementCardsV3(requirements) {
+    if (!requirements || requirements.length === 0) {
+        return `
+            <div class="gd-spec-duo">
+                <div class="gd-spec-card gd-spec-card--minimum">
+                    <div class="gd-spec-card-title">Minimum Tiers</div>
+                    <div class="gd-spec-empty">RAWG bu oyun icin sistem gereksinimi donmuyor.</div>
+                </div>
+                <div class="gd-spec-card gd-spec-card--recommended">
+                    <div class="gd-spec-card-title">Ultimate Spec</div>
+                    <div class="gd-spec-empty">Detay geldikce burada onerilen donanim gorunecek.</div>
+                </div>
+            </div>
+        `;
+    }
+
+    const primary = requirements.find(req => /pc|windows/i.test(req.platform)) || requirements[0];
+    const platformLabel = primary.platform ? `<div class="gd-spec-platform">${escapeHtml(primary.platform)}</div>` : '';
+
+    return `
+        <div class="gd-spec-stack">
+            ${platformLabel}
+            <div class="gd-spec-duo">
+                ${renderRequirementCardV3('Minimum Tiers', 'minimum', primary.minimum, primary.minimum || primary.recommended)}
+                ${renderRequirementCardV3('Ultimate Spec', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
+            </div>
+        </div>
+    `;
+}
+
+function renderITADPricesSectionV3(result) {
+    const container = document.getElementById('itadPricesSection');
+    if (!container) return;
+
+    const searchUrl = result?.slug
+        ? `https://isthereanydeal.com/game/${result.slug}/info/`
+        : `https://isthereanydeal.com/search/?q=${encodeURIComponent(result?.title || '')}`;
+
+    const formatCurrency = (amount, currency) => {
+        try {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: 2 }).format(amount);
+        } catch {
+            return `${currency || '$'} ${amount.toFixed(2)}`;
+        }
+    };
+
+    if (!result?.deals?.length) {
+        container.innerHTML = `
+            <div class="itad-offer-card itad-offer-card--empty">
+                <div class="itad-offer-label">ITAD live price</div>
+                <div class="itad-offer-empty">Bu oyun icin su an aktif teklif bulunamadi.</div>
+                <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
+                    ITAD'da kontrol et
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    const sortedDeals = [...result.deals]
+        .filter(deal => TR_POPULAR_SHOPS.has(deal.shop?.name))
+        .sort((a, b) => (b.cut || 0) - (a.cut || 0))
+        .slice(0, 8);
+    const dealsToShow = sortedDeals.length > 0 ? sortedDeals : [...result.deals].slice(0, 8);
+    const featuredDeal = [...dealsToShow].sort((a, b) => {
+        const aAmount = a.price?.amount ?? Number.MAX_SAFE_INTEGER;
+        const bAmount = b.price?.amount ?? Number.MAX_SAFE_INTEGER;
+        return aAmount - bAmount;
+    })[0];
+
+    const dealsHtml = dealsToShow.map(deal => {
+        const shopNameRaw = deal.shop?.name || 'Magaza';
+        const shopName = ITAD_SHOP_NAME_MAP[shopNameRaw] || shopNameRaw;
+        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || 'Store';
+        const cut = deal.cut || 0;
+        const isDiscounted = cut > 0;
+        const priceCur = deal.price?.currency || 'USD';
+        const currentPrice = deal.price?.amount != null ? formatCurrency(deal.price.amount, priceCur) : '?';
+        const regularPrice = deal.regular?.amount != null ? formatCurrency(deal.regular.amount, priceCur) : null;
+        const buyUrl = deal.url || searchUrl;
+
+        return `
+            <a href="${escapeHtml(buyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-deal-card${isDiscounted ? ' is-sale' : ''}">
+                <span class="itad-shop-name">${escapeHtml(shopIcon)} ${escapeHtml(shopName)}</span>
+                <span class="itad-price-row">
+                    ${isDiscounted && regularPrice ? `<span class="itad-regular-price">${regularPrice}</span>` : ''}
+                    <span class="itad-current-price">${currentPrice}</span>
+                    ${isDiscounted ? `<span class="itad-deal-badge">-%${cut}</span>` : ''}
+                </span>
+            </a>
+        `;
+    }).join('');
+
+    const featuredCurrent = featuredDeal?.price?.amount != null
+        ? formatCurrency(featuredDeal.price.amount, featuredDeal.price.currency)
+        : '?';
+    const featuredRegular = featuredDeal?.regular?.amount != null
+        ? formatCurrency(featuredDeal.regular.amount, featuredDeal.regular.currency)
+        : null;
+    const featuredCut = featuredDeal?.cut || 0;
+    const featuredBuyUrl = featuredDeal?.url || searchUrl;
+    const historyLowHtml = result.historyLow?.amount != null
+        ? `<div class="itad-history-low">Tum zamanlarin en dusugu: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
+        : '';
+
+    container.innerHTML = `
+        <div class="itad-offer-card">
+            <div class="itad-offer-label">Best offer</div>
+            <div class="itad-offer-price-wrap">
+                <div class="itad-offer-price">${featuredCurrent}</div>
+                ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
+                ${featuredCut > 0 ? `<div class="itad-offer-discount">-%${featuredCut}</div>` : ''}
+            </div>
+            ${historyLowHtml}
+            <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
+                Satin al
+            </a>
+            <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
+                Tum fiyatlari gor
+            </a>
+            <div class="itad-offer-meta">
+                <span>TR market scan</span>
+                <span>Digital delivery</span>
+            </div>
+        </div>
+        <div class="itad-deals-grid">${dealsHtml}</div>
+    `;
+}
+
+function renderGameDetailContentV3(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    const description = game.description || 'Aciklama yukleniyor...';
+    const developer = game.developer || 'Yukleniyor...';
+    const publisher = game.publisher || 'Yukleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+    const screenshots = (game.screenshots || []).slice(0, 3);
+    const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
+    const splitTitle = splitGameTitleForHeroV3(game.title);
+    const statsRibbon = [
+        { label: 'Playtime', value: game.playtime || '—' },
+        { label: 'Active', value: game.added ? `${formatCompactNumberV3(game.added)}+` : '—' },
+        { label: 'Reviews', value: game.ratingsCount ? `${formatCompactNumberV3(game.ratingsCount)}+` : '—' }
+    ];
+
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="gd-hero-backdrop"></div>
+        <div class="gd-hero-orb gd-hero-orb--one"></div>
+        <div class="gd-hero-orb gd-hero-orb--two"></div>
+        <div class="game-detail-hero-content gd-cinematic-hero">
+            <div class="gd-hero-copy">
+                <div class="gd-hero-meta-strip">
+                    ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
+                    <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
+                    ${game.esrbRating ? `<span class="gd-meta-inline">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+                <h2 class="game-detail-title gd-cinematic-title">
+                    <span>${escapeHtml(splitTitle[0])}</span>
+                    ${splitTitle[1] ? `<span class="accent">${escapeHtml(splitTitle[1])}</span>` : ''}
+                </h2>
+                <div class="game-detail-genres gd-hero-tag-row">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+            </div>
+
+            <aside class="gd-hero-side">
+                <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
+                    <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
+                         onerror="this.style.background='var(--bg-elevated)'">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} shots</div>` : ''}
+                </div>
+                <div class="gd-hero-stats-card">
+                    ${statsRibbon.map(item => `
+                        <div class="gd-hero-stat">
+                            <span>${escapeHtml(item.label)}</span>
+                            <strong>${escapeHtml(item.value)}</strong>
+                        </div>
+                    `).join('')}
+                </div>
+            </aside>
+        </div>
+        <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alinmistir">RAWG.io</a>
+    `;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+        <div class="gd-detail-layout">
+            <section class="gd-section gd-section--about">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Game description</h3>
+                </div>
+                <div class="gd-about-grid">
+                    <div class="gd-about-main">
+                        <p class="gd-lead-copy">${escapeHtml(heroBlurb)}</p>
+                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDescV3()">
+                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                            <div class="gd-desc-fade"></div>
+                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                        </div>
+                        ${screenshots.length > 0 ? `
+                            <div class="gd-inline-gallery">
+                                ${screenshots.map((shot, index) => `
+                                    <button class="gd-inline-shot" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Screenshot ${index + 1}">
+                                        <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <aside class="gd-info-card">
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Developed by</div>
+                            <div class="gd-info-value gd-info-value--stack">
+                                ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Published by</div>
+                            <div class="gd-info-value gd-info-value--stack">
+                                ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Platforms</div>
+                            <div class="gd-platforms">
+                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">RAWG stats</div>
+                            <div class="gd-rawg-stat-list">
+                                <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '—'}</strong></div>
+                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong></div>
+                                <div><span>Release</span><strong>${game.released ? escapeHtml(game.released) : (game.releaseYear || 'TBA')}</strong></div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            ${(game.tags && game.tags.length > 0) ? `
+                <section class="gd-section gd-section--tags">
+                    <div class="gd-section-heading">Tags</div>
+                    <div class="gd-tags">
+                        ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            <section class="gd-section gd-section--specs">
+                <div class="gd-specs-header">
+                    <div>
+                        <div class="gd-section-heading">Technical Specifications</div>
+                        <p>Donanim bilgileri RAWG uzerinden geliyor, fiyat taramasi ITAD ile ayrik tutuluyor.</p>
+                    </div>
+                </div>
+                <div class="gd-specs-layout">
+                    <div class="gd-specs-grid">
+                        ${renderSystemRequirementCardsV3(game.systemRequirements)}
+                    </div>
+                    <aside class="gd-price-column">
+                        <div class="gd-price-card">
+                            <div class="gd-price-head">
+                                <strong>ITAD</strong>
+                            </div>
+                            <div id="itadPricesSection" class="itad-prices-section">
+                                <div class="itad-loading">
+                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                                    <span>Fiyatlar yukleniyor...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </div>
+    `;
+}
+
+function toggleGameDescV3() {
+    const box = document.getElementById('gdDescBox');
+    if (!box) return;
+    const isExpanded = box.classList.toggle('expanded');
+    const btn = box.querySelector('.gd-desc-toggle');
+    if (btn) btn.innerHTML = isExpanded
+        ? 'Kucult <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
+        : 'Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+}
+
 function setStore(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
@@ -766,7 +1130,7 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p1,
             likes: ['u2', 'u3', 'u4', 'u5'],
             comments: [
-                { id: 'c1', userId: 'u2', text: 'Sonunda gerçek oynanış! Grafiklere inanamıyorum!', date: '2026-02-22T14:30:00Z', likes: ['u1', 'u3'] },
+                { id: 'c1', userId: 'u2', text: 'Sonunda gerçek oynanış! Grafiklere inanamıyorum 🤯', date: '2026-02-22T14:30:00Z', likes: ['u1', 'u3'] },
                 { id: 'c2', userId: 'u3', text: 'Vice City geri dönüyor! 80ler vibeı tam hissediliyor.', date: '2026-02-22T15:10:00Z', likes: ['u4'] },
                 { id: 'c3', userId: 'u4', text: 'Fizik motoru muhteşem görünüyor, araçların hasar modeli çok gerçekçi.', date: '2026-02-22T16:00:00Z', likes: [] },
                 { id: 'c4', userId: 'u5', text: 'Online modu da bu seviyeyse saatlerce oynarım.', date: '2026-02-22T17:30:00Z', likes: ['u1'] },
@@ -783,7 +1147,7 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p2,
             likes: ['u1', 'u3', 'u5'],
             comments: [
-                { id: 'c5', userId: 'u1', text: 'Son boss\'u 50 denemede geçtim ama her saniyesine değdi!', date: '2026-02-21T09:00:00Z', likes: ['u2', 'u5'] },
+                { id: 'c5', userId: 'u1', text: 'Son boss\'u 50 denemede geçtim ama her saniyesine değdi! 💀', date: '2026-02-21T09:00:00Z', likes: ['u2', 'u5'] },
                 { id: 'c6', userId: 'u5', text: 'DLC\'deki yeni bölgelerin art direction\'ı muhteşem.', date: '2026-02-21T10:30:00Z', likes: ['u3'] },
             ],
             date: '2026-02-21T08:00:00Z',
@@ -798,9 +1162,9 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p3,
             likes: ['u1', 'u2'],
             comments: [
-                { id: 'c7', userId: 'u1', text: 'Türk takımları bu sene şampiyon olur inşallah!', date: '2026-02-20T11:00:00Z', likes: ['u3', 'u4', 'u5'] },
+                { id: 'c7', userId: 'u1', text: 'Türk takımları bu sene şampiyon olur inşallah! 🇹🇷', date: '2026-02-20T11:00:00Z', likes: ['u3', 'u4', 'u5'] },
                 { id: 'c8', userId: 'u4', text: 'Yeni format çok daha adil görünüyor, beğendim.', date: '2026-02-20T12:30:00Z', likes: [] },
-                { id: 'c9', userId: 'u2', text: 'Ödül havuzu ne kadar büyümüş, inanılmaz!', date: '2026-02-20T13:00:00Z', likes: ['u1'] },
+                { id: 'c9', userId: 'u2', text: 'Ödül havuzu ne kadar büyümüş, inanılmaz! 💰', date: '2026-02-20T13:00:00Z', likes: ['u1'] },
             ],
             date: '2026-02-20T10:00:00Z',
         },
@@ -814,9 +1178,9 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p4,
             likes: ['u1', 'u2', 'u3', 'u5'],
             comments: [
-                { id: 'c10', userId: 'u1', text: '8K oyun oynayabilecek miyiz gerçekten? Heyecanlandım!', date: '2026-02-19T16:00:00Z', likes: ['u4'] },
+                { id: 'c10', userId: 'u1', text: '8K oyun oynayabilecek miyiz gerçekten? Heyecanlandım! 🎮', date: '2026-02-19T16:00:00Z', likes: ['u4'] },
                 { id: 'c11', userId: 'u5', text: 'PS1 geriye dönük uyumluluk müthiş olur, nostalji!', date: '2026-02-19T17:00:00Z', likes: ['u2', 'u3'] },
-                { id: 'c12', userId: 'u3', text: 'Fiyatı ne olacak acaba?', date: '2026-02-19T18:00:00Z', likes: [] },
+                { id: 'c12', userId: 'u3', text: 'Fiyatı ne olacak acaba? 💸', date: '2026-02-19T18:00:00Z', likes: [] },
             ],
             date: '2026-02-19T15:00:00Z',
         },
@@ -831,7 +1195,7 @@ function seedData() {
             likes: ['u1', 'u3'],
             comments: [
                 { id: 'c13', userId: 'u1', text: 'Nintendo bir kez daha oyun değiştirici bir ürün sunuyor!', date: '2026-02-18T14:00:00Z', likes: ['u5'] },
-                { id: 'c14', userId: 'u3', text: 'Yeni Zelda lansmanda gelirse gün 1 alırım!', date: '2026-02-18T15:00:00Z', likes: ['u1', 'u5'] },
+                { id: 'c14', userId: 'u3', text: 'Yeni Zelda lansmanda gelirse gün 1 alırım 🗡️', date: '2026-02-18T15:00:00Z', likes: ['u1', 'u5'] },
             ],
             date: '2026-02-18T12:00:00Z',
         },
@@ -859,7 +1223,7 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p7,
             likes: ['u1', 'u3', 'u4', 'u5'],
             comments: [
-                { id: 'c16', userId: 'u3', text: 'Sanat stili inanılmaz, her kare bir tablo gibi.', date: '2026-02-16T11:00:00Z', likes: ['u2', 'u1'] },
+                { id: 'c16', userId: 'u3', text: 'Sanat stili inanılmaz, her kare bir tablo gibi 🎨', date: '2026-02-16T11:00:00Z', likes: ['u2', 'u1'] },
                 { id: 'c17', userId: 'u4', text: 'Müzikleri Spotify\'da da dinliyorum, o kadar iyi!', date: '2026-02-16T12:30:00Z', likes: ['u5'] },
                 { id: 'c18', userId: 'u1', text: 'İndie oyunlar AAA\'yı geçiyor artık, helal olsun!', date: '2026-02-16T14:00:00Z', likes: ['u3'] },
             ],
@@ -875,7 +1239,7 @@ function seedData() {
             imageUrl: DEMO_POST_IMAGE_MAP.p8,
             likes: ['u1', 'u2', 'u5'],
             comments: [
-                { id: 'c19', userId: 'u5', text: '"Bir tur daha" sendromu geri döndü, 14 saat aralıksız oynadım!', date: '2026-02-15T20:00:00Z', likes: ['u4', 'u1'] },
+                { id: 'c19', userId: 'u5', text: '"Bir tur daha" sendromu geri döndü, 14 saat aralıksız oynadım 😅', date: '2026-02-15T20:00:00Z', likes: ['u4', 'u1'] },
                 { id: 'c20', userId: 'u1', text: 'Diplomasi sistemi artık gerçekçi, çok beğendim.', date: '2026-02-15T21:00:00Z', likes: [] },
             ],
             date: '2026-02-15T18:00:00Z',
@@ -931,7 +1295,7 @@ function handleLogin(e) {
     setStore(STORAGE_KEYS.currentUser, currentUser);
     updateAuthUI();
     closeModal('loginModal');
-    showToast(`Hoş geldin, ${user.username}!`, 'success');
+    showToast(`Hoş geldin, ${user.username}! 🎮`, 'success');
     document.getElementById('loginForm').reset();
 }
 
@@ -972,7 +1336,7 @@ function handleRegister(e) {
     setStore(STORAGE_KEYS.currentUser, currentUser);
     updateAuthUI();
     closeModal('registerModal');
-    showToast(`Kayıt başarılı! Hoş geldin, ${username}!`, 'success');
+    showToast(`Kayıt başarılı! Hoş geldin, ${username}! 🚀`, 'success');
     document.getElementById('registerForm').reset();
 }
 
@@ -982,7 +1346,7 @@ function logout() {
     localStorage.removeItem(STORAGE_KEYS.currentUser);
     updateAuthUI();
 
-    showToast('Çıkış yapıldı. Görüşürüz!', 'info');
+    showToast('Çıkış yapıldı. Görüşürüz! 👋', 'info');
 
     // Profilden çıkış yapılırsa ana sayfaya yönlendir
     if (window.location.hash.includes('#profile')) {
@@ -1366,7 +1730,7 @@ function openUserProfile(userId, event) {
 
     const targetUser = findUserById(userId);
     if (!targetUser) {
-        showToast('Kullanıcı bulunamadı.', 'error');
+        showToast('Kullanici bulunamadi.', 'error');
         return;
     }
 
@@ -1412,7 +1776,7 @@ function renderFeed() {
         if (visiblePopularPosts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">🔥</div>
+                    <div class="empty-state-icon">🎮</div>
                     <h3>Henüz popüler içerik yok</h3>
                     <p>Topluluğun dikkatini çeken gönderiler burada birikecek.</p>
                 </div>
@@ -1453,7 +1817,7 @@ function renderFeed() {
         if (feed) feed.classList.remove('home-pinterest-mode');
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">📝</div>
+                <div class="empty-state-icon">🎮</div>
                 <h3>Henüz gönderi yok</h3>
                 <p>Bu kategoride henüz bir gönderi bulunmuyor. İlk haberi sen paylaş!</p>
             </div>
@@ -1517,6 +1881,91 @@ function renderPopularShowcase(posts) {
                     `).join('')}
                 </div>
             </section>
+        </section>`;
+}
+
+function renderPopularHeroLegacy(posts, bookmarkCountMap, topTags) {
+    const featured = posts[0];
+    const author = userMap.get(featured.userId) || { username: 'Bilinmeyen', id: '' };
+    const { bg, initial } = getAuthorStyle(author);
+    const popularity = getPostPopularity(featured, bookmarkCountMap);
+    const spotlight = posts.slice(1, 4);
+    const totalLikes = posts.reduce((sum, post) => sum + (post.likes || []).length, 0);
+    const totalComments = posts.reduce((sum, post) => sum + (post.comments || []).length, 0);
+    const totalBookmarks = posts.reduce((sum, post) => sum + (bookmarkCountMap.get(post.id) || 0), 0);
+    const heroGhost = getPopularHeroGhost(featured);
+
+    return `
+        <section class="popular-hero-card">
+            <div class="popular-hero-bg">
+                ${featured.imageUrl ? `<img src="${escapeHtml(featured.imageUrl)}" alt="${escapeHtml(featured.title)}" loading="eager">` : ''}
+            </div>
+            <div class="popular-hero-scrim"></div>
+            <div class="popular-hero-ghost">${escapeHtml(heroGhost)}</div>
+            <div class="popular-hero-grid">
+                <div class="popular-hero-copy">
+                    <span class="popular-hero-kicker">Öne çıkan dosya</span>
+                    <h2>${escapeHtml(featured.title)}</h2>
+                    <p>${escapeHtml(truncateText(featured.content, 205))}</p>
+                    <div class="popular-hero-meta">
+                        <span>${escapeHtml(getCategoryName(featured.category))}</span>
+                        <span>${escapeHtml(getTimeAgo(featured.date))}</span>
+                        <span>${formatCompactTrNumber(popularity.score)} popülerlik puanı</span>
+                    </div>
+                    <div class="popular-hero-actions">
+                        <button type="button" class="popular-hero-btn popular-hero-btn--primary" onclick="expandPost('${featured.id}')">Akışa dal</button>
+                        <button type="button" class="popular-hero-btn" onclick="openUserProfile('${featured.userId}')">Detaylar</button>
+                    </div>
+                    <div class="popular-hero-dots" aria-hidden="true">
+                        ${posts.slice(0, 7).map((_, index) => `<span class="popular-hero-dot${index === 0 ? ' is-active' : ''}"></span>`).join('')}
+                    </div>
+                </div>
+                <aside class="popular-hero-rail">
+                    <div class="popular-rail-card">
+                        <span class="popular-card-kicker">Nabız özeti</span>
+                        <div class="popular-rail-stats">
+                            <div>
+                                <strong>${formatCompactTrNumber(totalLikes)}</strong>
+                                <span>beğeni</span>
+                            </div>
+                            <div>
+                                <strong>${formatCompactTrNumber(totalComments)}</strong>
+                                <span>yorum</span>
+                            </div>
+                            <div>
+                                <strong>${formatCompactTrNumber(totalBookmarks)}</strong>
+                                <span>kayıt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="popular-rail-card">
+                        <span class="popular-card-kicker">Hızlı radar</span>
+                        <div class="popular-spotlight-list">
+                            ${spotlight.map((post) => {
+            const entry = getPostPopularity(post, bookmarkCountMap);
+            return `
+                                    <button type="button" class="popular-spotlight-item" onclick="expandPost('${post.id}')">
+                                        <span>${escapeHtml(truncateText(post.title, 48))}</span>
+                                        <strong>${formatCompactTrNumber(entry.score)} puan</strong>
+                                    </button>`;
+        }).join('')}
+                        </div>
+                    </div>
+                    <div class="popular-rail-card popular-rail-card--tags">
+                        <span class="popular-card-kicker">Öne çıkan izler</span>
+                        <div class="popular-hero-tags">
+                            ${topTags.slice(0, 4).map(({ tag }) => `<span>${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                        <button type="button" class="popular-hero-author" onclick="openUserProfile('${featured.userId}')">
+                            <div class="popular-hero-author-avatar" style="${bg}">${initial}</div>
+                            <div>
+                                <strong>@${escapeHtml(author.username)}</strong>
+                                <span>${escapeHtml(getCategoryName(featured.category))}</span>
+                            </div>
+                        </button>
+                    </div>
+                </aside>
+            </div>
         </section>`;
 }
 
@@ -2153,7 +2602,7 @@ function renderPinterestPin(post, index, bookmarkCountMap = buildBookmarkCountMa
                 <div class="md-body pinterest-pin-md" onclick="expandPost('${post.id}')">${renderMarkdown(post.content)}</div>
                 ${textActions}
                 <div class="pinterest-pin-footer">
-                    <div class="pinterest-pin-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+                    <div class="pinterest-pin-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                         <div class="pinterest-author-avatar" style="${bg}">${initial}</div>
                         <span>@${escapeHtml(author.username)}</span>
                     </div>
@@ -2191,7 +2640,7 @@ function renderSearchUserResultItem(user, { query = '', extraStyle = '' } = {}) 
     const handle = createProfileHandle(user.username);
     const bioText = user.bio && user.bio.trim()
         ? user.bio.trim()
-        : 'Henüz bir biyografi eklenmemiş.';
+        : 'HenÃ¼z bir biyografi eklenmemiÅŸ.';
     const formatText = (text) => query
         ? highlightCompletion(escapeHtml(text), query)
         : escapeHtml(text);
@@ -2207,7 +2656,7 @@ function renderSearchUserResultItem(user, { query = '', extraStyle = '' } = {}) 
                 <div class="filtered-post-snippet">${formatText(safeBioText || bioText)}</div>
                 <div class="filtered-post-meta">
                     <span>@${escapeHtml(handle)}</span>
-                    <span>${user.favGame ? escapeHtml(user.favGame) : 'Kullanıcı'}</span>
+                    <span>${user.favGame ? escapeHtml(user.favGame) : 'Kullanici'}</span>
                 </div>
             </div>
         </div>
@@ -2221,7 +2670,7 @@ function mapUsersToAutocompleteCompletions(users) {
             text: user.username,
             type: 'user',
             iconMarkup: `<div style="${bg}; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff;">${initial}</div>`,
-            meta: user.favGame ? `Kullanıcı / ${user.favGame}` : 'Kullanıcı',
+            meta: user.favGame ? `Kullanici / ${user.favGame}` : 'Kullanici',
             userId: user.id
         };
     });
@@ -2237,7 +2686,7 @@ function renderFeaturedPost(post) {
     const top = post.imageUrl
         ? `<div class="fp-img-wrap" onclick="expandPost('${post.id}')">
                <img src="${escapeHtml(post.imageUrl)}" alt="" onerror="this.parentElement.style.display='none'">
-               <div class="fp-author-overlay" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+               <div class="fp-author-overlay" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                    <div class="fp-avatar-wrap">
                        <div class="fp-avatar" style="${bg}">${initial}</div>
                        <div class="fp-online"></div>
@@ -2250,7 +2699,7 @@ function renderFeaturedPost(post) {
            </div>`
         : `<div class="fp-noimg-header" onclick="expandPost('${post.id}')">
                <div class="fp-noimg-avatar" style="${bg}">${initial}</div>
-               <div onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+               <div onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                    <div class="fp-noimg-name">@${escapeHtml(author.username)}</div>
                    <div class="fp-noimg-role">${getCategoryName(post.category)}</div>
                </div>
@@ -2343,7 +2792,7 @@ function renderPostCard(post) {
         const commentsHtml = topComments.map(c => {
             const cAuthor = userMap.get(c.userId) || { username: 'Bilinmeyen' };
             return `<div class="preview-comment">
-                <span class="preview-comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aç">${escapeHtml(cAuthor.username)}</span>
+                <span class="preview-comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${escapeHtml(cAuthor.username)}</span>
                 <span class="preview-comment-text">${escapeHtml(c.text)}</span>
             </div>`;
         }).join('');
@@ -2363,7 +2812,7 @@ function renderPostCard(post) {
             <div class="post-hero" onclick="expandPost('${post.id}')">
                 <img src="${escapeHtml(post.imageUrl)}" class="post-hero-img" alt="${escapeHtml(post.title)}" onerror="this.parentElement.classList.add('post-hero--hidden')">
                 <div class="post-hero-gradient"></div>
-                <div class="post-hero-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+                <div class="post-hero-author" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                     <div class="post-avatar" style="${customAvatarStyle}">${avatarContent}</div>
                     <div class="post-meta">
                         <div class="post-author">${escapeHtml(author.username)}</div>
@@ -2374,8 +2823,8 @@ function renderPostCard(post) {
             </div>
             ` : `
             <div class="post-header" onclick="expandPost('${post.id}')">
-                <div class="post-avatar" style="${customAvatarStyle}" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">${avatarContent}</div>
-                <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+                <div class="post-avatar" style="${customAvatarStyle}" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">${avatarContent}</div>
+                <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                     <div class="post-author">${escapeHtml(author.username)}</div>
                     <div class="post-time">${timeAgo}</div>
                 </div>
@@ -2433,8 +2882,8 @@ function expandPost(postId) {
     // Render expanded post content
     document.getElementById('expandedPost').innerHTML = `
         <div class="post-header">
-            <div class="post-avatar" style="${authorBg}" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">${authorInitial}</div>
-            <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aç">
+            <div class="post-avatar" style="${authorBg}" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">${authorInitial}</div>
+            <div class="post-meta" onclick="openUserProfile('${post.userId}', event)" title="Profili aÃ§">
                 <div class="post-author">${escapeHtml(author.username)}</div>
                 <div class="post-time">${getTimeAgo(post.date)} • ${new Date(post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
             </div>
@@ -2478,9 +2927,9 @@ function expandPost(postId) {
         const { bg: cBg, initial: cInitial } = getAuthorStyle(cAuthor);
         return `
             <div class="comment-item">
-                <div class="comment-avatar" style="${cBg}" onclick="openUserProfile('${c.userId}', event)" title="Profili aç">${cInitial}</div>
+                <div class="comment-avatar" style="${cBg}" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${cInitial}</div>
                 <div class="comment-body">
-                    <span class="comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aç">${escapeHtml(cAuthor.username)}</span>
+                    <span class="comment-author" onclick="openUserProfile('${c.userId}', event)" title="Profili aÃ§">${escapeHtml(cAuthor.username)}</span>
                     <span class="comment-time">${getTimeAgo(c.date)}</span>
                     <div class="comment-text">${escapeHtml(c.text)}</div>
                     <div class="comment-actions-row">
@@ -2488,11 +2937,11 @@ function expandPost(postId) {
                             ❤️ ${c.likes.length}
                         </button>
                         <button class="comment-action-btn" onclick="document.getElementById('expandedCommentInput').focus()">
-                            Yanıtla
+                            💬 Yanıtla
                         </button>
                         ${canDeleteComment ? `
                         <button class="comment-action-btn" onclick="deleteComment('${post.id}', '${c.id}')">
-                            Sil
+                            🗑️ Sil
                         </button>
                         ` : ''}
                     </div>
@@ -2568,7 +3017,7 @@ function toggleLike(postId, event) {
 
 function toggleCommentLike(postId, commentId) {
     if (!currentUser) {
-        showToast('Beğenmek için giriş yapmalısın!', 'error');
+        showToast('BeÄŸenmek iÃ§in giriÅŸ yapmalÄ±sÄ±n!', 'error');
         return;
     }
     const user = currentUser;
@@ -2576,9 +3025,9 @@ function toggleCommentLike(postId, commentId) {
     if (!user && activeProfileUserId) {
         headerSection.innerHTML = renderProfileEmptyState({
             icon: '&#128100;',
-            title: 'Kullanıcı bulunamadı',
-            text: 'Bu profil artık mevcut olmayabilir ya da kullanıcı kimliği geçersiz.',
-            actionLabel: 'Ana Sayfaya Dön',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
             actionOnclick: "navigate('home')",
         });
         statsGrid.innerHTML = '';
@@ -2663,7 +3112,7 @@ function submitQuickComment(postId) {
     setStore(STORAGE_KEYS.posts, allPosts);
     input.value = '';
     refreshCurrentView();
-    showToast('Yorum eklendi!', 'success');
+    showToast('Yorum eklendi! 💬', 'success');
 }
 
 function submitExpandedComment(postId) {
@@ -2690,7 +3139,7 @@ function submitExpandedComment(postId) {
     setStore(STORAGE_KEYS.posts, allPosts);
     expandPost(postId); // Re-render
     refreshCurrentView();
-    showToast('Yorum eklendi!', 'success');
+    showToast('Yorum eklendi! 💬', 'success');
 }
 
 // ── New Post ──
@@ -2746,7 +3195,7 @@ function handleNewPost(e) {
     setStore(STORAGE_KEYS.posts, allPosts);
     closeModal('newPostModal');
     refreshCurrentView();
-    showToast('Gönderi yayınlandı!', 'success');
+    showToast('Gönderi yayınlandı! 🎉', 'success');
 }
 
 // ── New Post Editor Helpers ──
@@ -2796,6 +3245,8 @@ function npeReset() {
     if (gameRef) gameRef.value = '';
     const gameImgRef = document.getElementById('npeGameImageRef');
     if (gameImgRef) gameImgRef.value = '';
+    const gameDD = document.getElementById('npeGameDropdown');
+    if (gameDD) { gameDD.innerHTML = ''; gameDD.classList.remove('active'); }
     const gameResults = document.getElementById('npeGameResults');
     if (gameResults) gameResults.innerHTML = '';
     closeNpeGameOverlay();
@@ -2837,6 +3288,121 @@ function npeSetCat(el) {
 }
 
 // Game reference
+function npeSearchGameLegacy(q) {
+    clearTimeout(npeGameSearchTimeout);
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (!q || q.length < 2) { dd.innerHTML = ''; dd.classList.remove('active'); return; }
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">Aranıyor…</div>';
+    dd.classList.add('active');
+    npeGameSearchTimeout = setTimeout(async () => {
+        if (!RAWG_API_KEY) {
+            const local = allGames
+                .filter(g => g.title && g.title.toLowerCase().includes(q.toLowerCase()))
+                .map(g => ({
+                    title: g.title,
+                    imageUrl: g.backgroundUrl || g.coverUrl || '',
+                    rating: g.rating || 0
+                }));
+            const localMatches = sortGamesBySearchQuery(local, q)
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.imageUrl }));
+            npeRenderGameDD(localMatches, q);
+            return;
+        }
+        try {
+            const res = await fetch(`${RAWG_BASE_URL}/games?key=${RAWG_API_KEY}&page_size=6&search=${encodeURIComponent(q)}&search_precise=true`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const games = (data.results || []).map(g => ({ title: g.name, imageUrl: g.background_image || '' }));
+            npeRenderGameDD(games, q);
+        } catch {
+            dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuç bulunamadı</div>';
+        }
+    }, 350);
+}
+
+npeSearchGame = function (q) {
+    clearTimeout(npeGameSearchTimeout);
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (!q || q.length < 2) {
+        if (npeGameAbortController) npeGameAbortController.abort();
+        npeGameRequestId++;
+        dd.innerHTML = '';
+        dd.classList.remove('active');
+        return;
+    }
+
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">AranÄ±yorâ€¦</div>';
+    dd.classList.add('active');
+    dd.innerHTML = '<div class="npe-game-opt npe-game-loading">Araniyor...</div>';
+
+    npeGameSearchTimeout = setTimeout(async () => {
+        if (!RAWG_API_KEY) {
+            const localMatches = sortGamesBySearchQuery(
+                allGames
+                    .filter(g => g.title && g.title.toLowerCase().includes(q.toLowerCase()))
+                    .map(g => ({
+                        title: g.title,
+                        imageUrl: g.backgroundUrl || g.coverUrl || '',
+                        rating: g.rating || 0
+                    })),
+                q
+            )
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.imageUrl }));
+
+            npeRenderGameDD(localMatches, q);
+            return;
+        }
+
+        try {
+            if (npeGameAbortController) npeGameAbortController.abort();
+            npeGameAbortController = new AbortController();
+            const myRequestId = ++npeGameRequestId;
+
+            const result = await searchRawgGames(q, {
+                signal: npeGameAbortController.signal
+            });
+            if (myRequestId !== npeGameRequestId) return;
+
+            const games = result.games
+                .slice(0, 6)
+                .map(g => ({ title: g.title, imageUrl: g.backgroundUrl || g.coverUrl || '' }));
+
+            npeRenderGameDD(games, q);
+            if (dd.innerHTML.includes('Sonu')) {
+                dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>';
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            setTimeout(() => {
+                if (dd.innerHTML.includes('Sonu')) {
+                    dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>';
+                }
+            }, 0);
+            return void (dd.innerHTML = '<div class="npe-game-opt npe-game-empty">Sonuc bulunamadi</div>');
+            dd.innerHTML = '<div class="npe-game-opt npe-game-empty">SonuÃ§ bulunamadÄ±</div>';
+        }
+    }, 350);
+};
+
+function npeRenderGameDD(games, q) {
+    const dd = document.getElementById('npeGameDropdown');
+    if (!dd) return;
+    if (games.length === 0) {
+        dd.innerHTML = `<div class="npe-game-opt npe-game-empty">"${escapeHtml(q)}" için sonuç yok</div>`;
+        return;
+    }
+    dd.innerHTML = games.map(g => `
+        <div class="npe-game-opt" onclick="npeSelectGame('${escapeHtml(g.title.replace(/'/g, "&#39;"))}','${escapeHtml(g.imageUrl)}')">
+            ${g.imageUrl ? `<img src="${escapeHtml(g.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div class="npe-game-opt-noimg"></div>'}
+            <span>${escapeHtml(g.title)}</span>
+        </div>`).join('');
+    dd.classList.add('active');
+}
+
 function npeSelectGame(title, imageUrl) {
     if (activeGameOverlayContext === 'profile') {
         syncEditFavGameSelection(title, imageUrl);
@@ -2852,6 +3418,8 @@ function npeSelectGame(title, imageUrl) {
     if (inp) inp.value = '';
     const results = document.getElementById('npeGameResults');
     if (results) results.innerHTML = '';
+    const dd = document.getElementById('npeGameDropdown');
+    if (dd) { dd.innerHTML = ''; dd.classList.remove('active'); }
     const badge = document.getElementById('npeGameBadge');
     const trigger = document.getElementById('npeGameTrigger');
     if (badge) {
@@ -3124,6 +3692,14 @@ function mdInline(t) {
     return t;
 }
 
+// Close NPE game dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#npeGameTrigger') && !e.target.closest('#npeGameDropdown')) {
+        const dd = document.getElementById('npeGameDropdown');
+        if (dd) { dd.innerHTML = ''; dd.classList.remove('active'); }
+    }
+});
+
 // ── Share / Bookmark (UI feedback) ──
 function sharePost(postId, event) {
     if (event) event.stopPropagation();
@@ -3132,7 +3708,7 @@ function sharePost(postId, event) {
 
     if (navigator.clipboard) {
         navigator.clipboard.writeText(`LvlUp – ${post.title}`).then(() => {
-            showToast('Bağlantı panoya kopyalandı!', 'info');
+            showToast('Bağlantı panoya kopyalandı! 📋', 'info');
         });
     } else {
         showToast('Paylaşım linki oluşturuldu!', 'info');
@@ -3150,7 +3726,7 @@ function bookmarkPost(postId, event) {
     const idx = currentUser.bookmarks.indexOf(postId);
     if (idx === -1) {
         currentUser.bookmarks.push(postId);
-        showToast('Gönderi kaydedildi!', 'success');
+        showToast('Gönderi kaydedildi! 🔖', 'success');
     } else {
         currentUser.bookmarks.splice(idx, 1);
         showToast('Kayıt kaldırıldı.', 'info');
@@ -3239,6 +3815,150 @@ function closeSearchOverlayOnBg(e) {
     if (e.target === document.getElementById('searchOverlay')) {
         closeSearchOverlay();
     }
+}
+
+function handleSearchOverlayInput() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const autocompleteEl = document.getElementById('searchAutocomplete');
+    const filteredPostsEl = document.getElementById('searchFilteredPosts');
+    searchSelectedIndex = -1;
+
+    if (query.length < 1) {
+        autocompleteEl.innerHTML = '';
+        autocompleteEl.classList.remove('has-items');
+        filteredPostsEl.innerHTML = '';
+        return;
+    }
+
+    // --- Autocomplete Completions ---
+    // Collect all searchable terms: post titles, tags, category names
+    const completionSources = [];
+    const seenCompletions = new Set();
+
+    allPosts.forEach(p => {
+        // Title-based completions
+        const titleLower = p.title.toLowerCase();
+        if (titleLower.includes(query) && !seenCompletions.has(titleLower)) {
+            seenCompletions.add(titleLower);
+            completionSources.push({
+                text: p.title,
+                type: 'post',
+                icon: '📰',
+                meta: getCategoryName(p.category),
+                postId: p.id
+            });
+        }
+
+        // Tag-based completions
+        p.tags.forEach(tag => {
+            const tagLower = tag.toLowerCase();
+            if (tagLower.includes(query) && !seenCompletions.has(tagLower)) {
+                seenCompletions.add(tagLower);
+                completionSources.push({
+                    text: tag,
+                    type: 'tag',
+                    icon: '#️⃣',
+                    meta: 'Etiket',
+                    postId: null
+                });
+            }
+        });
+    });
+
+    // Category completions
+    const categoryNames = {
+        fps: 'FPS', rpg: 'RPG', moba: 'MOBA',
+        'battle-royale': 'Battle Royale', indie: 'Indie',
+        strateji: 'Strateji', genel: 'Genel'
+    };
+    Object.entries(categoryNames).forEach(([key, name]) => {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes(query) && !seenCompletions.has(nameLower)) {
+            seenCompletions.add(nameLower);
+            completionSources.push({
+                text: name,
+                type: 'category',
+                icon: '🎮',
+                meta: 'Kategori',
+                postId: null,
+                categoryKey: key
+            });
+        }
+    });
+
+    const completions = completionSources.slice(0, 5);
+
+    if (completions.length > 0) {
+        autocompleteEl.innerHTML = `
+            <div class="autocomplete-label">Tamamlamalar</div>
+            ${completions.map((c, i) => `
+                <div class="autocomplete-item ${i === searchSelectedIndex ? 'selected' : ''}" 
+                     data-index="${i}" 
+                     onclick="handleAutocompleteClick(${i})"
+                     onmouseenter="searchSelectedIndex = ${i}; updateAutocompleteSelection()">
+                    <div class="autocomplete-item-icon">${c.icon}</div>
+                    <div class="autocomplete-item-text">
+                        <div class="autocomplete-item-title">${highlightCompletion(escapeHtml(c.text), query)}</div>
+                        <div class="autocomplete-item-meta">${c.meta}</div>
+                    </div>
+                    <span class="autocomplete-item-action">Enter ↵</span>
+                </div>
+            `).join('')}
+        `;
+        autocompleteEl.classList.add('has-items');
+    } else {
+        autocompleteEl.innerHTML = '';
+        autocompleteEl.classList.remove('has-items');
+    }
+
+    // --- Filtered Posts ---
+    const filteredPosts = allPosts.filter(p =>
+        p.title.toLowerCase().includes(query) ||
+        p.content.toLowerCase().includes(query) ||
+        p.tags.some(t => t.toLowerCase().includes(query)) ||
+        getCategoryName(p.category).toLowerCase().includes(query)
+    ).slice(0, 6);
+
+    if (filteredPosts.length > 0) {
+        filteredPostsEl.innerHTML = `
+            <div class="filtered-posts-label">İçerikler (${filteredPosts.length} sonuç)</div>
+            ${filteredPosts.map(p => {
+            const author = userMap.get(p.userId) || { username: 'Bilinmeyen', id: 'u0' };
+            const initial = author.username.charAt(0).toUpperCase();
+            const gIdx = author.id ? parseInt(author.id.replace('u', '')) % AVATAR_GRADIENTS_LIST.length : 0;
+            const snippet = getSnippet(p.content, query);
+            return `
+                    <div class="filtered-post-item" onclick="selectSearchPost('${p.id}')">
+                        <div class="filtered-post-avatar" style="background:${avatarGradients[gIdx]}">${initial}</div>
+                        <div class="filtered-post-info">
+                            <div class="filtered-post-title">${highlightCompletion(escapeHtml(p.title), query)}</div>
+                            <div class="filtered-post-snippet">${highlightCompletion(escapeHtml(snippet), query)}</div>
+                            <div class="filtered-post-meta">
+                                <span class="filtered-post-badge badge-${p.category}">${getCategoryName(p.category)}</span>
+                                <span>${escapeHtml(author.username)}</span>
+                                <span>• ${getTimeAgo(p.date)}</span>
+                                <span>❤️ ${p.likes.length}</span>
+                                <span>💬 ${p.comments.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }).join('')}
+        `;
+    } else if (query.length >= 2) {
+        filteredPostsEl.innerHTML = `
+            <div class="search-no-results">
+                <div class="search-no-results-icon">🔍</div>
+                <h4>"${escapeHtml(query)}" için sonuç bulunamadı</h4>
+                <p>Farklı anahtar kelimeler deneyebilirsiniz</p>
+            </div>
+        `;
+    } else {
+        filteredPostsEl.innerHTML = '';
+    }
+
+    // Store completions data for keyboard navigation
+    window._searchCompletions = completions;
 }
 
 function resetSearchOverlayGameSearch() {
@@ -3457,13 +4177,13 @@ function handleSearchOverlayInputV2() {
 
     const usersHtml = matchedUsers.length > 0
         ? `
-            <div class="filtered-posts-label">Kullanıcılar (${matchedUsers.length} sonuç)</div>
+            <div class="filtered-posts-label">KullanÄ±cÄ±lar (${matchedUsers.length} sonuÃ§)</div>
             ${matchedUsers.map(user => renderSearchUserResultItem(user, { query })).join('')}
         `
         : '';
     const normalizedUsersHtml = matchedUsers.length > 0
         ? `
-            <div class="filtered-posts-label">Kullanıcılar (${matchedUsers.length} sonuç)</div>
+            <div class="filtered-posts-label">Kullanicilar (${matchedUsers.length} sonuc)</div>
             ${matchedUsers.map(user => renderSearchUserResultItem(user, { query })).join('')}
         `
         : usersHtml;
@@ -3813,9 +4533,9 @@ function showProfile() {
     if (!user && activeProfileUserId) {
         headerSection.innerHTML = renderProfileEmptyState({
             icon: '&#128100;',
-            title: 'Kullanıcı bulunamadı',
-            text: 'Bu profil artık mevcut olmayabilir ya da kullanıcı kimliği geçersiz.',
-            actionLabel: 'Ana Sayfaya Dön',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
             actionOnclick: "navigate('home')",
         });
         statsGrid.innerHTML = '';
@@ -3893,7 +4613,7 @@ function toggleUserDropdown() {
 }
 
 function toggleNotifications() {
-    showToast('Bildirimler yakında aktif olacak!', 'info');
+    showToast('Bildirimler yakında aktif olacak! 🔔', 'info');
 }
 
 // ── Toast ──
@@ -4098,9 +4818,9 @@ function renderProfilePage() {
     if (!user && activeProfileUserId) {
         headerSection.innerHTML = renderProfileEmptyState({
             icon: '&#128100;',
-            title: 'Kullanıcı bulunamadı',
-            text: 'Bu profil artık mevcut olmayabilir ya da kullanıcı kimliği geçersiz.',
-            actionLabel: 'Ana Sayfaya Dön',
+            title: 'Kullanici bulunamadi',
+            text: 'Bu profil artik mevcut olmayabilir ya da kullanici kimligi gecersiz.',
+            actionLabel: 'Ana Sayfaya Don',
             actionOnclick: "navigate('home')",
         });
         statsGrid.innerHTML = '';
@@ -4112,9 +4832,9 @@ function renderProfilePage() {
     if (!user && activeProfileUserId) {
         headerSection.innerHTML = renderProfileEmptyState({
             icon: '&#128100;',
-            title: 'Kullanıcı bulunamadı',
-            text: 'Bu profil artık mevcut olmayabilir ya da kullanıcı kimliği geçersiz.',
-            actionLabel: 'Ana Sayfaya Dön',
+            title: 'KullanÄ±cÄ± bulunamadÄ±',
+            text: 'Bu profil artÄ±k mevcut olmayabilir ya da kullanÄ±cÄ± kimliÄŸi geÃ§ersiz.',
+            actionLabel: 'Ana Sayfaya DÃ¶n',
             actionOnclick: "navigate('home')",
         });
         statsGrid.innerHTML = '';
@@ -4126,7 +4846,7 @@ function renderProfilePage() {
     if (!user) {
         headerSection.innerHTML = `
             <div class="profile-login-required" style="width:100%;">
-                <div class="profile-login-icon">👤</div>
+                <div class="profile-login-icon">🔒</div>
                 <h2>Giriş Yapmalısın</h2>
                 <p>Profilini görüntülemek için giriş yap veya kayıt ol.</p>
                 <button class="btn btn-primary" onclick="openModal('loginModal')">Giriş Yap</button>
@@ -4147,6 +4867,28 @@ function renderProfilePage() {
         ? escapeHtml(user.bio.trim())
         : 'Henüz bir biyografi eklenmedi. Profilini birkaç cümleyle canlandırabilirsin.';
     const hasBio = Boolean(user.bio && user.bio.trim());
+    const profileActionsHtml = viewingOwnProfile
+        ? `
+            <button class="btn btn-ghost profile-edit-btn" onclick="${viewingOwnProfile ? 'openEditProfile()' : 'showProfile()'}" style="${(viewingOwnProfile || currentUser) ? '' : 'display:none;'}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                ${viewingOwnProfile ? 'Profili DÃ¼zenle' : 'Profilime Don'}
+            </button>
+            <button class="btn btn-logout" onclick="logout()" style="${viewingOwnProfile ? '' : 'display:none;'}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Ã‡Ä±kÄ±ÅŸ Yap
+            </button>
+        `
+        : (currentUser
+            ? '<button class="btn btn-ghost profile-edit-btn" onclick="showProfile()">Profilime Don</button>'
+            : '');
+
     const bannerEl = document.querySelector('.profile-banner');
     if (bannerEl) {
         bannerEl.classList.toggle('profile-banner--custom', Boolean(user.bannerImage));
@@ -4220,7 +4962,7 @@ function renderProfilePage() {
     if (currentUser && !viewingOwnProfile) {
         const primaryProfileAction = headerSection.querySelector('.profile-edit-btn');
         if (primaryProfileAction) {
-            primaryProfileAction.textContent = 'Profilime Dön';
+            primaryProfileAction.textContent = 'Profilime Don';
         }
     }
 
@@ -4548,14 +5290,14 @@ function syncEditProfileMediaPreviews() {
     setEditProfilePreview(
         'editAvatarPreviewImage',
         currentUser.avatarImage || '',
-        'Henüz avatar resmi seçilmedi.',
+        'HenÃ¼z avatar resmi seÃ§ilmedi.',
         avatarFallback || '',
         avatarInitial
     );
     setEditProfilePreview(
         'editBannerPreviewImage',
         currentUser.bannerImage || '',
-        'Henüz banner resmi seçilmedi.',
+        'HenÃ¼z banner resmi seÃ§ilmedi.',
         'linear-gradient(135deg, rgba(45, 90, 67, 0.75), rgba(15, 23, 19, 0.95))'
     );
 }
@@ -4572,13 +5314,13 @@ async function handleEditProfileImageChange(event) {
     try {
         const imageData = await convertImageFileToBase64(file);
         if (input.id === 'editAvatarImage') {
-            setEditProfilePreview('editAvatarPreviewImage', imageData, 'Henüz avatar resmi seçilmedi.');
+            setEditProfilePreview('editAvatarPreviewImage', imageData, 'HenÃ¼z avatar resmi seÃ§ilmedi.');
         } else if (input.id === 'editBannerImage') {
-            setEditProfilePreview('editBannerPreviewImage', imageData, 'Henüz banner resmi seçilmedi.');
+            setEditProfilePreview('editBannerPreviewImage', imageData, 'HenÃ¼z banner resmi seÃ§ilmedi.');
         }
     } catch (error) {
         console.error('Edit profile preview error:', error);
-        showToast('Resim önizlemesi oluşturulamadı', 'error');
+        showToast('Resim Ã¶nizlemesi oluÅŸturulamadÄ±', 'error');
         syncEditProfileMediaPreviews();
     }
 }
@@ -4630,8 +5372,8 @@ const RAWG_BASE_URL = 'https://api.rawg.io/api';
 // API anahtarı almak için: https://isthereanydeal.com/dev/app/
 const ITAD_BASE = 'https://api.isthereanydeal.com';
 const ITAD_SHOP_ICONS = {
-    'Steam': '🎮', 'GOG': '🛒', 'Epic Game Store': '⚡',
-    'Humble Store': '🎁', 'Humble Bundle': '🎁', 'IndieGala': '🕹️',
+    'Steam': '🎮', 'GOG': '🔮', 'Epic Game Store': '⚡',
+    'Humble Store': '💚', 'Humble Bundle': '💚', 'IndieGala': '🎁',
 };
 // Görüntülenecek isim düzeltmeleri (API adı → kullanıcıya gösterilen ad)
 const ITAD_SHOP_NAME_MAP = {
@@ -4811,12 +5553,94 @@ async function fetchGamePrices(gameTitle, rawgId) {
     }
 }
 
+// ── IsThereAnyDeal: fiyat bölümünü render et ──
+function renderITADPricesSection(result) {
+    const container = document.getElementById('itadPricesSection');
+    if (!container) return;
+
+    const searchUrl = result?.slug
+        ? `https://isthereanydeal.com/game/${result.slug}/info/`
+        : `https://isthereanydeal.com/search/?q=${encodeURIComponent(result?.title || '')}`;
+
+    if (!result?.deals?.length) {
+        container.innerHTML = `
+            <p class="itad-empty">Bu oyun için şu an aktif fırsat bulunamadı.</p>
+            <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-see-more">
+                IsThereAnyDeal'da kontrol et →
+            </a>
+        `;
+        return;
+    }
+
+    // Para birimi formatlayıcı: TRY → ₺12.345,00 | USD → $12.34 | EUR → €12.34
+    const formatCurrency = (amount, currency) => {
+        try {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: 2 }).format(amount);
+        } catch {
+            return `${currency || '$'} ${amount.toFixed(2)}`;
+        }
+    };
+
+    const historyLowHtml = result.historyLow?.amount != null
+        ? `<div class="itad-history-low">Tüm zamanların en düşüğü: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
+        : '';
+
+    // Türkiye'de popüler mağazaları filtrele, indirim oranına göre sırala, en fazla 8 göster
+    const sortedDeals = [...result.deals]
+        .filter(deal => TR_POPULAR_SHOPS.has(deal.shop?.name))
+        .sort((a, b) => (b.cut || 0) - (a.cut || 0))
+        .slice(0, 8);
+
+    const dealsHtml = sortedDeals.map(deal => {
+        const shopNameRaw = deal.shop?.name || 'Mağaza';
+        const shopName = ITAD_SHOP_NAME_MAP[shopNameRaw] || shopNameRaw;
+        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || '🏪';
+        const cut = deal.cut || 0;
+        const isDiscounted = cut > 0;
+        const priceCur = deal.price?.currency || 'USD';
+        const currentPrice = deal.price?.amount != null ? formatCurrency(deal.price.amount, priceCur) : '?';
+        const regularPrice = deal.regular?.amount != null ? formatCurrency(deal.regular.amount, priceCur) : null;
+        const buyUrl = deal.url || searchUrl;
+
+        const regularHtml = isDiscounted && regularPrice
+            ? `<span class="itad-regular-price">${regularPrice}</span>`
+            : '';
+        const badgeHtml = isDiscounted
+            ? `<span class="itad-deal-badge">-%${cut}</span>`
+            : '';
+        const voucherHtml = deal.voucher
+            ? `<span class="itad-voucher" title="Kupon: ${escapeHtml(deal.voucher)}">🎟️</span>`
+            : '';
+        return `
+            <a href="${escapeHtml(buyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-deal-card${isDiscounted ? ' is-sale' : ''}">
+                <span class="itad-shop-name">${shopIcon} ${escapeHtml(shopName)} ${voucherHtml}</span>
+                <span class="itad-price-row">
+                    ${regularHtml}
+                    <span class="itad-current-price">${currentPrice}</span>
+                    ${badgeHtml}
+                </span>
+            </a>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        ${historyLowHtml}
+        <div class="itad-deals-grid">${dealsHtml}</div>
+        <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-see-more">
+            IsThereAnyDeal'da tüm fiyatları gör →
+        </a>
+    `;
+}
+
+// ── Shared Game Validity Check ──
 function isValidGameForDisplay(g) {
     if (!g.background_image) return false;
 
+    // Oyunun hesaplanan puanı
     const score = g.metacritic || Math.round((g.rating || 0) * 20);
     if (score === 0) return false;
 
+    // Gelişmiş filtrelerde puan aralığı varsa her yerde (sonsuz kaydırmada bile) süz
     const hasRatingFilter = advFilters?.minRating > 0 || advFilters?.maxRating > 0;
     if (hasRatingFilter) {
         const effectiveMin = advFilters.minRating > 0 ? advFilters.minRating : 0;
@@ -4827,30 +5651,33 @@ function isValidGameForDisplay(g) {
     return true;
 }
 
+// ── Map RAWG API response to internal game format ──
 function mapRawgGame(rawgGame) {
     const releaseDate = rawgGame.released || '';
     const releaseYear = releaseDate ? parseInt(releaseDate.split('-')[0]) : 0;
     const platforms = (rawgGame.platforms || []).map(p => p.platform.name);
     const genres = (rawgGame.genres || []).map(g => g.name);
     const rating = rawgGame.metacritic || Math.round((rawgGame.rating || 0) * 20);
+
+    // Parent platform names for a cleaner display
     const parentPlatforms = (rawgGame.parent_platforms || []).map(p => p.platform.name);
 
     return {
         id: String(rawgGame.id),
         rawgId: rawgGame.id,
         title: rawgGame.name || 'Bilinmeyen',
-        developer: '',
-        publisher: '',
-        releaseYear,
+        developer: '', // Will be fetched on detail view
+        publisher: '', // Will be fetched on detail view
+        releaseYear: releaseYear,
         released: releaseDate,
-        rating,
+        rating: rating,
         rawRating: rawgGame.rating || 0,
         ratingTop: rawgGame.rating_top || 5,
         ratingsCount: rawgGame.ratings_count || 0,
         coverUrl: rawgGame.background_image || '',
         backgroundUrl: rawgGame.background_image || '',
-        description: '',
-        genres,
+        description: '', // Will be fetched on detail view
+        genres: genres,
         platforms: parentPlatforms.length > 0 ? parentPlatforms : platforms,
         allPlatforms: platforms,
         metacritic: rawgGame.metacritic || null,
@@ -4863,6 +5690,7 @@ function mapRawgGame(rawgGame) {
     };
 }
 
+// ── Helper: Auto-fetch API pages until enough games pass local filters ──
 async function fetchAndFilterGames(initialUrl, requestTrackerId, minValid = 12, maxPages = 5) {
     let currentUrl = initialUrl;
     let fetchCount = 0;
@@ -4871,8 +5699,8 @@ async function fetchAndFilterGames(initialUrl, requestTrackerId, minValid = 12, 
     while (currentUrl && fetchCount < maxPages && validGames.length < minValid) {
         fetchCount++;
         const response = await fetch(currentUrl, { signal: gamesAbortController.signal });
-        if (!response.ok) throw new Error(`API Hatasi: ${response.status}`);
-        if (requestTrackerId !== gamesRequestId) return null;
+        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
+        if (requestTrackerId !== gamesRequestId) return null; // Aborted/Stale request
 
         const data = await response.json();
         currentUrl = data.next;
@@ -4960,7 +5788,7 @@ async function searchRawgGamesProgressive(query, options = {}) {
 
     while (currentUrl) {
         const response = await fetch(currentUrl, signal ? { signal } : undefined);
-        if (!response.ok) throw new Error(`API Hatası: ${response.status}`);
+        if (!response.ok) throw new Error(`API HatasÄ±: ${response.status}`);
 
         const data = await response.json();
         currentUrl = data.next;
@@ -5061,6 +5889,352 @@ async function loadGames(append = false) {
     }
 }
 
+function splitGameTitleForHero(title) {
+    const words = String(title || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 1) return [title || '', ''];
+    const splitIndex = Math.ceil(words.length / 2);
+    return [
+        words.slice(0, splitIndex).join(' '),
+        words.slice(splitIndex).join(' ')
+    ];
+}
+
+function formatCompactNumber(value) {
+    if (value == null || Number.isNaN(Number(value))) return '-';
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value));
+}
+
+function parseRequirementText(text) {
+    if (!text) return [];
+    return String(text)
+        .replace(/\r/g, '\n')
+        .split(/\n+/)
+        .map(line => line.replace(/\t/g, ' ').trim())
+        .filter(Boolean)
+        .map(line => line.replace(/^[-*]\s*/, ''))
+        .map(line => {
+            const match = line.match(/^([^:]{2,40}):\s*(.+)$/);
+            if (!match) return null;
+            return {
+                label: match[1].trim(),
+                value: match[2].trim()
+            };
+        })
+        .filter(Boolean);
+}
+
+function renderRequirementCard(title, variant, text, fallbackText) {
+    const items = parseRequirementText(text);
+    if (!text && !fallbackText) {
+        return `
+            <div class="gd-spec-card gd-spec-card--${variant}">
+                <div class="gd-spec-card-title">${title}</div>
+                <div class="gd-spec-empty">RAWG tarafinda bu katman icin veri bulunamadi.</div>
+            </div>
+        `;
+    }
+
+    if (!items.length) {
+        return `
+            <div class="gd-spec-card gd-spec-card--${variant}">
+                <div class="gd-spec-card-title">${title}</div>
+                <pre class="sysreq-text">${escapeHtml(text || fallbackText)}</pre>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="gd-spec-card gd-spec-card--${variant}">
+            <div class="gd-spec-card-title">${title}</div>
+            <div class="gd-spec-list">
+                ${items.map(item => `
+                    <div class="gd-spec-row">
+                        <span>${escapeHtml(item.label)}</span>
+                        <strong>${escapeHtml(item.value)}</strong>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderSystemRequirementCards(requirements) {
+    if (!requirements || requirements.length === 0) {
+        return `
+            <div class="gd-spec-duo">
+                <div class="gd-spec-card gd-spec-card--minimum">
+                    <div class="gd-spec-card-title">Minimum Tiers</div>
+                    <div class="gd-spec-empty">RAWG bu oyun icin sistem gereksinimi donmuyor.</div>
+                </div>
+                <div class="gd-spec-card gd-spec-card--recommended">
+                    <div class="gd-spec-card-title">Ultimate Spec</div>
+                    <div class="gd-spec-empty">Detay geldikce burada onerilen donanim gorunecek.</div>
+                </div>
+            </div>
+        `;
+    }
+
+    const primary = requirements.find(req => /pc|windows/i.test(req.platform)) || requirements[0];
+    const platformLabel = primary.platform ? `<div class="gd-spec-platform">${escapeHtml(primary.platform)}</div>` : '';
+
+    return `
+        <div class="gd-spec-stack">
+            ${platformLabel}
+            <div class="gd-spec-duo">
+                ${renderRequirementCard('Minimum Tiers', 'minimum', primary.minimum, primary.minimum || primary.recommended)}
+                ${renderRequirementCard('Ultimate Spec', 'recommended', primary.recommended, primary.recommended || primary.minimum)}
+            </div>
+        </div>
+    `;
+}
+
+function renderITADPricesSection(result) {
+    const container = document.getElementById('itadPricesSection');
+    if (!container) return;
+
+    const searchUrl = result?.slug
+        ? `https://isthereanydeal.com/game/${result.slug}/info/`
+        : `https://isthereanydeal.com/search/?q=${encodeURIComponent(result?.title || '')}`;
+
+    const formatCurrency = (amount, currency) => {
+        try {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: 2 }).format(amount);
+        } catch {
+            return `${currency || '$'} ${amount.toFixed(2)}`;
+        }
+    };
+
+    if (!result?.deals?.length) {
+        container.innerHTML = `
+            <div class="itad-offer-card itad-offer-card--empty">
+                <div class="itad-offer-label">ITAD live price</div>
+                <div class="itad-offer-empty">Bu oyun icin su an aktif teklif bulunamadi.</div>
+                <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
+                    ITAD'da kontrol et
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    const sortedDeals = [...result.deals]
+        .filter(deal => TR_POPULAR_SHOPS.has(deal.shop?.name))
+        .sort((a, b) => (b.cut || 0) - (a.cut || 0))
+        .slice(0, 8);
+    const dealsToShow = sortedDeals.length > 0 ? sortedDeals : [...result.deals].slice(0, 8);
+    const featuredDeal = [...dealsToShow].sort((a, b) => {
+        const aAmount = a.price?.amount ?? Number.MAX_SAFE_INTEGER;
+        const bAmount = b.price?.amount ?? Number.MAX_SAFE_INTEGER;
+        return aAmount - bAmount;
+    })[0];
+
+    const dealsHtml = dealsToShow.map(deal => {
+        const shopNameRaw = deal.shop?.name || 'Magaza';
+        const shopName = ITAD_SHOP_NAME_MAP[shopNameRaw] || shopNameRaw;
+        const shopIcon = ITAD_SHOP_ICONS[shopNameRaw] || 'Store';
+        const cut = deal.cut || 0;
+        const isDiscounted = cut > 0;
+        const priceCur = deal.price?.currency || 'USD';
+        const currentPrice = deal.price?.amount != null ? formatCurrency(deal.price.amount, priceCur) : '?';
+        const regularPrice = deal.regular?.amount != null ? formatCurrency(deal.regular.amount, priceCur) : null;
+        const buyUrl = deal.url || searchUrl;
+
+        return `
+            <a href="${escapeHtml(buyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-deal-card${isDiscounted ? ' is-sale' : ''}">
+                <span class="itad-shop-name">${escapeHtml(shopIcon)} ${escapeHtml(shopName)}</span>
+                <span class="itad-price-row">
+                    ${isDiscounted && regularPrice ? `<span class="itad-regular-price">${regularPrice}</span>` : ''}
+                    <span class="itad-current-price">${currentPrice}</span>
+                    ${isDiscounted ? `<span class="itad-deal-badge">-%${cut}</span>` : ''}
+                </span>
+            </a>
+        `;
+    }).join('');
+
+    const featuredCurrent = featuredDeal?.price?.amount != null
+        ? formatCurrency(featuredDeal.price.amount, featuredDeal.price.currency)
+        : '?';
+    const featuredRegular = featuredDeal?.regular?.amount != null
+        ? formatCurrency(featuredDeal.regular.amount, featuredDeal.regular.currency)
+        : null;
+    const featuredCut = featuredDeal?.cut || 0;
+    const featuredBuyUrl = featuredDeal?.url || searchUrl;
+    const historyLowHtml = result.historyLow?.amount != null
+        ? `<div class="itad-history-low">Tum zamanlarin en dusugu: <strong>${formatCurrency(result.historyLow.amount, result.historyLow.currency)}</strong></div>`
+        : '';
+
+    container.innerHTML = `
+        <div class="itad-offer-card">
+            <div class="itad-offer-label">Best offer</div>
+            <div class="itad-offer-price-wrap">
+                <div class="itad-offer-price">${featuredCurrent}</div>
+                ${featuredRegular ? `<div class="itad-offer-regular">${featuredRegular}</div>` : ''}
+                ${featuredCut > 0 ? `<div class="itad-offer-discount">-%${featuredCut}</div>` : ''}
+            </div>
+            ${historyLowHtml}
+            <a href="${escapeHtml(featuredBuyUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
+                Satin al
+            </a>
+            <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-wishlist-btn">
+                Tum fiyatlari gor
+            </a>
+            <div class="itad-offer-meta">
+                <span>TR market scan</span>
+                <span>Digital delivery</span>
+            </div>
+        </div>
+        <div class="itad-deals-grid">${dealsHtml}</div>
+    `;
+}
+
+function renderGameDetailContentV2(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    const description = game.description || 'Aciklama yukleniyor...';
+    const developer = game.developer || 'Yukleniyor...';
+    const publisher = game.publisher || 'Yukleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+    const screenshots = (game.screenshots || []).slice(0, 3);
+    const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
+    const splitTitle = splitGameTitleForHero(game.title);
+    const statsRibbon = [
+        { label: 'Playtime', value: game.playtime || '-' },
+        { label: 'Active', value: game.added ? `${formatCompactNumber(game.added)}+` : '-' },
+        { label: 'Reviews', value: game.ratingsCount ? `${formatCompactNumber(game.ratingsCount)}+` : '-' }
+    ];
+
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="gd-hero-backdrop"></div>
+        <div class="gd-hero-orb gd-hero-orb--one"></div>
+        <div class="gd-hero-orb gd-hero-orb--two"></div>
+        <div class="game-detail-hero-content gd-cinematic-hero">
+            <div class="gd-hero-copy">
+                <div class="gd-hero-meta-strip">
+                    ${game.rating > 0 ? `<span class="gd-score-pill ${ratingClass}">${starSvg} ${game.rating}</span>` : ''}
+                    <span class="gd-meta-inline">Release Year: ${game.releaseYear || 'TBA'}</span>
+                    ${game.esrbRating ? `<span class="gd-meta-inline">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+                <h2 class="game-detail-title gd-cinematic-title">
+                    <span>${escapeHtml(splitTitle[0])}</span>
+                    ${splitTitle[1] ? `<span class="accent">${escapeHtml(splitTitle[1])}</span>` : ''}
+                </h2>
+                <div class="game-detail-genres gd-hero-tag-row">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+            </div>
+
+            <aside class="gd-hero-side">
+                <div class="gd-poster-card" ${game.screenshots && game.screenshots.length > 0 ? `onclick="openScreenshotLightbox('${escapeHtml(game.id)}')"` : ''}>
+                    <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
+                         onerror="this.style.background='var(--bg-elevated)'">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">${game.screenshots.length} shots</div>` : ''}
+                </div>
+                <div class="gd-hero-stats-card">
+                    ${statsRibbon.map(item => `
+                        <div class="gd-hero-stat">
+                            <span>${escapeHtml(item.label)}</span>
+                            <strong>${escapeHtml(item.value)}</strong>
+                        </div>
+                    `).join('')}
+                </div>
+            </aside>
+        </div>
+        <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alinmistir">RAWG.io</a>
+    `;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+        <div class="gd-detail-layout">
+            <section class="gd-section gd-section--about">
+                <div class="gd-section-title">
+                    <span></span>
+                    <h3>Game description</h3>
+                </div>
+                <div class="gd-about-grid">
+                    <div class="gd-about-main">
+                        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                            <div class="gd-desc-fade"></div>
+                            <div class="gd-desc-toggle">Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                        </div>
+                    </div>
+                    <aside class="gd-info-card">
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Developed by</div>
+                            <div class="gd-info-value gd-info-value--stack">
+                                ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Published by</div>
+                            <div class="gd-info-value gd-info-value--stack">
+                                ${(game.publisherData && game.publisherData.length > 0
+            ? game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="event.stopPropagation();openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('')
+            : `<span class="gd-creator-plain">${escapeHtml(publisher)}</span>`)}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">Platforms</div>
+                            <div class="gd-platforms">
+                                ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="gd-info-block">
+                            <div class="gd-info-label">RAWG stats</div>
+                            <div class="gd-rawg-stat-list">
+                                <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
+                                <div><span>User rating</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                                <div><span>Release</span><strong>${formattedReleaseDate}</strong></div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="gd-section gd-section--specs">
+                <div class="gd-specs-header">
+                    <div>
+                        <div class="gd-section-heading">Technical Specifications</div>
+                        <p>Donanim bilgileri RAWG uzerinden geliyor, fiyat taramasi ITAD ile ayrik tutuluyor.</p>
+                    </div>
+                </div>
+                <div class="gd-specs-layout">
+                    <div class="gd-specs-grid">
+                        ${renderSystemRequirementCards(game.systemRequirements)}
+                    </div>
+                    <aside class="gd-price-column">
+                        <div class="gd-price-card">
+                            <div class="gd-price-head">
+                                <strong>ITAD</strong>
+                            </div>
+                            <div id="itadPricesSection" class="itad-prices-section">
+                                <div class="itad-loading">
+                                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                                    <span>Fiyatlar yukleniyor...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </div>
+    `;
+}
+
+function toggleGameDesc() {
+    const box = document.getElementById('gdDescBox');
+    if (!box) return;
+    const isExpanded = box.classList.toggle('expanded');
+    const btn = box.querySelector('.gd-desc-toggle');
+    if (btn) btn.innerHTML = isExpanded
+        ? 'Kucult <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
+        : 'Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+}
+
+// ── Search Games from RAWG API ──
 async function searchGamesFromAPI(query) {
     // Abort any previous request
     if (gamesAbortController) gamesAbortController.abort();
@@ -5208,7 +6382,7 @@ function renderBrowserGameCard(game) {
             <div class="bgc-art">
                 <img src="${game.imageUrl}" alt="${escapeHtml(game.title)}"
                      style="width:100%;height:100%;object-fit:contain;padding:18%;filter:drop-shadow(0 12px 28px rgba(0,0,0,0.7));"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%230f1d17%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2240%22 x=%2250%22 y=%2255%22 text-anchor=%22middle%22%3EG%3C/text%3E%3C/svg%3E'">
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%230f1d17%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236baa75%22 font-size=%2240%22 x=%2250%22 y=%2255%22 text-anchor=%22middle%22%3E🎮%3C/text%3E%3C/svg%3E'">
             </div>
             <div class="bgc-overlay"></div>
             <div class="bgc-play-btn">
@@ -5615,6 +6789,343 @@ async function openGameDetail(gameId) {
 }
 
 // ── Render Game Detail Content ──
+function renderGameDetailContent(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+
+    // Hero section
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="game-detail-hero-content">
+            <div class="game-detail-cover-wrapper" onclick="openScreenshotLightbox('${escapeHtml(game.id)}')">
+                <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
+                     onerror="this.style.background='var(--bg-elevated)'">
+                ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">📷 ${game.screenshots.length}</div>` : ''}
+            </div>
+            <div class="game-detail-hero-info">
+                <div class="game-detail-genres">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+                <h2 class="game-detail-title">${escapeHtml(game.title)}</h2>
+                <div class="game-detail-hero-meta">
+                    <span class="game-detail-developer">${escapeHtml(game.developer || 'Yükleniyor...')}</span>
+                    <span class="game-detail-year-badge">${game.releaseYear || 'TBA'}</span>
+                    ${game.rating > 0 ? `
+                        <span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>
+                    ` : `
+                        <span class="game-detail-rating-large medium">⭐ Henüz Puanlanmadı</span>
+                    `}
+                    ${game.esrbRating ? `<span class="game-detail-esrb-badge">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+            </div>
+        </div>
+        <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="game-detail-rawg-watermark" title="Veriler RAWG Database'inden alınmıştır">RAWG.io</a>
+    `;
+
+    const description = game.description || 'Açıklama yükleniyor...';
+    const developer = game.developer || 'Yükleniyor...';
+    const publisher = game.publisher || 'Yükleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+
+        <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+            <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+            <div class="gd-desc-fade"></div>
+            <div class="gd-desc-toggle">Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+        </div>
+
+        <div class="gd-info-row">
+            <div class="gd-stats">
+                <div class="gd-stat gd-stat--metacritic">
+                    <div class="gd-stat-icon">🎯</div>
+                    <div class="gd-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
+                    <div class="gd-stat-label">Metacritic</div>
+                </div>
+                <div class="gd-stat gd-stat--user">
+                    <div class="gd-stat-icon">⭐</div>
+                    <div class="gd-stat-value">${game.rawRating ? game.rawRating.toFixed(1) : '—'}</div>
+                    <div class="gd-stat-label">Kullanıcı Puanı</div>
+                </div>
+                <div class="gd-stat gd-stat--year">
+                    <div class="gd-stat-icon">📅</div>
+                    <div class="gd-stat-value">${game.releaseYear || 'TBA'}</div>
+                    <div class="gd-stat-label">Çıkış Yılı</div>
+                </div>
+                <div class="gd-stat gd-stat--playtime">
+                    <div class="gd-stat-icon">⏱️</div>
+                    <div class="gd-stat-value">${game.playtime || '—'}</div>
+                    <div class="gd-stat-label">Ort. Oynama</div>
+                </div>
+            </div>
+
+            <div class="gd-meta-col">
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">🎮 Platformlar</div>
+                    <div class="gd-platforms">
+                        ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">🎯 Yapımcı & Yayıncı</div>
+                    <div class="gd-creators">
+                        ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`
+        )}
+                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
+            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : ''
+        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        ${game.tags && game.tags.length > 0 ? `
+            <div class="gd-tags-row">
+                <div class="gd-meta-label">🏷️ Etiketler</div>
+                <div class="gd-tags">
+                    ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                </div>
+            </div>
+        ` : ''}
+
+        ${game.systemRequirements && game.systemRequirements.length > 0 ? `
+        <div class="game-detail-sysreq">
+            <div class="gd-meta-label" style="margin-bottom: 12px;">💻 Sistem Gereksinimleri</div>
+            ${game.systemRequirements.map(req => `
+                <div class="sysreq-platform-block">
+                    ${game.systemRequirements.length > 1 ? `<div class="sysreq-platform-name">${escapeHtml(req.platform)}</div>` : ''}
+                    <div class="sysreq-columns">
+                        ${req.minimum ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-minimum">Minimum</div><pre class="sysreq-text">${escapeHtml(req.minimum)}</pre></div>` : ''}
+                        ${req.recommended ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-recommended">Önerilen</div><pre class="sysreq-text">${escapeHtml(req.recommended)}</pre></div>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}
+
+        <div class="itad-section">
+            <div class="gd-itad-header">
+                <span class="gd-meta-label">💰 Fırsat &amp; Fiyatlar</span>
+                <span class="itad-powered-by">IsThereAnyDeal</span>
+            </div>
+            <div id="itadPricesSection" class="itad-prices-section">
+                <div class="itad-loading">
+                    <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                    <span>Fiyatlar yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderGameDetailContentV2(game) {
+    const ratingClass = getRatingClass(game.rating);
+    const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    const description = game.description || 'Aciklama yukleniyor...';
+    const developer = game.developer || 'Yukleniyor...';
+    const publisher = game.publisher || 'Yukleniyor...';
+    const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
+    const heroBlurb = description.length > 220 ? `${description.slice(0, 220).trim()}...` : description;
+    const screenshots = (game.screenshots || []).slice(0, 3);
+
+    document.getElementById('gameDetailHero').innerHTML = `
+        <img src="${escapeHtml(game.backgroundUrl || game.coverUrl)}" alt="" class="game-detail-hero-bg"
+             onerror="this.style.background='var(--bg-elevated)'">
+        <div class="game-detail-hero-noise"></div>
+        <div class="game-detail-hero-content game-detail-hero-content--chaos">
+            <div class="gd-poster-column">
+                <div class="game-detail-cover-wrapper gd-cover-chaos" onclick="openScreenshotLightbox('${escapeHtml(game.id)}')">
+                    <img src="${escapeHtml(game.coverUrl)}" alt="${escapeHtml(game.title)}" class="game-detail-cover"
+                         onerror="this.style.background='var(--bg-elevated)'">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<div class="game-detail-cover-badge">Shots ${game.screenshots.length}</div>` : ''}
+                </div>
+                ${screenshots.length > 0 ? `
+                    <div class="gd-shot-strip">
+                        ${screenshots.map((shot, index) => `
+                            <button class="gd-shot-chip" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')" aria-label="Screenshot ${index + 1}">
+                                <img src="${escapeHtml(shot)}" alt="${escapeHtml(game.title)} screenshot ${index + 1}">
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            <div class="game-detail-hero-info gd-hero-card">
+                <div class="gd-hero-topline">
+                    <span class="gd-hero-kicker">Spotlight</span>
+                    <span class="gd-hero-release">${game.releaseYear || 'TBA'}</span>
+                </div>
+                <div class="game-detail-genres">
+                    ${game.genres.map(g => `<span class="game-detail-genre-tag">${escapeHtml(g)}</span>`).join('')}
+                </div>
+                <h2 class="game-detail-title">${escapeHtml(game.title)}</h2>
+                <p class="gd-hero-blurb">${escapeHtml(heroBlurb)}</p>
+                <div class="game-detail-hero-meta">
+                    <span class="game-detail-developer">${escapeHtml(developer)}</span>
+                    ${game.rating > 0 ? `
+                        <span class="game-detail-rating-large ${ratingClass}">${starSvg} ${game.rating}/100</span>
+                    ` : `
+                        <span class="game-detail-rating-large medium">Skor bekleniyor</span>
+                    `}
+                    ${game.esrbRating ? `<span class="game-detail-esrb-badge">${escapeHtml(game.esrbRating)}</span>` : ''}
+                </div>
+                <div class="gd-hero-stat-ribbon">
+                    <div class="gd-hero-stat">
+                        <strong>${game.rawRating ? game.rawRating.toFixed(1) : '—'}</strong>
+                        <span>Kullanici</span>
+                    </div>
+                    <div class="gd-hero-stat">
+                        <strong>${displayPlatforms.length || '—'}</strong>
+                        <span>Platform</span>
+                    </div>
+                    <div class="gd-hero-stat">
+                        <strong>${game.playtime || '—'}</strong>
+                        <span>Saat</span>
+                    </div>
+                </div>
+                <div class="gd-hero-actions">
+                    ${(game.screenshots && game.screenshots.length > 0) ? `<button class="gd-hero-action-btn" onclick="event.stopPropagation();openScreenshotLightbox('${escapeHtml(game.id)}')">Galeriyi Ac</button>` : ''}
+                    <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="gd-hero-action-btn gd-hero-action-btn--ghost">RAWG.io</a>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('gameDetailInfo').innerHTML = `
+        <div class="gd-chaos-layout">
+            <section class="gd-panel gd-panel--story">
+                <div class="gd-panel-head">
+                    <span>Hikaye Katmani</span>
+                    <strong>Oyunun Evreni</strong>
+                </div>
+                <div class="gd-desc-box" id="gdDescBox" onclick="toggleGameDesc()">
+                    <p class="gd-desc-text" id="gdDescText">${escapeHtml(description)}</p>
+                    <div class="gd-desc-fade"></div>
+                    <div class="gd-desc-toggle">Devamini Gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
+                </div>
+            </section>
+
+            <section class="gd-panel gd-panel--stats">
+                <div class="gd-panel-head">
+                    <span>Hizli Okuma</span>
+                    <strong>Temel Istatistikler</strong>
+                </div>
+                <div class="gd-stats">
+                    <div class="gd-stat gd-stat--metacritic">
+                        <div class="gd-stat-icon">M</div>
+                        <div class="gd-stat-value">${game.rating > 0 ? game.rating : '—'}</div>
+                        <div class="gd-stat-label">Metacritic</div>
+                    </div>
+                    <div class="gd-stat gd-stat--user">
+                        <div class="gd-stat-icon">U</div>
+                        <div class="gd-stat-value">${game.rawRating ? game.rawRating.toFixed(1) : '—'}</div>
+                        <div class="gd-stat-label">Kullanici</div>
+                    </div>
+                    <div class="gd-stat gd-stat--year">
+                        <div class="gd-stat-icon">Y</div>
+                        <div class="gd-stat-value">${game.releaseYear || 'TBA'}</div>
+                        <div class="gd-stat-label">Cikis</div>
+                    </div>
+                    <div class="gd-stat gd-stat--playtime">
+                        <div class="gd-stat-icon">S</div>
+                        <div class="gd-stat-value">${game.playtime || '—'}</div>
+                        <div class="gd-stat-label">Saat</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="gd-panel gd-panel--meta">
+                <div class="gd-panel-head">
+                    <span>Baglantilar</span>
+                    <strong>Platform ve Studyo</strong>
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">Platformlar</div>
+                    <div class="gd-platforms">
+                        ${displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="gd-meta-block">
+                    <div class="gd-meta-label">Yapimci ve Yayinci</div>
+                    <div class="gd-creators">
+                        ${(game.developerData && game.developerData.length > 0
+            ? game.developerData.map(d => `<button class="creator-link" onclick="openCreatorGames('${escapeHtml(d.name)}','${escapeHtml(d.slug)}','developer')">${escapeHtml(d.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : `<span class="gd-creator-plain">${escapeHtml(developer)}</span>`)}
+                        ${(game.publisherData && game.publisherData.length > 0 && publisher !== developer
+            ? '<span class="gd-dot">·</span>' + game.publisherData.map(p => `<button class="creator-link creator-link--publisher" onclick="openCreatorGames('${escapeHtml(p.name)}','${escapeHtml(p.slug)}','publisher')">${escapeHtml(p.name)}</button>`).join('<span class="gd-dot">·</span>')
+            : '')}
+                    </div>
+                </div>
+            </section>
+
+            ${game.tags && game.tags.length > 0 ? `
+                <section class="gd-panel gd-panel--tags">
+                    <div class="gd-panel-head">
+                        <span>Kesif Katmani</span>
+                        <strong>Etiket Bulutu</strong>
+                    </div>
+                    <div class="gd-tags">
+                        ${game.tags.map(t => `<span class="game-detail-tag">#${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            ${game.systemRequirements && game.systemRequirements.length > 0 ? `
+                <section class="gd-panel gd-panel--sysreq-wrap">
+                    <div class="gd-panel-head">
+                        <span>Donanim</span>
+                        <strong>Sistem Gereksinimleri</strong>
+                    </div>
+                    <div class="game-detail-sysreq">
+                        ${game.systemRequirements.map(req => `
+                            <div class="sysreq-platform-block">
+                                ${game.systemRequirements.length > 1 ? `<div class="sysreq-platform-name">${escapeHtml(req.platform)}</div>` : ''}
+                                <div class="sysreq-columns">
+                                    ${req.minimum ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-minimum">Minimum</div><pre class="sysreq-text">${escapeHtml(req.minimum)}</pre></div>` : ''}
+                                    ${req.recommended ? `<div class="sysreq-col"><div class="sysreq-col-title sysreq-recommended">Onerilen</div><pre class="sysreq-text">${escapeHtml(req.recommended)}</pre></div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            ` : ''}
+
+            <section class="gd-panel gd-panel--market">
+                <div class="gd-panel-head">
+                    <span>Pazar Taramasi</span>
+                    <strong>Firsat ve Fiyatlar</strong>
+                </div>
+                <div class="itad-section">
+                    <div class="gd-itad-header">
+                        <span class="gd-meta-label">Canli fiyat akisi</span>
+                        <span class="itad-powered-by">IsThereAnyDeal</span>
+                    </div>
+                    <div id="itadPricesSection" class="itad-prices-section">
+                        <div class="itad-loading">
+                            <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
+                            <span>Fiyatlar yukleniyor...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    `;
+}
+
+function toggleGameDesc() {
+    const box = document.getElementById('gdDescBox');
+    if (!box) return;
+    const isExpanded = box.classList.toggle('expanded');
+    const btn = box.querySelector('.gd-desc-toggle');
+    if (btn) btn.innerHTML = isExpanded
+        ? 'Küçült <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg>'
+        : 'Devamını Gör <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
+}
+
+// ── Creator Games Overlay ──
 async function openCreatorGames(name, slug, type) {
     const overlay = document.getElementById('creatorOverlay');
     const header = document.getElementById('creatorHeader');
@@ -5750,7 +7261,7 @@ function openNpeGameOverlay(context = 'post') {
     input.value = '';
     npeGameSearchResults = [];
     header.innerHTML = renderNpeGameOverlayHeader();
-    results.innerHTML = `<div class="creator-empty">Aramak için en az 2 karakter yaz.</div>`;
+    results.innerHTML = `<div class="creator-empty">Aramak icin en az 2 karakter yaz.</div>`;
 
     requestAnimationFrame(() => input.focus());
 }
@@ -5789,7 +7300,7 @@ function npeRenderGameOverlayResults(games, query, isLoading = false) {
                     <span>Oyunlar araniyor...</span>
                 </div>
             `
-            : `<div class="creator-empty">"${escapeHtml(query)}" için sonuç bulunamadı.</div>`;
+            : `<div class="creator-empty">"${escapeHtml(query)}" icin sonuc bulunamadi.</div>`;
         return;
     }
 
@@ -5797,7 +7308,7 @@ function npeRenderGameOverlayResults(games, query, isLoading = false) {
         ? `
             <div class="creator-loading npe-game-loading-more">
                 <div class="games-loading-spinner"></div>
-                <span>Daha fazla sonuç yükleniyor...</span>
+                <span>Daha fazla sonuc yukleniyor...</span>
             </div>
         `
         : '');
@@ -5817,7 +7328,7 @@ npeSearchGame = function (q) {
         npeGameSearchResults = [];
         results.scrollTop = 0;
         header.innerHTML = renderNpeGameOverlayHeader();
-        results.innerHTML = `<div class="creator-empty">Aramak için en az 2 karakter yaz.</div>`;
+        results.innerHTML = `<div class="creator-empty">Aramak icin en az 2 karakter yaz.</div>`;
         return;
     }
 
@@ -6136,7 +7647,7 @@ const renderRequirementCardLatest = (title, variant, text, fallbackText) => {
         return `
             <div class="gd-spec-card gd-spec-card--${variant}">
                 <div class="gd-spec-card-title">${title}</div>
-                <div class="gd-spec-empty">RAWG tarafında bu katman için veri bulunamadı.</div>
+                <div class="gd-spec-empty">RAWG tarafinda bu katman icin veri bulunamadi.</div>
             </div>
         `;
     }
@@ -6254,7 +7765,7 @@ renderITADPricesSection = function (result) {
         container.innerHTML = `
             <div class="itad-offer-card itad-offer-card--empty">
                 <div class="itad-offer-label">ITAD live price</div>
-                <div class="itad-offer-empty">Bu oyun için şu an aktif teklif bulunamadı.</div>
+                <div class="itad-offer-empty">Bu oyun icin su an aktif teklif bulunamadi.</div>
                 <a href="${escapeHtml(searchUrl)}" target="_blank" rel="noopener noreferrer" class="itad-buy-btn">
                     ITAD'da kontrol et
                 </a>
@@ -6334,7 +7845,7 @@ renderITADPricesSection = function (result) {
 renderGameDetailContentV2 = function (game) {
     const ratingClass = getRatingClass(game.rating);
     const starSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-    const description = game.description || 'Açıklama yükleniyor...';
+    const description = game.description || 'Aciklama yukleniyor...';
     const developer = game.developer || 'Bilinmiyor';
     const publisher = game.publisher || 'Bilinmiyor';
     const displayPlatforms = game.allPlatforms && game.allPlatforms.length > 0 ? game.allPlatforms : game.platforms;
@@ -6434,7 +7945,7 @@ renderGameDetailContentV2 = function (game) {
                 <div class="gd-platforms">
                     ${(displayPlatforms && displayPlatforms.length > 0)
             ? displayPlatforms.map(p => `<span class="gd-platform-chip">${escapeHtml(p)}</span>`).join('')
-            : '<span class="gd-platform-empty">Platform bilgisi bulunamadı.</span>'}
+            : '<span class="gd-platform-empty">Platform bilgisi bulunamadi.</span>'}
                 </div>
             </aside>
 
@@ -6445,7 +7956,7 @@ renderGameDetailContentV2 = function (game) {
                 </div>
                 <div class="gd-rawg-stat-list">
                     <div><span>Metacritic</span><strong>${game.rating > 0 ? game.rating : '-'}</strong></div>
-                    <div><span>Kullanıcı puanı</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
+                    <div><span>Kullanici puani</span><strong>${game.rawRating ? game.rawRating.toFixed(1) : '-'}</strong></div>
                     <div><span>Cikis tarihi</span><strong>${formattedReleaseDate}</strong></div>
                 </div>
             </aside>
@@ -6469,7 +7980,7 @@ renderGameDetailContentV2 = function (game) {
                     <div id="itadPricesSection" class="itad-prices-section">
                         <div class="itad-loading">
                             <div class="games-loading-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>
-                            <span>Fiyatlar yükleniyor...</span>
+                            <span>Fiyatlar yukleniyor...</span>
                         </div>
                     </div>
                 </div>
@@ -6490,6 +8001,4 @@ toggleGameDesc = function () {
         : 'Devamini gor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>';
     queueGameDetailMasonrySync();
 };
-
-
 
